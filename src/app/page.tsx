@@ -25,7 +25,7 @@ function Letter() {
         as I try to get more creative with my emotions towards you.
         <br />
         <br />
-        But for now, this is what I've come up with 💕 I hope you like It!
+        But for now, this is what I have come up with 💕 I hope you like it!
         <br />
         <br />
         ❤️
