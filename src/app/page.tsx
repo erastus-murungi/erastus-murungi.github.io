@@ -60,6 +60,17 @@ export default function Home() {
           <CarouselItem key={1}>
             <Letter />
           </CarouselItem>
+          <CarouselItem key={1}>
+            <div className="h-screen items-center justify-center inline-flex flex-col">
+              <Image
+                src={getImageUrl("chama.gif")}
+                alt="Chama"
+                width={600}
+                height={600}
+                className="border-black border-4 p-8"
+              />
+            </div>
+          </CarouselItem>
         </CarouselContent>
         <CarouselPrevious />
         <CarouselNext />
