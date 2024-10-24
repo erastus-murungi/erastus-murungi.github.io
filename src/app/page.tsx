@@ -1,7 +1,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { getImageUrl } from "../lib/image-utils";
-import { satisfy } from "../styles/fonts";
+import { satisfy, indie_flower } from "../styles/fonts";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
@@ -11,9 +11,11 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-function Letter() {
+function Letter0() {
   return (
-    <div className={`${satisfy.className} border-blue-300 border-4 p-8`}>
+    <div
+      className={`${satisfy.className} border-blue-300 border-4 p-8 items-center justify-center inline-flex flex-col`}
+    >
       <p className="text-4xl">
         Dear Pepi Pepi!
         <br />
@@ -29,6 +31,27 @@ function Letter() {
         <br />
         <br />
         ❤️
+      </p>
+    </div>
+  );
+}
+
+function Letter1() {
+  return (
+    <div
+      className={`${indie_flower.className} border-blue-900 border-4 p-8 items-center justify-center inline-flex flex-col`}
+    >
+      <p className="text-4xl">
+        Dear Pepi Pepi!
+        <br />
+        <br />
+        Sorry that we are having an eetsy bitsy "bad mood" moment right now.
+        And, we'll have many of them but I am sure we'll get through them all.
+        <br />
+        <br />
+        As long as we remember we got each other, we'll be fine.✌🏾
+        <br />
+        <br />I love you so much and I am so grateful to have you in my life. ❤️
       </p>
     </div>
   );
@@ -58,18 +81,51 @@ export default function Home() {
             </Card>
           </CarouselItem>
           <CarouselItem key={1}>
-            <Letter />
+            <Card>
+              <CardContent className="flex aspect-square items-center justify-center p-6">
+                <Letter0 />
+              </CardContent>
+            </Card>
           </CarouselItem>
-          <CarouselItem key={1}>
-            <div className="h-screen items-center justify-center inline-flex flex-col">
-              <Image
-                src={getImageUrl("chama.gif")}
-                alt="Chama"
-                width={600}
-                height={600}
-                className="border-black border-4 p-8"
-              />
-            </div>
+          <CarouselItem key={2}>
+            <Card>
+              <CardContent className="flex aspect-square items-center justify-center p-6">
+                <div className="h-screen items-center justify-center inline-flex flex-col">
+                  <h1 className="text-4xl font-bold text-center p-8">
+                    My view sometimes 👀
+                  </h1>
+                  <Image
+                    src={getImageUrl("pic1.jpg")}
+                    alt="Pepi"
+                    width={400}
+                    height={400}
+                    className="border-black border-4 p-8"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </CarouselItem>
+          <CarouselItem key={3}>
+            <Card>
+              <CardContent className="flex aspect-square items-center justify-center p-6">
+                <Letter1 />
+              </CardContent>
+            </Card>
+          </CarouselItem>
+          <CarouselItem key={4}>
+            <Card>
+              <CardContent className="flex aspect-square items-center justify-center p-6">
+                <div className="h-screen items-center justify-center inline-flex flex-col">
+                  <Image
+                    src={getImageUrl("chama.gif")}
+                    alt="Chama"
+                    width={600}
+                    height={600}
+                    className="border-black border-4 p-8"
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </CarouselItem>
         </CarouselContent>
         <CarouselPrevious />

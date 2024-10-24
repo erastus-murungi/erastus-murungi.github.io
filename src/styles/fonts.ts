@@ -1,4 +1,4 @@
-import { Lora, Satisfy } from "next/font/google";
+import { Lora, Satisfy, Indie_Flower } from "next/font/google";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -8,4 +8,9 @@ const satisfy = Satisfy({
   subsets: ["latin"],
 });
 
-export { lora, satisfy };
+const indie_flower = Indie_Flower({
+  weight: "400",
+  subsets: ["latin"],
+});
+
+export { lora, satisfy, indie_flower };
