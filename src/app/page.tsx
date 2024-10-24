@@ -42,14 +42,15 @@ function Letter1() {
       className={`${indie_flower.className} border-blue-900 border-4 p-8 items-center justify-center inline-flex flex-col`}
     >
       <p className="text-4xl">
-        Dear Pepi Pepi!
+        My love,
         <br />
         <br />
-        Sorry that we are having an eetsy bitsy "bad mood" moment right now.
-        And, we'll have many of them but I am sure we'll get through them all.
+        Sorry that we are having an eetsy bitsy &quot;bad mood&quot; moment
+        right now. And, we&apos;ll have many of them but I am sure we&apos;ll
+        get through them all.
         <br />
         <br />
-        As long as we remember we got each other, we'll be fine.✌🏾
+        As long as we remember we got each other, we&apos;ll be fine.✌🏾
         <br />
         <br />I love you so much and I am so grateful to have you in my life. ❤️
       </p>
