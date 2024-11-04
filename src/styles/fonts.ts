@@ -1,4 +1,4 @@
-import { Lora, Satisfy, Indie_Flower } from "next/font/google";
+import { Lora, Satisfy, Indie_Flower, Reenie_Beanie } from "next/font/google";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -13,4 +13,9 @@ const indie_flower = Indie_Flower({
   subsets: ["latin"],
 });
 
-export { lora, satisfy, indie_flower };
+const reenie_beanie = Reenie_Beanie({
+  weight: "400",
+  subsets: ["latin"],
+});
+
+export { lora, satisfy, indie_flower, reenie_beanie };

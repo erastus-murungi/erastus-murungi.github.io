@@ -1,7 +1,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { getImageUrl } from "../lib/image-utils";
-import { satisfy, indie_flower } from "../styles/fonts";
+import { satisfy, indie_flower, reenie_beanie } from "../styles/fonts";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
@@ -51,6 +51,37 @@ function Letter1() {
         <br />
         <br />
         As long as we remember we got each other, we&apos;ll be fine.✌🏾
+        <br />
+        <br />I love you so much and I am so grateful to have you in my life. ❤️
+      </p>
+    </div>
+  );
+}
+
+function Letter2() {
+  return (
+    <div
+      className={`${reenie_beanie.className} border-blue-900 border-4 p-8 items-center justify-center inline-flex flex-col`}
+    >
+      <div className="items-center inline-flex flex-row">
+        <Image
+          src={getImageUrl("penguin.jpg")}
+          alt="Pepi"
+          width={100}
+          height={100}
+          className="rotate-45 m-4"
+        />
+
+        <Image
+          src={getImageUrl("penguin.jpg")}
+          alt="Pepi"
+          width={100}
+          height={100}
+          className="-rotate-45"
+        />
+      </div>
+      <p className="text-2xl font-bold">
+        hey there, I hope you are having a great day.
         <br />
         <br />I love you so much and I am so grateful to have you in my life. ❤️
       </p>
@@ -114,6 +145,28 @@ export default function Home() {
             </Card>
           </CarouselItem>
           <CarouselItem key={4}>
+            <Card>
+              <CardContent className="flex aspect-square items-center justify-center p-6">
+                <div className="h-screen items-center justify-center inline-flex flex-col">
+                  <Image
+                    src={getImageUrl("pic3.jpg")}
+                    alt="Chama"
+                    width={600}
+                    height={600}
+                    className="border-black border-4 p-8"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </CarouselItem>
+          <CarouselItem key={5}>
+            <Card>
+              <CardContent className="flex aspect-square items-center justify-center p-6">
+                <Letter2 />
+              </CardContent>
+            </Card>
+          </CarouselItem>
+          <CarouselItem key={6}>
             <Card>
               <CardContent className="flex aspect-square items-center justify-center p-6">
                 <div className="h-screen items-center justify-center inline-flex flex-col">
