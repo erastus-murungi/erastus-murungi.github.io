@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import Image from "next/image";
 import { getImageUrl } from "../lib/image-utils";
@@ -10,6 +12,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { type CarouselApi } from "@/components/ui/carousel";
 
 function Letter0() {
   return (
@@ -90,9 +93,26 @@ function Letter2() {
 }
 
 export default function Home() {
+  const [api, setApi] = React.useState<CarouselApi>();
+  const [current, setCurrent] = React.useState(0);
+  const [count, setCount] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap() + 1);
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
+
   return (
-    <div className="flex justify-center items-center bg-contain">
-      <Carousel className="w-full max-w-xl">
+    <div className="flex justify-center items-center bg-contain flex-col">
+      <Carousel className="w-full max-w-xl" setApi={setApi}>
         <CarouselContent className="h-3/4">
           <CarouselItem key={0}>
             <Card>
@@ -184,6 +204,11 @@ export default function Home() {
         </CarouselContent>
         <CarouselPrevious />
         <CarouselNext />
+        <div
+          className={`${satisfy.className} py-2 text-center text-sm text-muted-foreground`}
+        >
+          Memory {current} of {count}
+        </div>
       </Carousel>
     </div>
   );
