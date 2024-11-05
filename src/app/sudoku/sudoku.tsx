@@ -84,8 +84,6 @@ export const ValueContent = styled.div<{
   hasError: boolean;
 }>`
   transition: all 0.5s;
-  width: 100%;
-  height: 100%;
   display: flex;
   color: ${({ isOriginal, hasError }) =>
     isOriginal ? "blue" : hasError ? "red" : "black"};
@@ -141,8 +139,6 @@ const OuterContainer = styled.div<{
     isSelectedBoardIndex,
   }) => ({
     position: "relative",
-    width: "50px",
-    height: "50px",
     borderRight: isThickRight
       ? `solid 4px #000`
       : isLastColumn
@@ -159,11 +155,6 @@ const OuterContainer = styled.div<{
     },
     "&:after": {
       content: '""',
-      position: "absolute",
-      width: "50px",
-      height: "50px",
-      left: 0,
-      top: 0,
       backgroundColor: isSelectedBoardIndex
         ? ""
         : isSelected
@@ -194,6 +185,7 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
 
   return (
     <OuterContainer
+      className="sm:w-14 sm:h-14 w-8 h-8 after:content-[] absolute"
       isSelected={isHighlighted()}
       isLastColumn={index === 8}
       isLastRow={rowIndex === 8}
@@ -233,7 +225,6 @@ export const Main = styled.div`
   flex-direction: column;
   background-color: ${({}) => `white`};
 
-  width: 460px;
   overflow: hidden;
   color: ${({}) => `black`};
 `;
@@ -293,7 +284,6 @@ export const Sudoku: React.FC<SudokuProps> = ({
     setSelectedBoardIndex(selectedBoardIndex);
   };
 
-  // @es-lint-disable-next-line react/display-name
   const buildRow = (rowIndex: number) =>
     function SudokuRow(value: Value, index: number) {
       const boardIndex = getBoardIndex(rowIndex, index);
@@ -381,7 +371,7 @@ export const Sudoku: React.FC<SudokuProps> = ({
   };
 
   return (
-    <div className="items-center justify-center inline-flex h-screen flex-row">
+    <div className="items-center justify-center inline-flex h-screen sm:flex-row flex-col">
       <Main className="border-4 border-black m-8">{board.map(buildBoard)}</Main>
       <ButtonBar onClick={handleButtonPress} />
     </div>

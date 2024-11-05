@@ -37,15 +37,20 @@ const StyledButtonBar = styled.div`
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(3, 1fr);
+  @media (max-width: 640px) {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+  }
 `;
 
 const NumPad: Row = ({ onClick }) => {
   return (
-    <StyledButtonBar>
+    <StyledButtonBar className="sm:flex sm:flex-row">
       {[...Array(9).keys()].map((value) => (
         <Button
           key={`numpad-key-${value + 1}`}
-          className="text-2xl w-16 h-16 hover:scale-110 hover:shadow-lg"
+          className="text-2xl w-10 h-10 hover:scale-110 hover:shadow-lg sm:w-16 sm:h-16 sm:text-xl"
           variant="secondary"
           onClick={() => onClick((value + 1) as ButtonValue)}
         >
@@ -58,7 +63,7 @@ const NumPad: Row = ({ onClick }) => {
 
 const ActionButtons: Row = ({ onClick }) => {
   return (
-    <div className="space-x-3 m-6 inline-flex flex-auto">
+    <div className="space-x-3 m-6 inline-flex">
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <div className="flex items-center space-x-2 flex-col hover:scale-110">
