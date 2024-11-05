@@ -371,9 +371,14 @@ export const Sudoku: React.FC<SudokuProps> = ({
   };
 
   return (
-    <div className="items-center justify-center inline-flex h-screen sm:flex-row flex-col">
-      <Main className="border-4 border-black m-8">{board.map(buildBoard)}</Main>
-      <ButtonBar onClick={handleButtonPress} />
+    <div>
+      <span className="text-3xl">🐧 Pepi Pepi&apos;s Sudoku 🐧</span>
+      <div className="items-center justify-center inline-flex sm:flex-row flex-col">
+        <Main className="border-4 border-black mt-2 mr-4">
+          {board.map(buildBoard)}
+        </Main>
+        <ButtonBar onClick={handleButtonPress} />
+      </div>
     </div>
   );
 };
