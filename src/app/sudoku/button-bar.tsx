@@ -41,10 +41,11 @@ const StyledButtonBar = styled.div`
 
 const NumPad: Row = ({ onClick }) => {
   return (
-    <StyledButtonBar className="">
+    <StyledButtonBar>
       {[...Array(9).keys()].map((value) => (
         <Button
-          className="text-2xl w-16 h-16"
+          key={`numpad-key-${value + 1}`}
+          className="text-2xl w-16 h-16 hover:scale-110 hover:shadow-lg"
           variant="secondary"
           onClick={() => onClick((value + 1) as ButtonValue)}
         >
@@ -60,7 +61,7 @@ const ActionButtons: Row = ({ onClick }) => {
     <div className="space-x-3 m-6 inline-flex flex-auto">
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <div className="flex items-center space-x-2 flex-col">
+          <div className="flex items-center space-x-2 flex-col hover:scale-110">
             <Button className="rounded-full w-16 h-16" variant="secondary">
               <CheckIcon />
             </Button>
@@ -83,7 +84,7 @@ const ActionButtons: Row = ({ onClick }) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex items-center space-x-2 flex-col">
+      <div className="flex items-center space-x-2 flex-col hover:scale-110">
         <Button
           className="rounded-full w-16 h-16"
           variant="secondary"
@@ -96,7 +97,7 @@ const ActionButtons: Row = ({ onClick }) => {
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <div className="flex items-center space-x-2 flex-col">
+          <div className="flex items-center space-x-2 flex-col hover:scale-110">
             <Button className="rounded-full w-16 h-16" variant="secondary">
               <ResetIcon />
             </Button>

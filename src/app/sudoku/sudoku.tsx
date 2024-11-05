@@ -43,7 +43,7 @@ export const NotesValue = styled.span<{ isOriginal: boolean }>`
   font-family: "Titillium Web", sans-serif;
   font-weight: bold;
   font-size: 15px;
-  color: ${({ isOriginal, theme }) => (isOriginal ? "#blue" : "#black")};
+  color: ${({ isOriginal }) => (isOriginal ? "#blue" : "#black")};
 `;
 
 export interface NotesProps {
@@ -51,7 +51,7 @@ export interface NotesProps {
   isOriginal: boolean;
 }
 
-const NotesWrapper: React.FC<NotesProps> = ({ values, isOriginal }) => (
+const NotesWrapper: React.FC<NotesProps> = ({ values }) => (
   <NotesStyledDiv>
     {values.map((val) => (
       <NotesValue isOriginal key={`note_${val}`}>
@@ -87,7 +87,7 @@ export const ValueContent = styled.div<{
   width: 100%;
   height: 100%;
   display: flex;
-  color: ${({ isOriginal, theme, hasError }) =>
+  color: ${({ isOriginal, hasError }) =>
     isOriginal ? "blue" : hasError ? "red" : "black"};
   font-weight: bold;
 `;
@@ -231,16 +231,16 @@ export const Main = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
-  background-color: ${({ theme }) => `white`};
+  background-color: ${({}) => `white`};
 
   width: 460px;
   overflow: hidden;
-  color: ${({ theme }) => `black`};
+  color: ${({}) => `black`};
 `;
 
 export const Board = styled.div`
   display: flex;
-  border-color: ${({ theme }) => `black`};
+  border-color: ${({}) => `black`};
   border-radius: 3px;
 `;
 
@@ -268,7 +268,7 @@ export const Sudoku: React.FC<SudokuProps> = ({
     const { values, board } = getBoard(difficulty);
     setValues(values);
     setBoard(board);
-  }, []);
+  }, [difficulty]);
 
   const getBoardIndex = (rowIndex: number, index: number) =>
     rowIndex * 9 + index;
@@ -293,30 +293,34 @@ export const Sudoku: React.FC<SudokuProps> = ({
     setSelectedBoardIndex(selectedBoardIndex);
   };
 
-  const buildRow = (rowIndex: number) => (value: Value, index: number) => {
-    const boardIndex = getBoardIndex(rowIndex, index);
-    const val = values[boardIndex];
+  // @es-lint-disable-next-line react/display-name
+  const buildRow = (rowIndex: number) =>
+    function SudokuRow(value: Value, index: number) {
+      const boardIndex = getBoardIndex(rowIndex, index);
+      const val = values[boardIndex];
 
-    return (
-      <SudokuSquare
-        key={`${difficulty}-${rowIndex}-${index}`}
-        value={val}
-        hasError={values[boardIndex]?.hasError}
-        initialValue={value}
-        answer={value.answer}
-        rowIndex={rowIndex}
-        boardIndex={boardIndex}
-        index={index}
-        hide={hide}
-        selectedIndex={selectedIndex}
-        selectedRowIndex={selectedRowIndex}
-        selectedBoardIndex={selectedBoardIndex}
-        setSelectedBoardIndices={setSelectedBoardIndices}
-        setValue={setValue}
-        notes={[]}
-      />
-    );
-  };
+      return (
+        <SudokuSquare
+          key={`${difficulty}-${rowIndex}-${index}`}
+          value={val}
+          hasError={values[boardIndex]?.hasError}
+          initialValue={value}
+          answer={value.answer}
+          rowIndex={rowIndex}
+          boardIndex={boardIndex}
+          index={index}
+          hide={hide}
+          selectedIndex={selectedIndex}
+          selectedRowIndex={selectedRowIndex}
+          selectedBoardIndex={selectedBoardIndex}
+          setSelectedBoardIndices={setSelectedBoardIndices}
+          setValue={setValue}
+          notes={[]}
+        />
+      );
+    };
+
+  buildRow.displayName = "buildRow";
 
   const buildBoard = (rowValues: Value[], rowIndex: number) => (
     <Board key={rowIndex}>{rowValues.map(buildRow(rowIndex))}</Board>
@@ -333,7 +337,7 @@ export const Sudoku: React.FC<SudokuProps> = ({
       if (value === "check") {
         // Check if the board is correct
         const isBoardCorrect = values.every(
-          (value, index) => value.answer === value.value
+          (value) => value.answer === value.value
         );
         console.log("yay", isBoardCorrect);
         // set the board to correct
@@ -383,3 +387,5 @@ export const Sudoku: React.FC<SudokuProps> = ({
     </div>
   );
 };
+
+Sudoku.displayName = "Sudoku";

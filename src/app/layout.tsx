@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
-import { Open_Sans, Lora } from "next/font/google";
+import { Lora } from "next/font/google";
 import "./globals.css";
-
-const open_sans = Open_Sans({
-  weight: "400",
-  subsets: ["latin"],
-});
 
 const lora = Lora({
   weight: "600",

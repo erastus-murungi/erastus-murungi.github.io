@@ -4,7 +4,6 @@ import * as React from "react";
 import Image from "next/image";
 import { getImageUrl } from "../lib/image-utils";
 import { satisfy, indie_flower, reenie_beanie } from "../styles/fonts";
-import { Card, CardContent } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import {
   Carousel,
@@ -14,19 +13,9 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { type CarouselApi } from "@/components/ui/carousel";
-import { getSudoku } from "sudoku-gen";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Sudoku } from "./sudoku/sudoku";
-import type { Difficulty } from "sudoku-gen/dist/types/difficulty.type";
-import { ButtonBar } from "./sudoku/button-bar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SudokuApp from "./sudoku/index";
 
 function Letter0() {
   return (
@@ -106,168 +95,145 @@ function Letter2() {
   );
 }
 
-// export default function Home() {
-//   const [api, setApi] = React.useState<CarouselApi>();
-//   const [current, setCurrent] = React.useState(0);
-//   const [count, setCount] = React.useState(0);
+function MemoriesCarousel() {
+  const [api, setApi] = React.useState<CarouselApi>();
+  const [current, setCurrent] = React.useState(0);
+  const [count, setCount] = React.useState(0);
 
-//   React.useEffect(() => {
-//     if (!api) {
-//       return;
-//     }
+  React.useEffect(() => {
+    if (!api) {
+      return;
+    }
 
-//     setCount(api.scrollSnapList().length);
-//     setCurrent(api.selectedScrollSnap() + 1);
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap() + 1);
 
-//     api.on("select", () => {
-//       setCurrent(api.selectedScrollSnap() + 1);
-//     });
-//   }, [api]);
-
-//   return (
-//     <AspectRatio ratio={16 / 9}>
-//       <div className="flex justify-center items-center bg-contain flex-col">
-//         <Carousel className="w-full max-w-xl" setApi={setApi}>
-//           <CarouselContent className="h-3/4">
-//             <CarouselItem key={0}>
-//               <Card>
-//                 <CardContent className="flex aspect-square items-center justify-center p-6">
-//                   <div className="h-screen items-center justify-center inline-flex flex-col">
-//                     <h1 className="text-4xl font-bold text-center p-8">
-//                       Follow the ducks to the next page 🐣 🐣 🐣 👉🏾
-//                     </h1>
-//                     <Image
-//                       src={getImageUrl("pic.jpg")}
-//                       alt="Pepi"
-//                       width={400}
-//                       height={400}
-//                       className="border-black border-4 p-8"
-//                     />
-//                   </div>
-//                 </CardContent>
-//               </Card>
-//             </CarouselItem>
-//             <CarouselItem key={1}>
-//               <Card>
-//                 <CardContent className="flex aspect-square items-center justify-center p-6">
-//                   <Letter0 />
-//                 </CardContent>
-//               </Card>
-//             </CarouselItem>
-//             <CarouselItem key={2}>
-//               <Card>
-//                 <CardContent className="flex aspect-square items-center justify-center p-6">
-//                   <div className="h-screen items-center justify-center inline-flex flex-col">
-//                     <h1 className="text-4xl font-bold text-center p-8">
-//                       My view sometimes 👀
-//                     </h1>
-//                     <Image
-//                       src={getImageUrl("pic1.jpg")}
-//                       alt="Pepi"
-//                       width={400}
-//                       height={400}
-//                       className="border-black border-4 p-8"
-//                     />
-//                   </div>
-//                 </CardContent>
-//               </Card>
-//             </CarouselItem>
-//             <CarouselItem key={3}>
-//               <Card>
-//                 <CardContent className="flex aspect-square items-center justify-center p-6">
-//                   <Letter1 />
-//                 </CardContent>
-//               </Card>
-//             </CarouselItem>
-//             <CarouselItem key={4}>
-//               <Card>
-//                 <CardContent className="flex aspect-square items-center justify-center p-6">
-//                   <div className="h-screen items-center justify-center inline-flex flex-col">
-//                     <Image
-//                       src={getImageUrl("pic3.jpg")}
-//                       alt="Chama"
-//                       width={600}
-//                       height={600}
-//                       className="border-black border-4 p-8"
-//                     />
-//                   </div>
-//                 </CardContent>
-//               </Card>
-//             </CarouselItem>
-//             <CarouselItem key={5}>
-//               <Card>
-//                 <CardContent className="flex aspect-square items-center justify-center p-6">
-//                   <Letter2 />
-//                 </CardContent>
-//               </Card>
-//             </CarouselItem>
-//             <CarouselItem key={6}>
-//               <Card>
-//                 <CardContent className="flex aspect-square items-center justify-center p-6">
-//                   <div className="h-screen items-center justify-center inline-flex flex-col">
-//                     <Image
-//                       src={getImageUrl("chama.gif")}
-//                       alt="Chama"
-//                       width={600}
-//                       height={600}
-//                       className="border-black border-4 p-8"
-//                     />
-//                   </div>
-//                 </CardContent>
-//               </Card>
-//             </CarouselItem>
-//           </CarouselContent>
-//           <CarouselPrevious />
-//           <CarouselNext />
-//           <div
-//             className={`${satisfy.className} py-2 text-center text-sm text-muted-foreground`}
-//           >
-//             Memory {current} of {count}
-//           </div>
-//         </Carousel>
-//       </div>
-//     </AspectRatio>
-//   );
-// }
-
-export default function Home() {
-  const difficulties = React.useRef<Difficulty[]>([
-    "easy",
-    "medium",
-    "hard",
-    "expert",
-  ]);
-  const [selectedDifficulty, setSelectedDifficulty] =
-    React.useState<Difficulty>("easy");
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
 
   return (
-    <div className="items-center justify-center inline-flex flex-col">
-      <Select
-        onValueChange={(value) => setSelectedDifficulty(value as Difficulty)}
-      >
-        <SelectTrigger className={`w-[150px]`}>
-          <SelectValue placeholder="Select Difficulty" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectLabel>Select Difficulty</SelectLabel>
-            {difficulties.current.map((difficulty) => (
-              <SelectItem
-                className={`w-[150px]`}
-                key={difficulty}
-                value={difficulty}
-              >
-                {difficulty}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-      <Sudoku
-        difficulty={selectedDifficulty}
-        onComplete={() => {}}
-        hide={false}
-      />
+    <AspectRatio ratio={16 / 9}>
+      <div className="flex justify-center items-center bg-contain flex-col">
+        <Carousel className="w-full max-w-xl" setApi={setApi}>
+          <CarouselContent className="h-3/4">
+            <CarouselItem key={0}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <div className="h-screen items-center justify-center inline-flex flex-col">
+                    <h1 className="text-4xl font-bold text-center p-8">
+                      Follow the ducks to the next page 🐣 🐣 🐣 👉🏾
+                    </h1>
+                    <Image
+                      src={getImageUrl("pic.jpg")}
+                      alt="Pepi"
+                      width={400}
+                      height={400}
+                      className="border-black border-4 p-8"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem key={1}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <Letter0 />
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem key={2}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <div className="h-screen items-center justify-center inline-flex flex-col">
+                    <h1 className="text-4xl font-bold text-center p-8">
+                      My view sometimes 👀
+                    </h1>
+                    <Image
+                      src={getImageUrl("pic1.jpg")}
+                      alt="Pepi"
+                      width={400}
+                      height={400}
+                      className="border-black border-4 p-8"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem key={3}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <Letter1 />
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem key={4}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <div className="h-screen items-center justify-center inline-flex flex-col">
+                    <Image
+                      src={getImageUrl("pic3.jpg")}
+                      alt="Chama"
+                      width={600}
+                      height={600}
+                      className="border-black border-4 p-8"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem key={5}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <Letter2 />
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem key={6}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <div className="h-screen items-center justify-center inline-flex flex-col">
+                    <Image
+                      src={getImageUrl("chama.gif")}
+                      alt="Chama"
+                      width={600}
+                      height={600}
+                      className="border-black border-4 p-8"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+          <div
+            className={`${satisfy.className} py-2 text-center text-sm text-muted-foreground`}
+          >
+            Memory {current} of {count}
+          </div>
+        </Carousel>
+      </div>
+    </AspectRatio>
+  );
+}
+
+export default function Home() {
+  return (
+    <div className="flex justify-center items-center bg-contain flex-col">
+      <Tabs defaultValue="account" className="w-[400px]">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="carousel">Carousel</TabsTrigger>
+          <TabsTrigger value="sudoku">Sudoku</TabsTrigger>
+        </TabsList>
+        <TabsContent value="carousel">
+          <MemoriesCarousel />
+        </TabsContent>
+        <TabsContent value="sudoku">
+          <SudokuApp />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
