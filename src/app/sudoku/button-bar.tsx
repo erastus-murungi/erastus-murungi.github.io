@@ -127,6 +127,7 @@ const ActionButtons: Row = ({ onClick }) => {
     </div>
   );
 };
+
 export const ButtonBar: Row = ({ onClick }) => {
   return (
     <div className="items-center justify-center">

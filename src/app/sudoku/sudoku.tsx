@@ -6,6 +6,18 @@ import { lora } from "@/styles/fonts";
 import { type Difficulty } from "sudoku-gen/dist/types/difficulty.type";
 import { ButtonBar, type ButtonValue } from "./button-bar";
 import { getSudoku } from "sudoku-gen";
+import { PauseIcon, PlayIcon } from "@radix-ui/react-icons";
+import { useStopwatch } from "react-timer-hook";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Maybe<T> = T | null | undefined;
 
@@ -236,15 +248,11 @@ export const Board = styled.div`
 `;
 
 export interface SudokuProps {
-  difficulty: Difficulty;
   onComplete: () => void;
   hide: boolean;
 }
 
-export const Sudoku: React.FC<SudokuProps> = ({
-  hide,
-  difficulty = "easy",
-}) => {
+export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   const [values, setValues] = React.useState<Value[]>([]);
   const [selectedBoardIndex, setSelectedBoardIndex] = React.useState<
     number | null
@@ -254,6 +262,17 @@ export const Sudoku: React.FC<SudokuProps> = ({
     null
   );
   const [board, setBoard] = React.useState<Value[][]>([]);
+  const difficulties = React.useRef<Difficulty[]>([
+    "easy",
+    "medium",
+    "hard",
+    "expert",
+  ]);
+  const [difficulty, setDifficulty] = React.useState<Difficulty>("easy");
+  const { seconds, minutes, hours, isRunning, pause, start, reset } =
+    useStopwatch({
+      autoStart: true,
+    });
 
   React.useEffect(() => {
     const { values, board } = getBoard(difficulty);
@@ -320,6 +339,7 @@ export const Sudoku: React.FC<SudokuProps> = ({
     const { values, board } = getBoard(difficulty);
     setValues(values);
     setBoard(board);
+    reset();
   };
 
   const handleButtonPress = (value: ButtonValue) => {
@@ -373,12 +393,51 @@ export const Sudoku: React.FC<SudokuProps> = ({
   return (
     <div>
       <span className="text-3xl">🐧 Pepi Pepi&apos;s Sudoku 🐧</span>
+      <div className="items-center justify-center">
+        <div className="flex flex-row justify-between">
+          <div className="inline-flex flex-row justify-end items-center space-x-2">
+            <h1>
+              {hours} : {minutes.toString().padStart(2, "0")} :{" "}
+              {seconds.toString().padStart(2, "0")}
+            </h1>
+            <Button
+              className="rounded-full w-8 h-8"
+              variant="secondary"
+              onClick={isRunning ? pause : start}
+            >
+              {isRunning ? <PauseIcon /> : <PlayIcon />}
+            </Button>
+          </div>
+          <Select onValueChange={(value) => setDifficulty(value as Difficulty)}>
+            <SelectTrigger className={`w-[150px]`}>
+              <SelectValue placeholder="Select Difficulty" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Select Difficulty</SelectLabel>
+                {difficulties.current.map((difficulty) => (
+                  <SelectItem
+                    className={`w-[150px]`}
+                    key={difficulty}
+                    value={difficulty}
+                  >
+                    {difficulty}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       <div className="items-center justify-center inline-flex sm:flex-row flex-col">
         <Main className="border-4 border-black mt-2 mr-4">
           {board.map(buildBoard)}
         </Main>
         <ButtonBar onClick={handleButtonPress} />
       </div>
+      <span className="justify-end italic">
+        made with love, by yours truly ❤️
+      </span>
     </div>
   );
 };
