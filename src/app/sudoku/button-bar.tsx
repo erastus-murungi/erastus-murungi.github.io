@@ -1,112 +1,131 @@
 import { Button } from "@/components/ui/button";
-import { CheckIcon } from "@radix-ui/react-icons";
+import {
+  CheckIcon,
+  CounterClockwiseClockIcon,
+  ResetIcon,
+} from "@radix-ui/react-icons";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import styled from "@emotion/styled";
 
-export type ButtonValue = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0 | "check";
+export type ButtonValue =
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 0
+  | "check"
+  | "undo"
+  | "reset";
 type Row = React.FC<{ onClick: (value: ButtonValue) => void }>;
 
-const FirstRow: Row = ({ onClick }) => {
+const StyledButtonBar = styled.div`
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+`;
+
+const NumPad: Row = ({ onClick }) => {
   return (
-    <div className="space-x-3 m-6">
-      <Button
-        className="text-2xl"
-        variant="secondary"
-        onClick={() => onClick(1)}
-      >
-        1
-      </Button>
-      <Button
-        className="text-2xl"
-        variant="secondary"
-        onClick={() => onClick(2)}
-      >
-        2
-      </Button>
-      <Button
-        className="text-2xl"
-        variant="secondary"
-        onClick={() => onClick(3)}
-      >
-        3
-      </Button>
-      <Button
-        className="text-2xl"
-        variant="secondary"
-        onClick={() => onClick(4)}
-      >
-        4
-      </Button>
-      <Button
-        className="text-2xl"
-        variant="secondary"
-        onClick={() => onClick(5)}
-      >
-        5
-      </Button>
-    </div>
+    <StyledButtonBar className="">
+      {[...Array(9).keys()].map((value) => (
+        <Button
+          className="text-2xl w-16 h-16"
+          variant="secondary"
+          onClick={() => onClick((value + 1) as ButtonValue)}
+        >
+          {value + 1}
+        </Button>
+      ))}
+    </StyledButtonBar>
   );
 };
 
-const SecondRow: Row = ({ onClick }) => {
+const ActionButtons: Row = ({ onClick }) => {
   return (
-    <div className="space-x-3 m-6">
-      <Button
-        className="text-2xl"
-        variant="secondary"
-        onClick={() => onClick(6)}
-      >
-        6
-      </Button>
-      <Button
-        className="text-2xl"
-        variant="secondary"
-        onClick={() => onClick(7)}
-      >
-        7
-      </Button>
-      <Button
-        className="text-2xl"
-        variant="secondary"
-        onClick={() => onClick(8)}
-      >
-        8
-      </Button>
-      <Button
-        className="text-2xl"
-        variant="secondary"
-        onClick={() => onClick(9)}
-      >
-        9
-      </Button>
-      <Button
-        className="text-2xl"
-        variant="secondary"
-        onClick={() => onClick(0)}
-      >
-        0
-      </Button>
-    </div>
-  );
-};
+    <div className="space-x-3 m-6 inline-flex flex-auto">
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <div className="flex items-center space-x-2 flex-col">
+            <Button className="rounded-full w-16 h-16" variant="secondary">
+              <CheckIcon />
+            </Button>
+            <span>Submit</span>
+          </div>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Submit Game</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete all your progress.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction>
+              <Button onClick={() => onClick("check")}>Submit</Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-const ThirdRow: Row = ({ onClick }) => {
-  return (
-    <div className="space-x-3 m-6">
-      <Button
-        className="text-2xl"
-        variant="secondary"
-        onClick={() => onClick("check")}
-      >
-        <CheckIcon />
-      </Button>
+      <div className="flex items-center space-x-2 flex-col">
+        <Button
+          className="rounded-full w-16 h-16"
+          variant="secondary"
+          onClick={() => onClick("undo")}
+        >
+          <CounterClockwiseClockIcon />
+        </Button>
+        <span>Undo</span>
+      </div>
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <div className="flex items-center space-x-2 flex-col">
+            <Button className="rounded-full w-16 h-16" variant="secondary">
+              <ResetIcon />
+            </Button>
+            <span>Reset</span>
+          </div>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Game</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete all your progress.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction>
+              <Button onClick={() => onClick("reset")}>Reset</Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 export const ButtonBar: Row = ({ onClick }) => {
   return (
     <div className="items-center justify-center">
-      <FirstRow onClick={onClick} />
-      <SecondRow onClick={onClick} />
-      <ThirdRow onClick={onClick} />
+      <ActionButtons onClick={onClick} />
+      <NumPad onClick={onClick} />
     </div>
   );
 };

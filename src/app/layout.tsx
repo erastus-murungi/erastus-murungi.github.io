@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { Lora } from "next/font/google";
+import { Open_Sans, Lora } from "next/font/google";
 import "./globals.css";
 
-const roboto = Lora({
+const open_sans = Open_Sans({
   weight: "400",
+  subsets: ["latin"],
+});
+
+const lora = Lora({
+  weight: "600",
   subsets: ["latin"],
 });
 
@@ -19,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${roboto.className} antialiased`}>{children}</body>
+      <body className={`${lora.className} antialiased`}>{children}</body>
     </html>
   );
 }

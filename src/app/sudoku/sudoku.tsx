@@ -2,7 +2,7 @@
 
 import React from "react";
 import styled from "@emotion/styled";
-import { lora, satisfy } from "@/styles/fonts";
+import { lora } from "@/styles/fonts";
 import { type Difficulty } from "sudoku-gen/dist/types/difficulty.type";
 import { ButtonBar, type ButtonValue } from "./button-bar";
 import { getSudoku } from "sudoku-gen";
@@ -155,7 +155,7 @@ const OuterContainer = styled.div<{
       : "solid 1px #000",
     "&:hover": {
       cursor: "pointer",
-      backgroundColor: "rgba(28, 28, 28, 0.3)",
+      backgroundColor: "rgba(28, 28, 28, 0.5)",
     },
     "&:after": {
       content: '""',
@@ -167,7 +167,7 @@ const OuterContainer = styled.div<{
       backgroundColor: isSelectedBoardIndex
         ? ""
         : isSelected
-        ? "rgba(245, 40, 145, 0.3)"
+        ? "rgba(28, 28, 28, 0.25)"
         : "",
     },
   })
@@ -195,10 +195,10 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
   return (
     <OuterContainer
       isSelected={isHighlighted()}
-      isLastColumn={index === 9}
-      isLastRow={rowIndex === 9}
-      isThickRight={index === 3 || index === 6}
-      isThickBottom={rowIndex === 3 || rowIndex === 6}
+      isLastColumn={index === 8}
+      isLastRow={rowIndex === 8}
+      isThickRight={index === 2 || index === 5}
+      isThickBottom={rowIndex === 2 || rowIndex === 5}
       isSelectedBoardIndex={selectedBoardIndex === boardIndex}
       onClick={() => {
         setSelectedBoardIndices({
@@ -273,15 +273,9 @@ export const Sudoku: React.FC<SudokuProps> = ({
   const getBoardIndex = (rowIndex: number, index: number) =>
     rowIndex * 9 + index;
 
-  const getValue = React.useCallback((boardIndex: number) => {
-    const valueForIndex = values[boardIndex];
-    return valueForIndex;
-  }, []);
-
   const setValue = (boardIndex: number, value: Value) => {
     const newValues = [...values];
     newValues[boardIndex] = value;
-    console.log("newValues", newValues);
     setValues(newValues);
   };
 
@@ -297,7 +291,6 @@ export const Sudoku: React.FC<SudokuProps> = ({
     setSelectedIndex(selectedIndex);
     setSelectedRowIndex(selectedRowIndex);
     setSelectedBoardIndex(selectedBoardIndex);
-    console.log(selectedIndex, selectedRowIndex, selectedBoardIndex);
   };
 
   const buildRow = (rowIndex: number) => (value: Value, index: number) => {
@@ -329,28 +322,63 @@ export const Sudoku: React.FC<SudokuProps> = ({
     <Board key={rowIndex}>{rowValues.map(buildRow(rowIndex))}</Board>
   );
 
+  const handleReset = () => {
+    const { values, board } = getBoard(difficulty);
+    setValues(values);
+    setBoard(board);
+  };
+
   const handleButtonPress = (value: ButtonValue) => {
-    if (selectedBoardIndex === null) {
-      return;
-    }
+    if (typeof value == "string") {
+      if (value === "check") {
+        // Check if the board is correct
+        const isBoardCorrect = values.every(
+          (value, index) => value.answer === value.value
+        );
+        console.log("yay", isBoardCorrect);
+        // set the board to correct
 
-    const selectedValue = values[selectedBoardIndex];
-    if (selectedValue.isOriginal) {
-      return;
-    }
+        // if (!isBoardCorrect) {
+        //   setValues(
+        //     values.map((value) => ({
+        //       ...value,
+        //       hasError: value.value !== value.answer,
+        //     }))
+        //   );
+        // }
+        setValues(
+          values.map((value) => ({
+            ...value,
+            value: value.answer,
+            hasError: false,
+          }))
+        );
+      } else if (value == "reset") {
+        handleReset();
+      }
+    } else {
+      if (selectedBoardIndex === null) {
+        return;
+      }
 
-    if (typeof value === "number") {
-      setValue(selectedBoardIndex, {
-        ...selectedValue,
-        value,
-        hasError: selectedValue.hasError && selectedValue.answer !== value,
-      });
+      const selectedValue = values[selectedBoardIndex];
+      if (selectedValue.isOriginal) {
+        return;
+      }
+
+      if (typeof value === "number") {
+        setValue(selectedBoardIndex, {
+          ...selectedValue,
+          value,
+          hasError: selectedValue.hasError && selectedValue.answer !== value,
+        });
+      }
     }
   };
 
   return (
-    <div className="items-center justify-center inline-flex h-screen flex-col">
-      <Main className="border-4 border-black">{board.map(buildBoard)}</Main>
+    <div className="items-center justify-center inline-flex h-screen flex-row">
+      <Main className="border-4 border-black m-8">{board.map(buildBoard)}</Main>
       <ButtonBar onClick={handleButtonPress} />
     </div>
   );

@@ -242,18 +242,18 @@ export default function Home() {
 
   return (
     <div className="items-center justify-center inline-flex flex-col">
-      <Select onValueChange={(value) => setSelectedDifficulty(value)}>
-        <SelectTrigger className={`${indie_flower.className} w-[150px]`}>
+      <Select
+        onValueChange={(value) => setSelectedDifficulty(value as Difficulty)}
+      >
+        <SelectTrigger className={`w-[150px]`}>
           <SelectValue placeholder="Select Difficulty" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            <SelectLabel className={`${indie_flower.className}`}>
-              Select Difficulty
-            </SelectLabel>
+            <SelectLabel>Select Difficulty</SelectLabel>
             {difficulties.current.map((difficulty) => (
               <SelectItem
-                className={`${indie_flower.className} w-[150px]`}
+                className={`w-[150px]`}
                 key={difficulty}
                 value={difficulty}
               >
