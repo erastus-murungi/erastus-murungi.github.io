@@ -7,7 +7,7 @@ export default function SudokuApp() {
     <div className="items-center justify-center inline-flex flex-col">
       <Global
         styles={css`
-          .bounceZoom {
+          .hintAnimation {
             @keyframes bounceZoom {
               0%,
               100% {

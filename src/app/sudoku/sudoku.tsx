@@ -21,8 +21,29 @@ import {
 import ConfettiExplosion from "react-confetti-explosion";
 import { toast } from "sonner";
 import { List } from "immutable";
+import { css } from "@emotion/react";
 
 type Maybe<T> = T | null | undefined;
+
+const HINT_COUNT: Record<Difficulty, number> = {
+  easy: 0,
+  medium: 1,
+  hard: 2,
+  expert: 3,
+};
+
+const generateHint = (values: List<Value>, difficulty: Difficulty) => {
+  // if the values are all filled, return
+  if (values.every((value) => value.value !== null)) {
+    return;
+  }
+  while (true) {
+    const index = Math.floor(Math.random() * 81);
+    if (values.get(index)?.value === null) {
+      return index;
+    }
+  }
+};
 
 export function getBoard(difficulty: Difficulty) {
   const sudoku = getSudoku(difficulty);
@@ -135,9 +156,19 @@ export interface SudokuSquareProps {
   hide: boolean;
   notes: number[];
   isConflictSquare: boolean;
+  isHint: boolean;
 }
 
-const OuterContainer = styled.div<{
+const outerDivStyles = ({
+  isThickRight,
+  isLastColumn,
+  isThickBottom,
+  isLastRow,
+  isSelected,
+  isConflictSquare,
+  isSelectedBoardIndex,
+  isHint,
+}: {
   isThickRight: boolean;
   isSelected: boolean;
   isThickBottom: boolean;
@@ -145,41 +176,105 @@ const OuterContainer = styled.div<{
   isLastRow: boolean;
   isSelectedBoardIndex: boolean;
   isConflictSquare: boolean;
-}>(
-  ({
-    isThickRight,
-    isLastColumn,
-    isThickBottom,
-    isLastRow,
-    isSelected,
-    isConflictSquare,
-    isSelectedBoardIndex,
-  }) => ({
-    position: "relative",
-    borderRight: isThickRight
-      ? `solid 4px #000`
-      : isLastColumn
-      ? ""
-      : "solid 1px #000",
-    borderBottom: isThickBottom
-      ? `solid 4px #000`
-      : isLastRow
-      ? ""
-      : "solid 1px #000",
-    "&:hover": {
-      cursor: "pointer",
-      backgroundColor: "rgba(28, 28, 28, 0.5)",
-    },
-    backgroundColor: isConflictSquare
-      ? "rgba(226, 26, 12, 0.25)"
-      : isSelectedBoardIndex
-      ? ""
-      : isSelected
-      ? "rgba(28, 28, 28, 0.25)"
-      : "",
-    animation: isConflictSquare ? "bounceZoom 0.5s ease-in-out" : "none",
-  })
-);
+  isHint: boolean;
+}) =>
+  isHint
+    ? css`
+        @keyframes rotate {
+          100% {
+            transform: rotate(1turn);
+          }
+        }
+
+        position: relative;
+        z-index: 0;
+        border-radius: 2px;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &::before {
+          content: "";
+          position: absolute;
+          z-index: -2;
+          left: -50%;
+          top: -50%;
+          width: 200%;
+          height: 200%;
+          background-color: #399953;
+          background-repeat: no-repeat;
+          background-size: 50% 50%, 50% 50%;
+          background-position: 0 0, 100% 0, 100% 100%, 0 100%;
+          background-image: linear-gradient(#399953, #399953),
+            linear-gradient(#fbb300, #fbb300), linear-gradient(#d53e33, #d53e33),
+            linear-gradient(#377af5, #377af5);
+          animation: rotate 4s linear infinite;
+        }
+
+        &::after {
+          content: "";
+          position: absolute;
+          z-index: -1;
+          left: 6px;
+          top: 6px;
+          width: calc(100% - 12px);
+          height: calc(100% - 12px);
+          background: white;
+          border-radius: 5px;
+        }
+
+        border-right: ${isThickRight
+          ? `solid 4px #000`
+          : isLastColumn
+          ? ""
+          : "solid 1px #000"};
+        border-bottom: ${isThickBottom
+          ? `solid 4px #000`
+          : isLastRow
+          ? ""
+          : "solid 1px #000"};
+        &:hover {
+          cursor: "pointer";
+          background-color: "rgba(28, 28, 28, 0.5)";
+        }
+        background-color: ${isConflictSquare
+          ? "rgba(226, 26, 12, 0.25)"
+          : isSelectedBoardIndex
+          ? ""
+          : isSelected
+          ? "rgba(28, 28, 28, 0.25)"
+          : ""};
+        animation: ${isConflictSquare ? "bounceZoom 0.5s ease-in-out" : ""};
+      `
+    : css`
+        position: relative;
+        border-right: ${isThickRight
+          ? `solid 4px #000`
+          : isLastColumn
+          ? ""
+          : "solid 1px #000"};
+        border-bottom: ${isThickBottom
+          ? `solid 4px #000`
+          : isLastRow
+          ? ""
+          : "solid 1px #000"};
+        &:hover {
+          cursor: "pointer";
+          background-color: "rgba(28, 28, 28, 0.5)";
+        }
+        background-color: ${isConflictSquare
+          ? "rgba(226, 26, 12, 0.25)"
+          : isSelectedBoardIndex
+          ? ""
+          : isSelected
+          ? "rgba(28, 28, 28, 0.25)"
+          : ""};
+      `;
+
+const OuterContainer = styled.div`
+  ${outerDivStyles}
+`;
 
 const SudokuSquare: React.FC<SudokuSquareProps> = ({
   selectedColumnIndex: selectedIndex,
@@ -194,6 +289,7 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
   hide,
   notes,
   isConflictSquare,
+  isHint,
 }) => {
   React.useEffect(() => {
     if (value.errorMessage) {
@@ -209,7 +305,7 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
 
   return (
     <OuterContainer
-      className="sm:w-14 sm:h-14 w-8 h-8"
+      className="sm:w-14 sm:h-14 w-8 h-8 rainbow"
       isSelected={selectedIndex === index || rowIndex === selectedRowIndex}
       isLastColumn={index === 8}
       isLastRow={rowIndex === 8}
@@ -217,6 +313,7 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
       isThickBottom={rowIndex === 2 || rowIndex === 5}
       isSelectedBoardIndex={selectedBoardIndex === boardIndex}
       isConflictSquare={isConflictSquare}
+      isHint={isHint}
       onClick={() => {
         setSelectedBoardIndices({
           selectedColumnIndex: index,
@@ -237,6 +334,10 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
           smaller={notes.length > 0}
         />
       )}
+      <span className="top"></span>
+      <span className="right"></span>
+      <span className="bottom"></span>
+      <span className="left"></span>
     </OuterContainer>
   );
 };
@@ -297,6 +398,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   const [conflictBorderIndex, setConflictBorderIndex] = React.useState<
     number | null
   >(null);
+  const [hintCount, setHintCount] = React.useState(HINT_COUNT[difficulty]);
   const history = React.useRef<List<State>>(List());
 
   const { seconds, minutes, hours, isRunning, pause, start, reset } =
@@ -356,6 +458,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
           setSelectedBoardIndices={setSelectedBoardIndices}
           setValue={setValue}
           isConflictSquare={conflictBorderIndex === boardIndex}
+          isHint={true}
           notes={[]}
         />
       );
