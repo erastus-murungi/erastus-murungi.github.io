@@ -32,7 +32,7 @@ const HINT_COUNT: Record<Difficulty, number> = {
   expert: 3,
 };
 
-const generateHint = (values: List<Value>, difficulty: Difficulty) => {
+const generateHint = (values: List<Value>) => {
   // if the values are all filled, return
   if (values.every((value) => value.value !== null)) {
     return;
@@ -334,10 +334,6 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
           smaller={notes.length > 0}
         />
       )}
-      <span className="top"></span>
-      <span className="right"></span>
-      <span className="bottom"></span>
-      <span className="left"></span>
     </OuterContainer>
   );
 };
@@ -372,6 +368,7 @@ type State = {
   selectedRowIndex: number | null;
   difficulty: Difficulty;
   conflictBorderIndex: number | null;
+  hintIndex: number | null;
 };
 
 export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
@@ -398,8 +395,13 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   const [conflictBorderIndex, setConflictBorderIndex] = React.useState<
     number | null
   >(null);
-  const [hintCount, setHintCount] = React.useState(HINT_COUNT[difficulty]);
+  const [hintIndex, setHintIndex] = React.useState<number | null>(null);
   const history = React.useRef<List<State>>(List());
+
+  const hintCount = React.useRef(HINT_COUNT[difficulty]);
+  React.useEffect(() => {
+    hintCount.current -= 1;
+  }, [hintIndex]);
 
   const { seconds, minutes, hours, isRunning, pause, start, reset } =
     useStopwatch({
@@ -458,7 +460,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
           setSelectedBoardIndices={setSelectedBoardIndices}
           setValue={setValue}
           isConflictSquare={conflictBorderIndex === boardIndex}
-          isHint={true}
+          isHint={hintIndex === boardIndex}
           notes={[]}
         />
       );
@@ -502,6 +504,15 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
     setSelectedColumnIndex(null);
     setSelectedRowIndex(null);
     setIsSolved(false);
+    setHintIndex(null);
+    hintCount.current = HINT_COUNT[difficulty];
+  };
+
+  const handleResetNewDifficulty = (difficulty: Difficulty) => {
+    setDifficulty(difficulty);
+    handleReset();
+    setHintIndex(null);
+    hintCount.current = HINT_COUNT[difficulty];
   };
 
   const validateBoardAfterEntry = (toCheck: number) => {
@@ -552,24 +563,66 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
     }
   };
 
-  const handleButtonPress = (value: ButtonValue) => {
-    if (typeof value == "string") {
-      if (value === "check") {
-        const isBoardCorrect = values.every(
-          (value) => value.answer === value.value
-        );
-        setIsSolved(isBoardCorrect);
+  const handleCheck = () => {
+    setValues(
+      values.map((value) => ({
+        ...value,
+        value: value.answer,
+        errorMessage: undefined,
+      }))
+    );
 
-        setValues(
-          values.map((value) => ({
-            ...value,
-            value: value.answer,
-          }))
-        );
+    setIsSolved(true);
+    setHintIndex(null);
+    setConflictBorderIndex(null);
+  };
+
+  const handleHint = () => {
+    if (hintCount.current <= 0) {
+      toast.error("No more hints available", {
+        className: `${lora.className} bold`,
+        description: "No more hints available",
+        duration: 5000,
+      });
+      return;
+    }
+    const hintIndex = generateHint(values);
+    if (hintIndex !== undefined) {
+      const hint = values.get(hintIndex);
+      if (hint !== undefined) {
+        setValue(hintIndex, {
+          ...hint,
+          errorMessage: undefined,
+          value: hint.answer,
+        });
+        setHintIndex(hintIndex);
+      } else {
+        toast.error("Internal Error: hintIndex out of bounds", {
+          className: `${lora.className} bold`,
+          description: "No more hints available",
+          duration: 5000,
+        });
+      }
+    } else {
+      toast.error("No more hints available", {
+        className: `${lora.className} bold`,
+        description: "No more hints available",
+        duration: 5000,
+      });
+    }
+  };
+
+  const handleButtonPress = (value: ButtonValue) => {
+    setHintIndex(null);
+    if (typeof value == "string") {
+      if (value == "check") {
+        handleCheck();
       } else if (value == "reset") {
         handleReset();
       } else if (value == "undo") {
         handleUndo();
+      } else if (value == "hint") {
+        handleHint();
       }
     } else {
       if (selectedBoardIndex === null) {
@@ -603,6 +656,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
             selectedRowIndex,
             difficulty,
             conflictBorderIndex,
+            hintIndex,
           });
 
           setValue(selectedBoardIndex, {
@@ -621,12 +675,12 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
 
   return (
     <div>
-      <span className="text-3xl">🐧 Pepi Pepi&apos;s Sudoku 🐧</span>
       {isSolved && (
         <div className="inline-flex justify-center">
           <ConfettiExplosion particleCount={100} duration={3000} />
         </div>
       )}
+      <span className="text-3xl">🐧 Pepi Pepi&apos;s Sudoku 🐧</span>
       <div className="items-center justify-center">
         <div className="flex flex-row justify-between">
           <div className="inline-flex flex-row justify-end items-center space-x-2">
@@ -642,7 +696,11 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
               {isRunning ? <PauseIcon /> : <PlayIcon />}
             </Button>
           </div>
-          <Select onValueChange={(value) => setDifficulty(value as Difficulty)}>
+          <Select
+            onValueChange={(value) =>
+              handleResetNewDifficulty(value as Difficulty)
+            }
+          >
             <SelectTrigger className={`w-[150px]`}>
               <SelectValue placeholder="Select Difficulty" />
             </SelectTrigger>

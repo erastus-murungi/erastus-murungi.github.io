@@ -3,6 +3,7 @@ import {
   CheckIcon,
   CounterClockwiseClockIcon,
   ResetIcon,
+  SunIcon,
 } from "@radix-ui/react-icons";
 import {
   AlertDialog,
@@ -30,6 +31,7 @@ export type ButtonValue =
   | 0
   | "check"
   | "undo"
+  | "hint"
   | "reset";
 type Row = React.FC<{ onClick: (value: ButtonValue) => void }>;
 
@@ -66,8 +68,8 @@ const ActionButtons: Row = ({ onClick }) => {
     <div className="space-x-3 m-6 inline-flex">
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <div className="flex items-center space-x-2 flex-col hover:scale-110">
-            <Button className="rounded-full w-16 h-16" variant="secondary">
+          <div className="flex items-center flex-col hover:scale-110">
+            <Button className="rounded-full w-16 h-16 mb-2" variant="secondary">
               <CheckIcon />
             </Button>
             <span>Submit</span>
@@ -89,9 +91,9 @@ const ActionButtons: Row = ({ onClick }) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex items-center space-x-2 flex-col hover:scale-110">
+      <div className="flex items-center flex-col hover:scale-110">
         <Button
-          className="rounded-full w-16 h-16"
+          className="rounded-full w-16 h-16 mb-2"
           variant="secondary"
           onClick={() => onClick("undo")}
         >
@@ -102,8 +104,8 @@ const ActionButtons: Row = ({ onClick }) => {
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <div className="flex items-center space-x-2 flex-col hover:scale-110">
-            <Button className="rounded-full w-16 h-16" variant="secondary">
+          <div className="flex items-center flex-col hover:scale-110">
+            <Button className="rounded-full w-16 h-16 mb-2" variant="secondary">
               <ResetIcon />
             </Button>
             <span>Reset</span>
@@ -124,13 +126,23 @@ const ActionButtons: Row = ({ onClick }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <div className="flex items-center flex-col hover:scale-110">
+        <Button
+          className="rounded-full w-16 h-16 mb-2"
+          variant="secondary"
+          onClick={() => onClick("hint")}
+        >
+          <SunIcon />
+        </Button>
+        <span>Hint</span>
+      </div>
     </div>
   );
 };
 
 export const ButtonBar: Row = ({ onClick }) => {
   return (
-    <div className="items-center justify-center">
+    <div className="items-center justify-center flex flex-col">
       <ActionButtons onClick={onClick} />
       <NumPad onClick={onClick} />
     </div>
