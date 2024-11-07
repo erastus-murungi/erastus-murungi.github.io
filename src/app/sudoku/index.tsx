@@ -14,7 +14,7 @@ export default function SudokuApp() {
                 transform: scale(1);
               }
               50% {
-                transform: scale(1.1);
+                transform: scale(1.5);
               }
             }
           }

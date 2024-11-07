@@ -168,7 +168,7 @@ const OuterContainer = styled.div<{
       backgroundColor: "rgba(28, 28, 28, 0.5)",
     },
     backgroundColor: isConflictSquare
-      ? "rgba(44, 12, 226, 0.25)"
+      ? "rgba(226, 26, 12, 0.25)"
       : isSelectedBoardIndex
       ? ""
       : isSelected
@@ -351,9 +351,17 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
     <Board key={rowIndex}>{rowValues.map(buildRow(rowIndex))}</Board>
   );
 
+  const resetAllValues = () => {
+    const newValues = values.map((value) => ({
+      ...value,
+      value: null,
+      errorMessage: undefined,
+    }));
+    setValues(newValues);
+  };
+
   const handleReset = () => {
-    const { values, board } = getBoard(difficulty);
-    setValues(values);
+    resetAllValues();
     setBoard(board);
     reset();
   };
