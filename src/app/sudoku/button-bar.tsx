@@ -4,6 +4,7 @@ import {
   CounterClockwiseClockIcon,
   ResetIcon,
   SunIcon,
+  Pencil2Icon,
 } from "@radix-ui/react-icons";
 import {
   AlertDialog,
@@ -37,10 +38,12 @@ export type ButtonValue =
   | "check"
   | "undo"
   | "hint"
+  | "toggle-notes"
   | "reset";
 type Row = React.FC<{
   onClick: (value: ButtonValue) => void;
-  hintsRemaining?: number;
+  hintsRemaining: number;
+  notesOn: boolean;
 }>;
 
 const StyledButtonBar = styled.div`
@@ -54,13 +57,15 @@ const StyledButtonBar = styled.div`
   }
 `;
 
-const NumPad: Row = ({ onClick }) => {
+const NumPad: React.FC<{
+  onClick: (value: ButtonValue) => void;
+}> = ({ onClick }) => {
   return (
     <StyledButtonBar className="sm:flex sm:flex-row">
       {[...Array(9).keys()].map((value) => (
         <Button
           key={`numpad-key-${value + 1}`}
-          className="text-2xl w-10 h-10 hover:scale-110 hover:shadow-lg sm:w-16 sm:h-16 sm:text-xl"
+          className="text-2xl w-10 h-10 hover:scale-110 hover:shadow-lg hover:border-black sm:w-16 sm:h-16 sm:text-xl"
           variant="secondary"
           onClick={() => onClick((value + 1) as ButtonValue)}
         >
@@ -71,7 +76,7 @@ const NumPad: Row = ({ onClick }) => {
   );
 };
 
-const ActionButtons: Row = ({ onClick, hintsRemaining = 0 }) => {
+const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
   return (
     <div className="space-x-3 m-6 inline-flex">
       <AlertDialog>
@@ -156,14 +161,43 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0 }) => {
           </TooltipContent>
         </Tooltip>
       </div>
+
+      <div className="flex items-center flex-col hover:scale-110">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative inline-block text-center">
+              <Button
+                className="rounded-full w-16 h-16 mb-2"
+                variant="secondary"
+                onClick={() => onClick("toggle-notes")}
+              >
+                <Pencil2Icon />
+              </Button>
+              <span className="absolute top-0 right-0 bg-gray-500 text-white text-xs font-bold rounded-lg h-6 w-7 flex items-center justify-center">
+                {notesOn ? "ON" : "OFF"}
+              </span>
+              <p className="font-semibold">Notes</p>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>
+              You have turned off notes, click the button again to turn them on
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
     </div>
   );
 };
 
-export const ButtonBar: Row = ({ onClick, hintsRemaining }) => {
+export const ButtonBar: Row = ({ onClick, hintsRemaining, notesOn }) => {
   return (
     <div className="items-center justify-center flex flex-col">
-      <ActionButtons onClick={onClick} hintsRemaining={hintsRemaining} />
+      <ActionButtons
+        onClick={onClick}
+        hintsRemaining={hintsRemaining}
+        notesOn={notesOn}
+      />
       <NumPad onClick={onClick} />
     </div>
   );

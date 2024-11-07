@@ -53,7 +53,10 @@ export function getBoard(difficulty: Difficulty) {
     isOriginal: value !== "-",
     answer: parseInt(sudoku.solution[index], 10),
     isSelectedBoardIndex: false,
-    smaller: false,
+    noteValues: List([1, 2, 3, 4, 5, 6, 7, 8, 9] as const).map((val) => ({
+      value: val,
+      isSelected: false,
+    })),
   }));
   return {
     values: List(values),
@@ -64,35 +67,67 @@ export function getBoard(difficulty: Difficulty) {
 }
 
 export const NotesStyledDiv = styled.div`
-  display: flex;
-  align-items: top left;
-  justify-content: flex-start;
-  flex-direction: row;
-  flex-wrap: wrap;
-  flex-flow: row wrap;
-  align-content: flex-start;
-  width: 100%;
-  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  cursor: pointer;
+  background-color: #61b3fa;
+  color: #61b3fa;
+  padding-bottom: 1px;
 `;
 
-export const NotesValue = styled.span<{ isOriginal: boolean }>`
-  transition: all 0.5s;
-  font-family: "Titillium Web", sans-serif;
-  font-weight: bold;
-  font-size: 15px;
-  color: ${({ isOriginal }) => (isOriginal ? "#blue" : "#black")};
+const noteValueStyles = ({ isSelected }: { isSelected: boolean }) => css`
+  font-size: 12px;
+  color: ${isSelected ? "black" : "#61b3fa"};
+  background-color: #61b3fa;
+  ${!isSelected &&
+  css`
+    :hover {
+      color: white;
+      animation: fadeIn 0.5s linear;
+
+      @keyframes fadeIn {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+    }
+  `}
+
+  @keyframes fadeOut {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  transition: animation 0.5s fadeOut;
 `;
 
-export interface NotesProps {
-  values: number[];
-  isOriginal: boolean;
+export const NotesValue = styled.div`
+  ${noteValueStyles}
+`;
+
+export interface NoteValue {
+  value: number;
+  isSelected: boolean;
 }
 
-const NotesWrapper: React.FC<NotesProps> = ({ values }) => (
+const NotesWrapper: React.FC<{ noteValues: List<NoteValue> }> = ({
+  noteValues,
+}) => (
   <NotesStyledDiv>
-    {values.map((val) => (
-      <NotesValue isOriginal key={`note_${val}`}>
-        {val}
+    {noteValues.map((noteValue) => (
+      <NotesValue
+        className="flex items-center justify-center"
+        isSelected={noteValue.isSelected}
+        key={`note_${noteValue.value}`}
+        onClick={() => (noteValue.isSelected = !noteValue.isSelected)}
+      >
+        {noteValue.value}
       </NotesValue>
     ))}
   </NotesStyledDiv>
@@ -103,8 +138,8 @@ export interface Value {
   hasError: boolean;
   isOriginal: boolean;
   isSelectedBoardIndex: boolean;
-  smaller: boolean;
   answer: number;
+  noteValues: List<NoteValue>;
 }
 
 export const ValueMain = styled.div`
@@ -126,7 +161,10 @@ export const ValueContent = styled.div<{
   font-weight: bold;
 `;
 
-const ValueWrapper: React.FC<Value> = ({ value, ...otherProps }) => (
+const ValueWrapper: React.FC<Omit<Value, "noteValues">> = ({
+  value,
+  ...otherProps
+}) => (
   <ValueMain>
     <ValueContent
       className={`${lora.className} items-center justify-center text-2xl`}
@@ -145,15 +183,13 @@ export interface SudokuSquareProps {
   boardIndex: number;
   index: number;
   value: Value;
-  setValue: (boardIndex: number, value: Value) => void;
   initialValue: Value;
   setSelectedBoardIndices: (values: {
     selectedBoardIndex: number;
     selectedColumnIndex: number;
     selectedRowIndex: number;
   }) => void;
-  hide: boolean;
-  notes: number[];
+  notesOn: boolean;
   isConflictSquare: boolean;
   isHint: boolean;
 }
@@ -164,6 +200,7 @@ const outerDivStyles = ({
   isThickBottom,
   isLastRow,
   isSelected,
+  isShowingNotes,
   isConflictSquare,
   isSelectedBoardIndex,
   isHint,
@@ -174,6 +211,7 @@ const outerDivStyles = ({
   isLastColumn: boolean;
   isLastRow: boolean;
   isSelectedBoardIndex: boolean;
+  isShowingNotes: boolean;
   isConflictSquare: boolean;
   isHint: boolean;
 }) =>
@@ -239,6 +277,8 @@ const outerDivStyles = ({
         }
         background-color: ${isConflictSquare
           ? "rgba(226, 26, 12, 0.25)"
+          : isShowingNotes
+          ? "rgba(11, 53, 207, 0.25)"
           : isSelectedBoardIndex
           ? ""
           : isSelected
@@ -264,6 +304,8 @@ const outerDivStyles = ({
         }
         background-color: ${isConflictSquare
           ? "rgba(226, 26, 12, 0.25)"
+          : isShowingNotes
+          ? "rgba(11, 53, 207, 0.25)"
           : isSelectedBoardIndex
           ? ""
           : isSelected
@@ -285,11 +327,14 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
   value,
   initialValue,
   setSelectedBoardIndices,
-  hide,
-  notes,
+  notesOn,
   isConflictSquare,
   isHint,
 }) => {
+  const isShowingNotes =
+    notesOn &&
+    (value.noteValues.some((noteValue) => noteValue.isSelected) ||
+      (value.value === null && selectedBoardIndex === boardIndex));
   return (
     <OuterContainer
       className="sm:w-14 sm:h-14 w-8 h-8 rainbow"
@@ -300,6 +345,7 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
       isThickBottom={rowIndex === 2 || rowIndex === 5}
       isSelectedBoardIndex={selectedBoardIndex === boardIndex}
       isConflictSquare={isConflictSquare}
+      isShowingNotes={isShowingNotes}
       isHint={isHint}
       onClick={() => {
         setSelectedBoardIndices({
@@ -309,8 +355,8 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
         });
       }}
     >
-      {hide ? null : notes.length ? (
-        <NotesWrapper values={notes} isOriginal={!value?.isOriginal} />
+      {isShowingNotes ? (
+        <NotesWrapper noteValues={value.noteValues} />
       ) : (
         <ValueWrapper
           answer={initialValue.answer}
@@ -318,7 +364,6 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
           isOriginal={value.isOriginal}
           isSelectedBoardIndex={selectedBoardIndex === boardIndex}
           value={value?.value || initialValue.value}
-          smaller={notes.length > 0}
         />
       )}
     </OuterContainer>
@@ -356,6 +401,7 @@ type State = {
   difficulty: Difficulty;
   conflictBorderIndices: Set<number>;
   hintIndex: number | null;
+  notesOn: boolean;
 };
 
 export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
@@ -384,6 +430,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   >(Set());
   const [hintIndex, setHintIndex] = React.useState<number | null>(null);
   const history = React.useRef<List<State>>(List());
+  const [notesOn, setNotesOn] = React.useState(false);
 
   const hintCount = React.useRef(HINT_COUNT[difficulty]);
   React.useEffect(() => {
@@ -444,15 +491,13 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
           rowIndex={rowIndex}
           boardIndex={boardIndex}
           index={index}
-          hide={hide}
           selectedColumnIndex={selectedColumnIndex}
           selectedRowIndex={selectedRowIndex}
           selectedBoardIndex={selectedBoardIndex}
+          notesOn={notesOn}
           setSelectedBoardIndices={setSelectedBoardIndices}
-          setValue={setValue}
           isConflictSquare={conflictBorderIndices.has(boardIndex)}
           isHint={hintIndex === boardIndex}
-          notes={[]}
         />
       );
     };
@@ -481,6 +526,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
       setSelectedRowIndex(lastState.selectedRowIndex);
       setDifficulty(lastState.difficulty);
       setConflictBorderIndices(lastState.conflictBorderIndices);
+      setNotesOn(lastState.notesOn);
       history.current = history.current.pop();
     }
   };
@@ -496,6 +542,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
     setSelectedRowIndex(null);
     setIsSolved(false);
     setHintIndex(null);
+    setNotesOn(false);
     hintCount.current = HINT_COUNT[difficulty];
   };
 
@@ -560,9 +607,10 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
 
   const handleHint = () => {
     if (hintCount.current <= 0) {
-      toast.error("No more hints available", {
-        className: `${lora.className} bold`,
-        description: "No more hints available",
+      toast.error("Bebi Bebi 🐧", {
+        className: "bold",
+        description:
+          "No more hints available for Bebi Bebi 🐧. Nisuke nikuongezee 😉",
         duration: 5000,
       });
       return;
@@ -586,7 +634,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
       }
     } else {
       toast.error("No more hints available", {
-        className: `${lora.className} bold`,
+        className: "bold",
         description: "No more hints available",
         duration: 5000,
       });
@@ -604,6 +652,8 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
         handleUndo();
       } else if (value == "hint") {
         handleHint();
+      } else if (value == "toggle-notes") {
+        setNotesOn(!notesOn);
       }
     } else {
       if (selectedBoardIndex === null) {
@@ -629,6 +679,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
           const conflictBoardIndices = validateBoardAfterEntry(value);
           if (conflictBoardIndices) {
             setConflictBorderIndices(conflictBoardIndices);
+            setNumMistakes(numMistakes + 1);
           }
 
           history.current = history.current.push({
@@ -639,6 +690,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
             difficulty,
             conflictBorderIndices,
             hintIndex,
+            notesOn,
           });
           setValue(selectedBoardIndex, {
             ...selectedValue,
@@ -662,10 +714,6 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
       <div className="items-center justify-center">
         <div className="flex flex-row justify-between">
           <div className="inline-flex flex-row justify-end items-center space-x-2">
-            <h1>
-              {hours} : {minutes.toString().padStart(2, "0")} :{" "}
-              {seconds.toString().padStart(2, "0")}
-            </h1>
             <Button
               className="rounded-full w-8 h-8"
               variant="secondary"
@@ -673,6 +721,10 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
             >
               {isRunning ? <PauseIcon /> : <PlayIcon />}
             </Button>
+            <h1>
+              {hours} : {minutes.toString().padStart(2, "0")} :{" "}
+              {seconds.toString().padStart(2, "0")}
+            </h1>
           </div>
           <Select
             onValueChange={(value) =>
@@ -711,6 +763,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
 
           <ButtonBar
             onClick={handleButtonPress}
+            notesOn={notesOn}
             hintsRemaining={hintCount.current}
           />
         </div>
