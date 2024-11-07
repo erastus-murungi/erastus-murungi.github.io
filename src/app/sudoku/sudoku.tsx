@@ -266,7 +266,7 @@ const outerDivStyles = ({
           : "solid 1px #000"};
         &:hover {
           cursor: "pointer";
-          background-color: "rgba(28, 28, 28, 0.5)";
+          background-color: rgba(28, 28, 28, 0.5);
         }
         background-color: ${isConflictSquare
           ? "rgba(226, 26, 12, 0.25)"
@@ -293,7 +293,7 @@ const outerDivStyles = ({
           : "solid 1px #000"};
         &:hover {
           cursor: "pointer";
-          background-color: "rgba(28, 28, 28, 0.5)";
+          background-color: rgba(28, 28, 28, 0.5);
         }
         background-color: ${isConflictSquare
           ? "rgba(226, 26, 12, 0.25)"
@@ -724,7 +724,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
               <p className="text-xs uppercase">Mistakes:&nbsp;</p>
               <p className="text-xs text-gray-700 ">{numMistakes}</p>
             </div>
-            <div className="inline-flex flex-row justify-end items-center space-x-2">
+            <div className="inline-flex flex-row w-[100px] justify-between items-center space-x-2">
               <Button
                 className="rounded-full w-4 h-4 hover:border-2 hover:border-black"
                 variant="secondary"
@@ -746,7 +746,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
               {difficulties.current.map((difficulty, index) => (
                 <div className="flex items-center space-x-1">
                   <RadioGroupItem
-                    value={`radiogroup-${difficulty}-${index}`}
+                    value={difficulty}
                     id={`radiogroup-${difficulty}-${index}`}
                   />
                   <Label
