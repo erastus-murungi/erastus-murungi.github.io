@@ -746,7 +746,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
               {difficulties.current.map((difficulty, index) => (
                 <div className="flex items-center space-x-1">
                   <RadioGroupItem
-                    value={difficulty}
+                    value={`radiogroup-${difficulty}-${index}`}
                     id={`radiogroup-${difficulty}-${index}`}
                   />
                   <Label

@@ -91,6 +91,22 @@ function Letter2() {
     </div>
   );
 }
+function Pic1() {
+  return (
+    <div className="items-center justify-center inline-flex flex-col">
+      <h1 className="text-4xl font-bold text-center p-8">
+        Follow the ducks to the next page 🐣 🐣 🐣 👉🏾
+      </h1>
+      <Image
+        src={getImageUrl("pic.jpg")}
+        alt="Pepi"
+        width={400}
+        height={400}
+        className="border-black border-4 p-8"
+      />
+    </div>
+  );
+}
 
 export default function MemoriesCarousel() {
   const [api, setApi] = React.useState<CarouselApi>();
@@ -111,38 +127,35 @@ export default function MemoriesCarousel() {
   }, [api]);
 
   return (
-    <div className="flex justify-center items-center flex-col h-screen">
-      <Carousel className="w-full max-w-xl" setApi={setApi}>
-        <CarouselContent className="h-3/4">
+    <div className="inline-flex items-center justify-center flex-col h-screen">
+      <Carousel
+        orientation="horizontal"
+        className=""
+        setApi={setApi}
+        opts={{
+          loop: true,
+        }}
+      >
+        <CarouselContent className="w-full max-w-xl">
           <CarouselItem key={0}>
             <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
-                <div className="h-screen items-center justify-center inline-flex flex-col">
-                  <h1 className="text-4xl font-bold text-center p-8">
-                    Follow the ducks to the next page 🐣 🐣 🐣 👉🏾
-                  </h1>
-                  <Image
-                    src={getImageUrl("pic.jpg")}
-                    alt="Pepi"
-                    width={400}
-                    height={400}
-                    className="border-black border-4 p-8"
-                  />
-                </div>
+              <CardContent className="flex items-center justify-center">
+                <Pic1 />
               </CardContent>
             </Card>
           </CarouselItem>
           <CarouselItem key={1}>
             <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
+              <CardContent className="flex items-center justify-center">
                 <Letter0 />
               </CardContent>
             </Card>
           </CarouselItem>
+          {/*
           <CarouselItem key={2}>
             <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
-                <div className="h-screen items-center justify-center inline-flex flex-col">
+              <CardContent className="flex items-center justify-center p-6">
+                <div className="items-center justify-center inline-flex flex-col">
                   <h1 className="text-4xl font-bold text-center p-8">
                     My view sometimes 👀
                   </h1>
@@ -159,15 +172,15 @@ export default function MemoriesCarousel() {
           </CarouselItem>
           <CarouselItem key={3}>
             <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
+              <CardContent className="flex items-center justify-center p-6">
                 <Letter1 />
               </CardContent>
             </Card>
           </CarouselItem>
           <CarouselItem key={4}>
             <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
-                <div className="h-screen items-center justify-center inline-flex flex-col">
+              <CardContent className="flex items-center justify-center p-6">
+                <div className="items-center justify-center inline-flex flex-col">
                   <Image
                     src={getImageUrl("pic3.jpg")}
                     alt="Chama"
@@ -181,14 +194,14 @@ export default function MemoriesCarousel() {
           </CarouselItem>
           <CarouselItem key={5}>
             <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
+              <CardContent className="flex items-center justify-center p-6">
                 <Letter2 />
               </CardContent>
             </Card>
           </CarouselItem>
           <CarouselItem key={6}>
             <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
+              <CardContent className="flex items-center justify-center p-6">
                 <div className="h-screen items-center justify-center inline-flex flex-col">
                   <Image
                     src={getImageUrl("chama.gif")}
@@ -200,7 +213,7 @@ export default function MemoriesCarousel() {
                 </div>
               </CardContent>
             </Card>
-          </CarouselItem>
+          </CarouselItem> */}
         </CarouselContent>
         <CarouselPrevious />
         <CarouselNext />

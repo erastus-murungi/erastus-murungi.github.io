@@ -85,7 +85,7 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
             <Button className="rounded-full w-16 h-16 mb-2" variant="secondary">
               <CheckIcon />
             </Button>
-            <span>Submit</span>
+            <span className="text-xs uppercase">Submit</span>
           </div>
         </AlertDialogTrigger>
         <AlertDialogContent>
@@ -112,7 +112,7 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
         >
           <CounterClockwiseClockIcon />
         </Button>
-        <span>Undo</span>
+        <span className="text-xs uppercase">Undo</span>
       </div>
 
       <AlertDialog>
@@ -121,7 +121,7 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
             <Button className="rounded-full w-16 h-16 mb-2" variant="secondary">
               <ResetIcon />
             </Button>
-            <span>Reset</span>
+            <span className="text-xs uppercase">Reset</span>
           </div>
         </AlertDialogTrigger>
         <AlertDialogContent>
@@ -142,18 +142,21 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
       <div className="flex items-center flex-col hover:scale-110">
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="relative inline-block text-center">
+            <div
+              className="relative inline-block text-center"
+              onClick={() => onClick("hint")}
+              role="button"
+            >
               <Button
                 className="rounded-full w-16 h-16 mb-2"
                 variant="secondary"
-                onClick={() => onClick("hint")}
               >
                 <SunIcon />
               </Button>
               <span className="absolute top-0 right-0 bg-gray-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                 {hintsRemaining}
               </span>
-              <p className="font-semibold">Hint</p>
+              <p className="text-xs uppercase">Hint</p>
             </div>
           </TooltipTrigger>
           <TooltipContent>
@@ -165,18 +168,21 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
       <div className="flex items-center flex-col hover:scale-110">
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="relative inline-block text-center">
+            <div
+              className="relative inline-block text-center"
+              onClick={() => onClick("toggle-notes")}
+              role="button"
+            >
               <Button
                 className="rounded-full w-16 h-16 mb-2"
                 variant="secondary"
-                onClick={() => onClick("toggle-notes")}
               >
-                <Pencil2Icon />
+                <Pencil2Icon className="rounded-full w-16 h-16 mb-2" />
               </Button>
               <span className="absolute top-0 right-0 bg-gray-500 text-white text-xs font-bold rounded-lg h-6 w-7 flex items-center justify-center">
                 {notesOn ? "ON" : "OFF"}
               </span>
-              <p className="font-semibold">Notes</p>
+              <p className="text-xs uppercase">Notes</p>
             </div>
           </TooltipTrigger>
           <TooltipContent>
