@@ -387,12 +387,12 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
 
   const hintCount = React.useRef(HINT_COUNT[difficulty]);
   React.useEffect(() => {
-    if (hintIndex === null) {
+    if (hintIndex === null || difficulty) {
       hintCount.current = HINT_COUNT[difficulty];
     } else {
       hintCount.current -= 1;
     }
-  }, [hintIndex]);
+  }, [hintIndex, difficulty]);
 
   const { seconds, minutes, hours, isRunning, pause, start, reset } =
     useStopwatch({
