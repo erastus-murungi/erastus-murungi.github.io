@@ -2,22 +2,15 @@
 
 import React from "react";
 import styled from "@emotion/styled";
-import { lora } from "@/styles/fonts";
+import { lora, reenie_beanie } from "@/styles/fonts";
 import { type Difficulty } from "sudoku-gen/dist/types/difficulty.type";
 import { ButtonBar, type ButtonValue } from "./button-bar";
 import { getSudoku } from "sudoku-gen";
 import { PauseIcon, PlayIcon } from "@radix-ui/react-icons";
 import { useStopwatch } from "react-timer-hook";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import ConfettiExplosion from "react-confetti-explosion";
 import { toast } from "sonner";
 import { List, Set } from "immutable";
@@ -627,7 +620,6 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
         setHintIndex(hintIndex);
       } else {
         toast.error("Internal Error: hintIndex out of bounds", {
-          className: `${lora.className} bold`,
           description: "No more hints available",
           duration: 5000,
         });
@@ -704,61 +696,68 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   };
 
   return (
-    <div>
+    <div className="m-8 inline-flex justify-center items-center flex-row">
       {isSolved && (
         <div className="inline-flex justify-center">
           <ConfettiExplosion particleCount={100} duration={3000} />
         </div>
       )}
-      <span className="text-3xl">🐧 Pepi Pepi&apos;s Sudoku 🐧</span>
-      <div className="items-center justify-center">
-        <div className="flex flex-row justify-between">
-          <div className="inline-flex flex-row justify-end items-center space-x-2">
-            <Button
-              className="rounded-full w-8 h-8"
-              variant="secondary"
-              onClick={isRunning ? pause : start}
-            >
-              {isRunning ? <PauseIcon /> : <PlayIcon />}
-            </Button>
-            <h1>
-              {hours} : {minutes.toString().padStart(2, "0")} :{" "}
-              {seconds.toString().padStart(2, "0")}
-            </h1>
-          </div>
-          <Select
-            onValueChange={(value) =>
-              handleResetNewDifficulty(value as Difficulty)
-            }
-          >
-            <SelectTrigger className={`w-[150px]`}>
-              <SelectValue placeholder="Select Difficulty" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Select Difficulty</SelectLabel>
-                {difficulties.current.map((difficulty) => (
-                  <SelectItem
-                    className={`w-[150px]`}
-                    key={difficulty}
-                    value={difficulty}
-                  >
-                    {difficulty}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
       <div className="items-center justify-center inline-flex sm:flex-row flex-col">
-        <Main className="border-4 border-black mt-2 mr-4">
-          {board.map(buildBoard)}
-        </Main>
         <div className="flex flex-col items-center justify-center">
           <div className="flex flex-row">
-            <p className="text-xs">Mistakes:&nbsp;</p>
-            <p className="text-xs text-gray-700 ">{numMistakes}</p>
+            <div className="items-stretch inline-flex justify-stretch flex-row">
+              <span className="text-3xl">🐧 Pepi Pepi&apos;s Sudoku 🐧</span>
+            </div>
+          </div>
+          <Main className="border-4 border-black mt-2 mr-4">
+            {board.map(buildBoard)}
+          </Main>
+          <span
+            className={`${reenie_beanie.className} justify-start text-xl italic mt-4 w-full`}
+          >
+            made with love, by yours truly ❤️
+          </span>
+        </div>
+        <div className="flex flex-col items-center justify-center">
+          <div className="flex flex-row items-center justify-between w-full px-8">
+            <div className="flex flex-row">
+              <p className="text-xs uppercase">Mistakes:&nbsp;</p>
+              <p className="text-xs text-gray-700 ">{numMistakes}</p>
+            </div>
+            <div className="inline-flex flex-row justify-end items-center space-x-2">
+              <Button
+                className="rounded-full w-4 h-4"
+                variant="secondary"
+                onClick={isRunning ? pause : start}
+              >
+                {isRunning ? <PauseIcon /> : <PlayIcon />}
+              </Button>
+              <p className="text-xs">
+                {hours} : {minutes.toString().padStart(2, "0")} :{" "}
+                {seconds.toString().padStart(2, "0")}
+              </p>
+            </div>
+            <RadioGroup
+              defaultValue="easy"
+              onValueChange={(value) =>
+                handleResetNewDifficulty(value as Difficulty)
+              }
+            >
+              {difficulties.current.map((difficulty, index) => (
+                <div className="flex items-center space-x-1">
+                  <RadioGroupItem
+                    value={difficulty}
+                    id={`radiogroup-${difficulty}-${index}`}
+                  />
+                  <Label
+                    htmlFor={`radiogroup-${difficulty}-${index}`}
+                    className="text-[10px]"
+                  >
+                    {difficulty.toUpperCase()}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
           </div>
 
           <ButtonBar
@@ -768,9 +767,6 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
           />
         </div>
       </div>
-      <span className="justify-end italic">
-        made with love, by yours truly ❤️
-      </span>
     </div>
   );
 };

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const primaryFont = Inter({
+const primaryFont = Open_Sans({
   weight: "600",
   subsets: ["latin"],
 });
