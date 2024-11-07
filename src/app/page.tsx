@@ -221,8 +221,8 @@ function MemoriesCarousel() {
 
 export default function Home() {
   return (
-    <div className="flex justify-center items-center bg-contain flex-col">
-      <Tabs defaultValue="account" className="w-[400px]">
+    <div className="flex justify-center items-center bg-contain flex-col h-screen">
+      <Tabs defaultValue="carousel" className="w-[800px]">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="carousel">Carousel</TabsTrigger>
           <TabsTrigger value="sudoku">Sudoku</TabsTrigger>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Lora } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const lora = Lora({
@@ -19,7 +20,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${lora.className} antialiased`}>{children}</body>
+      <body className={`${lora.className} antialiased`}>
+        <main>{children}</main>
+        <Toaster position="top-center" />
+      </body>
     </html>
   );
 }
