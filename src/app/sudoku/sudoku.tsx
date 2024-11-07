@@ -30,7 +30,6 @@ export function getBoard(difficulty: Difficulty) {
     isOriginal: value !== "-",
     answer: parseInt(sudoku.solution[index], 10),
     isSelectedBoardIndex: false,
-    isHighlighted: false,
     smaller: false,
   })) satisfies Value[];
   return {
@@ -78,7 +77,6 @@ export interface Value {
   value: number | null;
   errorMessage?: string;
   isOriginal: boolean;
-  isHighlighted: boolean;
   isSelectedBoardIndex: boolean;
   smaller: boolean;
   answer: number;
@@ -133,6 +131,7 @@ export interface SudokuSquareProps {
   }) => void;
   hide: boolean;
   notes: number[];
+  isConflictSquare: boolean;
 }
 
 const OuterContainer = styled.div<{
@@ -142,6 +141,7 @@ const OuterContainer = styled.div<{
   isLastColumn: boolean;
   isLastRow: boolean;
   isSelectedBoardIndex: boolean;
+  isConflictSquare: boolean;
 }>(
   ({
     isThickRight,
@@ -149,6 +149,7 @@ const OuterContainer = styled.div<{
     isThickBottom,
     isLastRow,
     isSelected,
+    isConflictSquare,
     isSelectedBoardIndex,
   }) => ({
     position: "relative",
@@ -166,11 +167,14 @@ const OuterContainer = styled.div<{
       cursor: "pointer",
       backgroundColor: "rgba(28, 28, 28, 0.5)",
     },
-    backgroundColor: isSelectedBoardIndex
+    backgroundColor: isConflictSquare
+      ? "rgba(44, 12, 226, 0.25)"
+      : isSelectedBoardIndex
       ? ""
       : isSelected
       ? "rgba(28, 28, 28, 0.25)"
       : "",
+    animation: isConflictSquare ? "bounceZoom 0.5s ease-in-out" : "none",
   })
 );
 
@@ -186,11 +190,8 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
   setSelectedBoardIndices,
   hide,
   notes,
+  isConflictSquare,
 }) => {
-  const isHighlighted = () => {
-    return selectedIndex === index || rowIndex === selectedRowIndex;
-  };
-
   React.useEffect(() => {
     if (value.errorMessage) {
       toast.error("My toast", {
@@ -201,15 +202,18 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
     }
   }, [value.errorMessage]);
 
+  if (isConflictSquare) console.log("isConflictSquare----", isConflictSquare);
+
   return (
     <OuterContainer
       className="sm:w-14 sm:h-14 w-8 h-8"
-      isSelected={isHighlighted()}
+      isSelected={selectedIndex === index || rowIndex === selectedRowIndex}
       isLastColumn={index === 8}
       isLastRow={rowIndex === 8}
       isThickRight={index === 2 || index === 5}
       isThickBottom={rowIndex === 2 || rowIndex === 5}
       isSelectedBoardIndex={selectedBoardIndex === boardIndex}
+      isConflictSquare={isConflictSquare}
       onClick={() => {
         setSelectedBoardIndices({
           selectedColumnIndex: index,
@@ -225,7 +229,6 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
           answer={initialValue.answer}
           hasError={value.errorMessage !== undefined}
           isOriginal={value.isOriginal}
-          isHighlighted={isHighlighted()}
           isSelectedBoardIndex={selectedBoardIndex === boardIndex}
           value={value.value || initialValue.value}
           smaller={notes.length > 0}
@@ -279,6 +282,9 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   ]);
   const [difficulty, setDifficulty] = React.useState<Difficulty>("easy");
   const [isSolved, setIsSolved] = React.useState(false);
+  const [conflictBorderIndex, setConflictBorderIndex] = React.useState<
+    number | null
+  >(null);
 
   const { seconds, minutes, hours, isRunning, pause, start, reset } =
     useStopwatch({
@@ -333,6 +339,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
           selectedBoardIndex={selectedBoardIndex}
           setSelectedBoardIndices={setSelectedBoardIndices}
           setValue={setValue}
+          isConflictSquare={conflictBorderIndex === boardIndex}
           notes={[]}
         />
       );
@@ -351,34 +358,34 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
     reset();
   };
 
-  const isDuplicated = (toCheck: number, values: Value[]) => {
-    return values.filter((value) => value.value === toCheck).length > 1;
-  };
-
   const validateBoardAfterEntry = (toCheck: number) => {
-    // check that that a row, column, and 3x3 grid are all unique
-    // check that the current row has an error
     if (selectedRowIndex != null) {
-      const currentRowValues = values.slice(
-        selectedRowIndex * 9,
-        selectedRowIndex * 9 + 9
-      );
-      if (isDuplicated(toCheck, currentRowValues)) {
-        setNumMistakes(numMistakes + 1);
-        return `${toCheck} Already exists in the column pepi pepi 😢`;
+      for (let offset = 0; offset < 9; offset++) {
+        const boardIndex = selectedRowIndex * 9 + offset;
+        const boardValue = values[boardIndex];
+        if (boardValue.value === toCheck) {
+          setNumMistakes(numMistakes + 1);
+          return {
+            errorMessage: `${toCheck} Already exists in the row pepi pepi 😢`,
+            boardIndex,
+          };
+        }
       }
       if (selectedColumnIndex != null) {
-        const currentColumnValues = values.filter(
-          (_, index) => index % 9 === selectedColumnIndex
-        );
-        if (isDuplicated(toCheck, currentColumnValues)) {
-          setNumMistakes(numMistakes + 1);
-          return `${toCheck} Already exists in the row pepi pepi 😢`;
+        for (const [boardIndex, value] of values.entries()) {
+          if (boardIndex % 9 === selectedColumnIndex) {
+            if (value.value === toCheck) {
+              setNumMistakes(numMistakes + 1);
+              return {
+                errorMessage: `${toCheck} Already exists in the column pepi pepi 😢`,
+                boardIndex: boardIndex,
+              };
+            }
+          }
         }
+
         const gridRowIndex = selectedRowIndex - (selectedRowIndex % 3);
         const gridColumnIndex = selectedColumnIndex - (selectedColumnIndex % 3);
-        console.log(gridRowIndex, gridColumnIndex);
-        // check that the current 3x3 grid has an error
         for (let colOffset = 0; colOffset < 3; colOffset++) {
           for (let rowOffset = 0; rowOffset < 3; rowOffset++) {
             const boardIndex = getBoardIndex(
@@ -386,10 +393,12 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
               gridColumnIndex + colOffset
             );
             const currentBoardValue = values[boardIndex];
-            console.log(currentBoardValue, boardIndex);
             if (currentBoardValue.value === toCheck) {
               setNumMistakes(numMistakes + 1);
-              return `${toCheck} Already exists in the 3 X 3 grid mrembo 😢`;
+              return {
+                errorMessage: `${toCheck} Already exists in the grid pepi pepi 😢`,
+                boardIndex,
+              };
             }
           }
         }
@@ -426,17 +435,26 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
 
       if (typeof value === "number") {
         if (selectedValue.value === value) {
+          setConflictBorderIndex(null);
           setValue(selectedBoardIndex, {
             ...selectedValue,
             value: null,
             errorMessage: undefined,
           });
         } else {
+          const { errorMessage, boardIndex: conflictBoardIndex } =
+            validateBoardAfterEntry(value) || {};
+          setConflictBorderIndex(conflictBoardIndex ?? null);
+
           setValue(selectedBoardIndex, {
             ...selectedValue,
             value,
-            errorMessage: validateBoardAfterEntry(value),
+            answer: selectedValue.answer,
+            errorMessage,
           });
+          if (conflictBoardIndex) {
+            setConflictBorderIndex(conflictBoardIndex);
+          }
         }
       }
     }
