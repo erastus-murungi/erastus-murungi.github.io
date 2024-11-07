@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import ConfettiExplosion from "react-confetti-explosion";
 import { toast } from "sonner";
-import { List } from "immutable";
+import { List, Set } from "immutable";
 import { css } from "@emotion/react";
 
 type Maybe<T> = T | null | undefined;
@@ -49,6 +49,7 @@ export function getBoard(difficulty: Difficulty) {
   const sudoku = getSudoku(difficulty);
   const values = sudoku.puzzle.split("").map((value, index) => ({
     value: value === "-" ? null : parseInt(value, 10),
+    hasError: false,
     isOriginal: value !== "-",
     answer: parseInt(sudoku.solution[index], 10),
     isSelectedBoardIndex: false,
@@ -99,7 +100,7 @@ const NotesWrapper: React.FC<NotesProps> = ({ values }) => (
 
 export interface Value {
   value: number | null;
-  errorMessage?: string;
+  hasError: boolean;
   isOriginal: boolean;
   isSelectedBoardIndex: boolean;
   smaller: boolean;
@@ -121,13 +122,11 @@ export const ValueContent = styled.div<{
   transition: all 0.5s;
   display: flex;
   color: ${({ isOriginal, hasError }) =>
-    isOriginal ? "blue" : hasError ? "red" : "black"};
+    isOriginal ? "black" : hasError ? "red" : "green"};
   font-weight: bold;
 `;
 
-const ValueWrapper: React.FC<
-  Omit<Value, "errorMessage"> & { hasError: boolean }
-> = ({ value, ...otherProps }) => (
+const ValueWrapper: React.FC<Value> = ({ value, ...otherProps }) => (
   <ValueMain>
     <ValueContent
       className={`${lora.className} items-center justify-center text-2xl`}
@@ -291,18 +290,6 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
   isConflictSquare,
   isHint,
 }) => {
-  React.useEffect(() => {
-    if (value.errorMessage) {
-      toast.error("My toast", {
-        className: `${lora.className} bold`,
-        description: value.errorMessage,
-        duration: 5000,
-      });
-    }
-  }, [value.errorMessage]);
-
-  if (isConflictSquare) console.log("isConflictSquare----", isConflictSquare);
-
   return (
     <OuterContainer
       className="sm:w-14 sm:h-14 w-8 h-8 rainbow"
@@ -327,7 +314,7 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
       ) : (
         <ValueWrapper
           answer={initialValue.answer}
-          hasError={value?.errorMessage !== undefined}
+          hasError={value.hasError}
           isOriginal={value.isOriginal}
           isSelectedBoardIndex={selectedBoardIndex === boardIndex}
           value={value?.value || initialValue.value}
@@ -367,7 +354,7 @@ type State = {
   selectedColumnIndex: number | null;
   selectedRowIndex: number | null;
   difficulty: Difficulty;
-  conflictBorderIndex: number | null;
+  conflictBorderIndices: Set<number>;
   hintIndex: number | null;
 };
 
@@ -392,9 +379,9 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   ]);
   const [difficulty, setDifficulty] = React.useState<Difficulty>("easy");
   const [isSolved, setIsSolved] = React.useState(false);
-  const [conflictBorderIndex, setConflictBorderIndex] = React.useState<
-    number | null
-  >(null);
+  const [conflictBorderIndices, setConflictBorderIndices] = React.useState<
+    Set<number>
+  >(Set());
   const [hintIndex, setHintIndex] = React.useState<number | null>(null);
   const history = React.useRef<List<State>>(List());
 
@@ -463,7 +450,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
           selectedBoardIndex={selectedBoardIndex}
           setSelectedBoardIndices={setSelectedBoardIndices}
           setValue={setValue}
-          isConflictSquare={conflictBorderIndex === boardIndex}
+          isConflictSquare={conflictBorderIndices.has(boardIndex)}
           isHint={hintIndex === boardIndex}
           notes={[]}
         />
@@ -493,7 +480,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
       setSelectedColumnIndex(lastState.selectedColumnIndex);
       setSelectedRowIndex(lastState.selectedRowIndex);
       setDifficulty(lastState.difficulty);
-      setConflictBorderIndex(lastState.conflictBorderIndex);
+      setConflictBorderIndices(lastState.conflictBorderIndices);
       history.current = history.current.pop();
     }
   };
@@ -503,7 +490,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
     setBoard(board);
     reset();
     setNumMistakes(0);
-    setConflictBorderIndex(null);
+    setConflictBorderIndices(Set());
     setSelectedBoardIndex(null);
     setSelectedColumnIndex(null);
     setSelectedRowIndex(null);
@@ -520,27 +507,20 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   };
 
   const validateBoardAfterEntry = (toCheck: number) => {
+    const conflictBoardIndices = [];
     if (selectedRowIndex != null) {
       for (let offset = 0; offset < 9; offset++) {
         const boardIndex = selectedRowIndex * 9 + offset;
         const boardValue = values.get(boardIndex);
         if (boardValue?.value === toCheck) {
-          setNumMistakes(numMistakes + 1);
-          return {
-            errorMessage: `${toCheck} Already exists in the row pepi pepi 😢`,
-            boardIndex,
-          };
+          conflictBoardIndices.push(boardIndex);
         }
       }
       if (selectedColumnIndex != null) {
         for (const [boardIndex, value] of values.entries()) {
           if (boardIndex % 9 === selectedColumnIndex) {
             if (value.value === toCheck) {
-              setNumMistakes(numMistakes + 1);
-              return {
-                errorMessage: `${toCheck} Already exists in the column pepi pepi 😢`,
-                boardIndex: boardIndex,
-              };
+              conflictBoardIndices.push(boardIndex);
             }
           }
         }
@@ -555,16 +535,13 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
             );
             const boardValue = values.get(boardIndex);
             if (boardValue?.value === toCheck) {
-              setNumMistakes(numMistakes + 1);
-              return {
-                errorMessage: `${toCheck} Already exists in the grid pepi pepi 😢`,
-                boardIndex,
-              };
+              conflictBoardIndices.push(boardIndex);
             }
           }
         }
       }
     }
+    return conflictBoardIndices.length > 0 ? Set(conflictBoardIndices) : null;
   };
 
   const handleCheck = () => {
@@ -578,7 +555,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
 
     setIsSolved(true);
     setHintIndex(null);
-    setConflictBorderIndex(null);
+    setConflictBorderIndices(Set());
   };
 
   const handleHint = () => {
@@ -596,7 +573,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
       if (hint !== undefined) {
         setValue(hintIndex, {
           ...hint,
-          errorMessage: undefined,
+          hasError: false,
           value: hint.answer,
         });
         setHintIndex(hintIndex);
@@ -642,16 +619,17 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
 
       if (selectedValue && typeof value === "number") {
         if (selectedValue.value === value) {
-          setConflictBorderIndex(null);
+          setConflictBorderIndices(Set());
           setValue(selectedBoardIndex, {
             ...selectedValue,
             value: null,
-            errorMessage: undefined,
+            hasError: false,
           });
         } else {
-          const { errorMessage, boardIndex: conflictBoardIndex } =
-            validateBoardAfterEntry(value) || {};
-          setConflictBorderIndex(conflictBoardIndex ?? null);
+          const conflictBoardIndices = validateBoardAfterEntry(value);
+          if (conflictBoardIndices) {
+            setConflictBorderIndices(conflictBoardIndices);
+          }
 
           history.current = history.current.push({
             values,
@@ -659,19 +637,15 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
             selectedColumnIndex,
             selectedRowIndex,
             difficulty,
-            conflictBorderIndex,
+            conflictBorderIndices,
             hintIndex,
           });
-
           setValue(selectedBoardIndex, {
             ...selectedValue,
             value,
             answer: selectedValue.answer,
-            errorMessage,
+            hasError: conflictBoardIndices !== null,
           });
-          if (conflictBoardIndex) {
-            setConflictBorderIndex(conflictBoardIndex);
-          }
         }
       }
     }
