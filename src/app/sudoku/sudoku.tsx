@@ -354,7 +354,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   const resetAllValues = () => {
     const newValues = values.map((value) => ({
       ...value,
-      value: null,
+      ...(value.isOriginal ? { value: value.answer } : { value: null }),
       errorMessage: undefined,
     }));
     setValues(newValues);
@@ -364,6 +364,12 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
     resetAllValues();
     setBoard(board);
     reset();
+    setNumMistakes(0);
+    setConflictBorderIndex(null);
+    setSelectedBoardIndex(null);
+    setSelectedColumnIndex(null);
+    setSelectedRowIndex(null);
+    setIsSolved(false);
   };
 
   const validateBoardAfterEntry = (toCheck: number) => {
@@ -516,7 +522,14 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
         <Main className="border-4 border-black mt-2 mr-4">
           {board.map(buildBoard)}
         </Main>
-        <ButtonBar onClick={handleButtonPress} />
+        <div className="flex flex-col items-center justify-center">
+          <div className="flex flex-row">
+            <p className="text-xs">Mistakes:&nbsp;</p>
+            <p className="text-xs text-gray-700 ">{numMistakes}</p>
+          </div>
+
+          <ButtonBar onClick={handleButtonPress} />
+        </div>
       </div>
       <span className="justify-end italic">
         made with love, by yours truly ❤️
