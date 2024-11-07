@@ -65,7 +65,7 @@ const NumPad: React.FC<{
       {[...Array(9).keys()].map((value) => (
         <Button
           key={`numpad-key-${value + 1}`}
-          className="text-2xl w-10 h-10 hover:scale-110 hover:shadow-lg hover:border-black sm:w-16 sm:h-16 sm:text-xl"
+          className="text-2xl w-10 h-10 hover:scale-110 hover:shadow-lg hover:border-2 hover:border-black hover sm:w-16 sm:h-16 sm:text-xl"
           variant="secondary"
           onClick={() => onClick((value + 1) as ButtonValue)}
         >
@@ -82,7 +82,10 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <div className="flex items-center flex-col hover:scale-110">
-            <Button className="rounded-full w-16 h-16 mb-2" variant="secondary">
+            <Button
+              className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
+              variant="secondary"
+            >
               <CheckIcon />
             </Button>
             <span className="text-xs uppercase">Submit</span>
@@ -106,7 +109,7 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
 
       <div className="flex items-center flex-col hover:scale-110">
         <Button
-          className="rounded-full w-16 h-16 mb-2"
+          className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
           variant="secondary"
           onClick={() => onClick("undo")}
         >
@@ -118,7 +121,10 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <div className="flex items-center flex-col hover:scale-110">
-            <Button className="rounded-full w-16 h-16 mb-2" variant="secondary">
+            <Button
+              className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
+              variant="secondary"
+            >
               <ResetIcon />
             </Button>
             <span className="text-xs uppercase">Reset</span>
@@ -148,7 +154,7 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
               role="button"
             >
               <Button
-                className="rounded-full w-16 h-16 mb-2"
+                className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
                 variant="secondary"
               >
                 <SunIcon />
@@ -174,7 +180,7 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
               role="button"
             >
               <Button
-                className="rounded-full w-16 h-16 mb-2"
+                className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
                 variant="secondary"
               >
                 <Pencil2Icon className="rounded-full w-16 h-16 mb-2" />

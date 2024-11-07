@@ -726,7 +726,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
             </div>
             <div className="inline-flex flex-row justify-end items-center space-x-2">
               <Button
-                className="rounded-full w-4 h-4"
+                className="rounded-full w-4 h-4 hover:border-2 hover:border-black"
                 variant="secondary"
                 onClick={isRunning ? pause : start}
               >
