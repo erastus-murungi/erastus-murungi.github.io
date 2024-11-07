@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import ConfettiExplosion from "react-confetti-explosion";
 import { toast } from "sonner";
+import { List } from "immutable";
 
 type Maybe<T> = T | null | undefined;
 
@@ -31,10 +32,12 @@ export function getBoard(difficulty: Difficulty) {
     answer: parseInt(sudoku.solution[index], 10),
     isSelectedBoardIndex: false,
     smaller: false,
-  })) satisfies Value[];
+  }));
   return {
-    values,
-    board: Array.from({ length: 9 }, (_, i) => values.slice(i * 9, i * 9 + 9)),
+    values: List(values),
+    board: List(
+      Array.from({ length: 9 }, (_, i) => List(values.slice(i * 9, i * 9 + 9)))
+    ),
   };
 }
 
@@ -223,14 +226,14 @@ const SudokuSquare: React.FC<SudokuSquareProps> = ({
       }}
     >
       {hide ? null : notes.length ? (
-        <NotesWrapper values={notes} isOriginal={value.isOriginal} />
+        <NotesWrapper values={notes} isOriginal={!value?.isOriginal} />
       ) : (
         <ValueWrapper
           answer={initialValue.answer}
-          hasError={value.errorMessage !== undefined}
+          hasError={value?.errorMessage !== undefined}
           isOriginal={value.isOriginal}
           isSelectedBoardIndex={selectedBoardIndex === boardIndex}
-          value={value.value || initialValue.value}
+          value={value?.value || initialValue.value}
           smaller={notes.length > 0}
         />
       )}
@@ -261,8 +264,17 @@ export interface SudokuProps {
   hide: boolean;
 }
 
+type State = {
+  values: List<Value>;
+  selectedBoardIndex: number | null;
+  selectedColumnIndex: number | null;
+  selectedRowIndex: number | null;
+  difficulty: Difficulty;
+  conflictBorderIndex: number | null;
+};
+
 export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
-  const [values, setValues] = React.useState<Value[]>([]);
+  const [values, setValues] = React.useState<List<Value>>(List());
   const [selectedBoardIndex, setSelectedBoardIndex] = React.useState<
     number | null
   >(null);
@@ -273,7 +285,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
     null
   );
   const [numMistakes, setNumMistakes] = React.useState(0);
-  const [board, setBoard] = React.useState<Value[][]>([]);
+  const [board, setBoard] = React.useState<List<List<Value>>>(List());
   const difficulties = React.useRef<Difficulty[]>([
     "easy",
     "medium",
@@ -285,6 +297,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   const [conflictBorderIndex, setConflictBorderIndex] = React.useState<
     number | null
   >(null);
+  const history = React.useRef<List<State>>(List());
 
   const { seconds, minutes, hours, isRunning, pause, start, reset } =
     useStopwatch({
@@ -301,8 +314,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
     rowIndex * 9 + index;
 
   const setValue = (boardIndex: number, value: Value) => {
-    const newValues = [...values];
-    newValues[boardIndex] = value;
+    const newValues = values.set(boardIndex, value);
     setValues(newValues);
   };
 
@@ -323,7 +335,11 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   const buildRow = (rowIndex: number) =>
     function SudokuRow(value: Value, index: number) {
       const boardIndex = getBoardIndex(rowIndex, index);
-      const val = values[boardIndex];
+      const val = values.get(boardIndex);
+
+      if (!val) {
+        return null;
+      }
 
       return (
         <SudokuSquare
@@ -347,7 +363,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
 
   buildRow.displayName = "buildRow";
 
-  const buildBoard = (rowValues: Value[], rowIndex: number) => (
+  const buildBoard = (rowValues: List<Value>, rowIndex: number) => (
     <Board key={rowIndex}>{rowValues.map(buildRow(rowIndex))}</Board>
   );
 
@@ -358,6 +374,19 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
       errorMessage: undefined,
     }));
     setValues(newValues);
+  };
+
+  const handleUndo = () => {
+    const lastState = history.current.last();
+    if (lastState) {
+      setValues(lastState.values);
+      setSelectedBoardIndex(lastState.selectedBoardIndex);
+      setSelectedColumnIndex(lastState.selectedColumnIndex);
+      setSelectedRowIndex(lastState.selectedRowIndex);
+      setDifficulty(lastState.difficulty);
+      setConflictBorderIndex(lastState.conflictBorderIndex);
+      history.current = history.current.pop();
+    }
   };
 
   const handleReset = () => {
@@ -376,8 +405,8 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
     if (selectedRowIndex != null) {
       for (let offset = 0; offset < 9; offset++) {
         const boardIndex = selectedRowIndex * 9 + offset;
-        const boardValue = values[boardIndex];
-        if (boardValue.value === toCheck) {
+        const boardValue = values.get(boardIndex);
+        if (boardValue?.value === toCheck) {
           setNumMistakes(numMistakes + 1);
           return {
             errorMessage: `${toCheck} Already exists in the row pepi pepi 😢`,
@@ -406,8 +435,8 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
               gridRowIndex + rowOffset,
               gridColumnIndex + colOffset
             );
-            const currentBoardValue = values[boardIndex];
-            if (currentBoardValue.value === toCheck) {
+            const boardValue = values.get(boardIndex);
+            if (boardValue?.value === toCheck) {
               setNumMistakes(numMistakes + 1);
               return {
                 errorMessage: `${toCheck} Already exists in the grid pepi pepi 😢`,
@@ -436,18 +465,22 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
         );
       } else if (value == "reset") {
         handleReset();
+      } else if (value == "undo") {
+        handleUndo();
       }
     } else {
       if (selectedBoardIndex === null) {
         return;
       }
 
-      const selectedValue = values[selectedBoardIndex];
-      if (selectedValue.isOriginal) {
+      const selectedValue = values.get(selectedBoardIndex);
+      if (selectedValue?.isOriginal) {
         return;
       }
 
-      if (typeof value === "number") {
+      console.log(history.current);
+
+      if (selectedValue && typeof value === "number") {
         if (selectedValue.value === value) {
           setConflictBorderIndex(null);
           setValue(selectedBoardIndex, {
@@ -459,6 +492,15 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
           const { errorMessage, boardIndex: conflictBoardIndex } =
             validateBoardAfterEntry(value) || {};
           setConflictBorderIndex(conflictBoardIndex ?? null);
+
+          history.current = history.current.push({
+            values,
+            selectedBoardIndex,
+            selectedColumnIndex,
+            selectedRowIndex,
+            difficulty,
+            conflictBorderIndex,
+          });
 
           setValue(selectedBoardIndex, {
             ...selectedValue,
