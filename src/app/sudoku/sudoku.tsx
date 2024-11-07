@@ -400,7 +400,11 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
 
   const hintCount = React.useRef(HINT_COUNT[difficulty]);
   React.useEffect(() => {
-    hintCount.current -= 1;
+    if (hintIndex === null) {
+      hintCount.current = HINT_COUNT[difficulty];
+    } else {
+      hintCount.current -= 1;
+    }
   }, [hintIndex]);
 
   const { seconds, minutes, hours, isRunning, pause, start, reset } =
@@ -731,7 +735,10 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
             <p className="text-xs text-gray-700 ">{numMistakes}</p>
           </div>
 
-          <ButtonBar onClick={handleButtonPress} />
+          <ButtonBar
+            onClick={handleButtonPress}
+            hintsRemaining={hintCount.current}
+          />
         </div>
       </div>
       <span className="justify-end italic">

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Lora } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const lora = Lora({
+const primaryFont = Inter({
   weight: "600",
   subsets: ["latin"],
 });
@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${lora.className} antialiased`}>
+      <body className={`${primaryFont.className} antialiased`}>
         <main>{children}</main>
         <Toaster position="top-center" />
       </body>

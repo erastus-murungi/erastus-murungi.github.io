@@ -1,26 +1,29 @@
 import React from "react";
 import { Sudoku } from "./sudoku";
 import { Global, css } from "@emotion/react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function SudokuApp() {
   return (
     <div className="items-center justify-center inline-flex flex-col">
-      <Global
-        styles={css`
-          .hintAnimation {
-            @keyframes bounceZoom {
-              0%,
-              100% {
-                transform: scale(1);
-              }
-              50% {
-                transform: scale(1.5);
+      <TooltipProvider>
+        <Global
+          styles={css`
+            .hintAnimation {
+              @keyframes bounceZoom {
+                0%,
+                100% {
+                  transform: scale(1);
+                }
+                50% {
+                  transform: scale(1.5);
+                }
               }
             }
-          }
-        `}
-      />
-      <Sudoku onComplete={() => {}} hide={false} />
+          `}
+        />
+        <Sudoku onComplete={() => {}} hide={false} />
+      </TooltipProvider>
     </div>
   );
 }

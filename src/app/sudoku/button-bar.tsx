@@ -16,6 +16,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import styled from "@emotion/styled";
 
 export type ButtonValue =
@@ -33,7 +38,10 @@ export type ButtonValue =
   | "undo"
   | "hint"
   | "reset";
-type Row = React.FC<{ onClick: (value: ButtonValue) => void }>;
+type Row = React.FC<{
+  onClick: (value: ButtonValue) => void;
+  hintsRemaining?: number;
+}>;
 
 const StyledButtonBar = styled.div`
   display: grid;
@@ -63,7 +71,7 @@ const NumPad: Row = ({ onClick }) => {
   );
 };
 
-const ActionButtons: Row = ({ onClick }) => {
+const ActionButtons: Row = ({ onClick, hintsRemaining = 0 }) => {
   return (
     <div className="space-x-3 m-6 inline-flex">
       <AlertDialog>
@@ -127,23 +135,35 @@ const ActionButtons: Row = ({ onClick }) => {
         </AlertDialogContent>
       </AlertDialog>
       <div className="flex items-center flex-col hover:scale-110">
-        <Button
-          className="rounded-full w-16 h-16 mb-2"
-          variant="secondary"
-          onClick={() => onClick("hint")}
-        >
-          <SunIcon />
-        </Button>
-        <span>Hint</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative inline-block text-center">
+              <Button
+                className="rounded-full w-16 h-16 mb-2"
+                variant="secondary"
+                onClick={() => onClick("hint")}
+              >
+                <SunIcon />
+              </Button>
+              <span className="absolute top-0 right-0 bg-gray-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {hintsRemaining}
+              </span>
+              <p className="font-semibold">Hint</p>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>You have {hintsRemaining} hints remaining</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );
 };
 
-export const ButtonBar: Row = ({ onClick }) => {
+export const ButtonBar: Row = ({ onClick, hintsRemaining }) => {
   return (
     <div className="items-center justify-center flex flex-col">
-      <ActionButtons onClick={onClick} />
+      <ActionButtons onClick={onClick} hintsRemaining={hintsRemaining} />
       <NumPad onClick={onClick} />
     </div>
   );
