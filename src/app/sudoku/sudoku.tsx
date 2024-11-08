@@ -11,10 +11,12 @@ import { useStopwatch } from "react-timer-hook";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import ConfettiExplosion from "react-confetti-explosion";
+import useWindowSize from "react-use/lib/useWindowSize";
+import Confetti from "react-confetti";
 import { toast } from "sonner";
 import { List, Set } from "immutable";
 import { css } from "@emotion/react";
+import { useReward } from "react-rewards";
 
 type Maybe<T> = T | null | undefined;
 
@@ -695,13 +697,23 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
     }
   };
 
+  const { reward: confettiReward } = useReward("confettiReward", "confetti", {
+    lifetime: 5000,
+    elementCount: 300,
+    elementSize: 20,
+    spread: 90,
+  });
+  // const { reward: balloonsReward } = useReward("balloonsReward", "balloons");
+
+  React.useEffect(() => {
+    if (isSolved) {
+      confettiReward();
+      // balloonsReward();
+    }
+  }, [isSolved]);
+
   return (
     <div className="m-8 inline-flex justify-center items-center flex-row">
-      {isSolved && (
-        <div className="inline-flex justify-center">
-          <ConfettiExplosion particleCount={100} duration={3000} />
-        </div>
-      )}
       <div className="items-center justify-center inline-flex sm:flex-row flex-col">
         <div className="flex flex-col items-center justify-center">
           <div className="flex flex-row">
@@ -712,6 +724,8 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
           <Main className="border-4 border-black mt-2 mr-4">
             {board.map(buildBoard)}
           </Main>
+          <span id="confettiReward" z-index={100} />
+          <span id="balloonsReward" z-index={101} />
           <span
             className={`${reenie_beanie.className} justify-start text-xl italic mt-4 w-full`}
           >
@@ -747,6 +761,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
                 <div className="flex items-center space-x-1">
                   <RadioGroupItem
                     value={difficulty}
+                    key={`radiogroup-${difficulty}-${index}`}
                     id={`radiogroup-${difficulty}-${index}`}
                   />
                   <Label
