@@ -704,7 +704,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
   }, [isSolved]);
 
   return (
-    <div className="flex justify-center items-center">
+    <div className="flex justify-center items-center bg-slate-50 h-screen">
       <div className="m-8 inline-flex justify-center items-center flex-row">
         <div className="items-center justify-center inline-flex sm:flex-row flex-col">
           <div className="flex flex-col items-center justify-center">
