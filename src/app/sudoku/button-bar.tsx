@@ -100,8 +100,8 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction>
-              <Button onClick={() => onClick("check")}>Submit</Button>
+            <AlertDialogAction onClick={() => onClick("check")}>
+              Submit
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -139,8 +139,8 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction>
-              <Button onClick={() => onClick("reset")}>Reset</Button>
+            <AlertDialogAction onClick={() => onClick("reset")}>
+              Reset
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -397,7 +397,7 @@ type State = {
   notesOn: boolean;
 };
 
-export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
+export const Sudoku: React.FC<SudokuProps> = () => {
   const [values, setValues] = React.useState<List<Value>>(List());
   const [selectedBoardIndex, setSelectedBoardIndex] = React.useState<
     number | null
@@ -424,15 +424,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   const [hintIndex, setHintIndex] = React.useState<number | null>(null);
   const history = React.useRef<List<State>>(List());
   const [notesOn, setNotesOn] = React.useState(false);
-
-  const hintCount = React.useRef(HINT_COUNT[difficulty]);
-  React.useEffect(() => {
-    if (hintIndex === null || difficulty) {
-      hintCount.current = HINT_COUNT[difficulty];
-    } else {
-      hintCount.current -= 1;
-    }
-  }, [hintIndex, difficulty]);
+  const [hintCount, setHintCount] = React.useState(HINT_COUNT[difficulty]);
 
   const { seconds, minutes, hours, isRunning, pause, start, reset } =
     useStopwatch({
@@ -536,14 +528,14 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
     setIsSolved(false);
     setHintIndex(null);
     setNotesOn(false);
-    hintCount.current = HINT_COUNT[difficulty];
+    setHintCount(HINT_COUNT[difficulty]);
   };
 
   const handleResetNewDifficulty = (difficulty: Difficulty) => {
     setDifficulty(difficulty);
     handleReset();
     setHintIndex(null);
-    hintCount.current = HINT_COUNT[difficulty];
+    setHintCount(HINT_COUNT[difficulty]);
   };
 
   const validateBoardAfterEntry = (toCheck: number) => {
@@ -599,7 +591,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
   };
 
   const handleHint = () => {
-    if (hintCount.current <= 0) {
+    if (hintCount <= 0) {
       toast.error("Bebi Bebi 🐧", {
         className: "bold",
         description:
@@ -618,6 +610,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
           value: hint.answer,
         });
         setHintIndex(hintIndex);
+        setHintCount(hintCount - 1);
       } else {
         toast.error("Internal Error: hintIndex out of bounds", {
           description: "No more hints available",
@@ -708,7 +701,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
       confettiReward();
       // balloonsReward();
     }
-  }, [isSolved]);
+  }, [isSolved, confettiReward]);
 
   return (
     <div className="flex justify-center items-center">
@@ -777,7 +770,7 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
             <ButtonBar
               onClick={handleButtonPress}
               notesOn={notesOn}
-              hintsRemaining={hintCount.current}
+              hintsRemaining={hintCount}
             />
           </div>
         </div>
