@@ -17,9 +17,9 @@ function WelcomeImage() {
     <Image
       src={getImageUrl("pingu.gif")}
       alt="Pingu Pingu"
-      width={400}
-      height={400}
-      className="border-black border-4 shadow-lg mb-8"
+      width={300}
+      height={300}
+      className="border-t-gray-50 border-4 shadow-lg mb-8 mx-4"
     />
   );
 }
@@ -49,7 +49,7 @@ function Navigation() {
     <div className="flex flex-row space-x-4">
       <Link
         href="/memories"
-        className={`h-12 w-48 text-4xl rounded-3xl ${buttonVariants({
+        className={`h-12 w-32 text-4xl rounded-3xl ${buttonVariants({
           variant: "outline",
         })}`}
       >
@@ -58,7 +58,7 @@ function Navigation() {
       </Link>
       <Link
         href="/sudoku"
-        className={`h-12 w-48 rounded-3xl ${buttonVariants({
+        className={`h-12 w-32 rounded-3xl ${buttonVariants({
           variant: "outline",
         })}`}
       >
@@ -71,7 +71,7 @@ function Navigation() {
 
 export default function Home() {
   return (
-    <div className="items-center justify-center flex h-screen flex-col">
+    <div className="items-center justify-center flex h-screen flex-col bg-slate-200">
       <WelcomeTitle />
       <WelcomeMessage />
       <WelcomeImage />
