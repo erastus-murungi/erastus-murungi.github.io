@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/carousel";
 import { type CarouselApi } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
+import Header from "../header";
 
 function Letter0() {
   return (
@@ -111,105 +112,108 @@ export default function MemoriesCarousel() {
   }, [api]);
 
   return (
-    <div className="flex justify-center items-center flex-col">
-      <Carousel className="w-full max-w-xl" setApi={setApi}>
-        <CarouselContent className="h-3/4">
-          <CarouselItem key={0}>
-            <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
-                <div className="h-screen items-center justify-center inline-flex flex-col">
-                  <h1 className="text-4xl font-bold text-center p-8">
-                    Follow the ducks to the next page 🐣 🐣 🐣 👉🏾
-                  </h1>
-                  <Image
-                    src={getImageUrl("pic.jpg")}
-                    alt="Pepi"
-                    width={400}
-                    height={400}
-                    className="border-black border-4 p-8"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </CarouselItem>
-          <CarouselItem key={1}>
-            <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
-                <Letter0 />
-              </CardContent>
-            </Card>
-          </CarouselItem>
-          <CarouselItem key={2}>
-            <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
-                <div className="h-screen items-center justify-center inline-flex flex-col">
-                  <h1 className="text-4xl font-bold text-center p-8">
-                    My view sometimes 👀
-                  </h1>
-                  <Image
-                    src={getImageUrl("pic1.jpg")}
-                    alt="Pepi"
-                    width={400}
-                    height={400}
-                    className="border-black border-4 p-8"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </CarouselItem>
-          <CarouselItem key={3}>
-            <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
-                <Letter1 />
-              </CardContent>
-            </Card>
-          </CarouselItem>
-          <CarouselItem key={4}>
-            <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
-                <div className="h-screen items-center justify-center inline-flex flex-col">
-                  <Image
-                    src={getImageUrl("pic3.jpg")}
-                    alt="Chama"
-                    width={600}
-                    height={600}
-                    className="border-black border-4 p-8"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </CarouselItem>
-          <CarouselItem key={5}>
-            <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
-                <Letter2 />
-              </CardContent>
-            </Card>
-          </CarouselItem>
-          <CarouselItem key={6}>
-            <Card>
-              <CardContent className="flex aspect-square items-center justify-center p-6">
-                <div className="h-screen items-center justify-center inline-flex flex-col">
-                  <Image
-                    src={getImageUrl("chama.gif")}
-                    alt="Chama"
-                    width={600}
-                    height={600}
-                    className="border-black border-4 p-8"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </CarouselItem>
-        </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
-        <div
-          className={`${satisfy.className} py-2 text-center text-sm text-muted-foreground`}
-        >
-          Memory {current} of {count}
-        </div>
-      </Carousel>
+    <div>
+      <Header />
+      <div className="flex justify-center items-center flex-col bg-slate-50">
+        <Carousel className="w-full max-w-xl" setApi={setApi}>
+          <CarouselContent className="h-3/4">
+            <CarouselItem key={0}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <div className="h-screen items-center justify-center inline-flex flex-col">
+                    <h1 className="text-4xl font-bold text-center p-8">
+                      Follow the ducks to the next page 🐣 🐣 🐣 👉🏾
+                    </h1>
+                    <Image
+                      src={getImageUrl("pic.jpg")}
+                      alt="Pepi"
+                      width={400}
+                      height={400}
+                      className="border-black border-4 p-8"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem key={1}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <Letter0 />
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem key={2}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <div className="h-screen items-center justify-center inline-flex flex-col">
+                    <h1 className="text-4xl font-bold text-center p-8">
+                      My view sometimes 👀
+                    </h1>
+                    <Image
+                      src={getImageUrl("pic1.jpg")}
+                      alt="Pepi"
+                      width={400}
+                      height={400}
+                      className="border-black border-4 p-8"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem key={3}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <Letter1 />
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem key={4}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <div className="h-screen items-center justify-center inline-flex flex-col">
+                    <Image
+                      src={getImageUrl("pic3.jpg")}
+                      alt="Chama"
+                      width={600}
+                      height={600}
+                      className="border-black border-4 p-8"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem key={5}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <Letter2 />
+                </CardContent>
+              </Card>
+            </CarouselItem>
+            <CarouselItem key={6}>
+              <Card>
+                <CardContent className="flex aspect-square items-center justify-center p-6">
+                  <div className="h-screen items-center justify-center inline-flex flex-col">
+                    <Image
+                      src={getImageUrl("chama.gif")}
+                      alt="Chama"
+                      width={600}
+                      height={600}
+                      className="border-black border-4 p-8"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+          <div
+            className={`${satisfy.className} py-2 text-center text-sm text-muted-foreground`}
+          >
+            Memory {current} of {count}
+          </div>
+        </Carousel>
+      </div>
     </div>
   );
 }

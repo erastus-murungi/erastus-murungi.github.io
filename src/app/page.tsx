@@ -7,6 +7,7 @@ import { BiMath } from "react-icons/bi";
 import { GiPenguin } from "react-icons/gi";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import Header from "./header";
 
 function WelcomeTitle() {
   return <div className="text-4xl mb-4">Pepi Pepi 💕</div>;
@@ -71,12 +72,15 @@ function Navigation() {
 
 export default function Home() {
   return (
-    <div className="items-center justify-center flex h-screen flex-col bg-slate-200">
-      <WelcomeTitle />
-      <WelcomeMessage />
-      <WelcomeImage />
-      <WelcomeAudio />
-      <Navigation />
+    <div>
+      <Header titleHeading="" />
+      <div className="items-center justify-center flex h-screen flex-col bg-slate-50">
+        <WelcomeTitle />
+        <WelcomeMessage />
+        <WelcomeImage />
+        <WelcomeAudio />
+        <Navigation />
+      </div>
     </div>
   );
 }

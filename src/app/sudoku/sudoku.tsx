@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { List, Set } from "immutable";
 import { css } from "@emotion/react";
 import { useReward } from "react-rewards";
+import Header from "../header";
 
 type Maybe<T> = T | null | undefined;
 
@@ -704,74 +705,73 @@ export const Sudoku: React.FC<SudokuProps> = () => {
   }, [isSolved]);
 
   return (
-    <div className="flex justify-center items-center bg-slate-50 h-screen">
-      <div className="m-8 inline-flex justify-center items-center flex-row">
-        <div className="items-center justify-center inline-flex sm:flex-row flex-col">
-          <div className="flex flex-col items-center justify-center">
-            <div className="flex flex-row">
-              <div className="items-stretch inline-flex justify-stretch flex-row">
-                <span className="text-3xl">🐧 Pepi Pepi&apos;s Sudoku 🐧</span>
-              </div>
-            </div>
-            <Main className="border-4 border-black mt-2 mr-4">
-              {board.map(buildBoard)}
-            </Main>
-            <span id="confettiReward" z-index={100} />
-            <span id="balloonsReward" z-index={101} />
-            <span
-              className={`${reenie_beanie.className} justify-start text-xl italic mt-4 w-full`}
-            >
-              made with love, by yours truly ❤️
-            </span>
-          </div>
-          <div className="flex flex-col items-center justify-center">
-            <div className="flex flex-row items-center justify-between w-full px-8">
-              <div className="flex flex-row">
-                <p className="text-xs uppercase">Mistakes:&nbsp;</p>
-                <p className="text-xs text-gray-700 ">{numMistakes}</p>
-              </div>
-              <div className="inline-flex flex-row w-[100px] justify-between items-center space-x-2">
-                <Button
-                  className="rounded-full w-4 h-4 hover:border-2 hover:border-black"
-                  variant="secondary"
-                  onClick={isRunning ? pause : start}
-                >
-                  {isRunning ? <PauseIcon /> : <PlayIcon />}
-                </Button>
-                <p className="text-xs">
-                  {hours} : {minutes.toString().padStart(2, "0")} :{" "}
-                  {seconds.toString().padStart(2, "0")}
-                </p>
-              </div>
-              <RadioGroup
-                defaultValue="easy"
-                onValueChange={(value) =>
-                  handleResetNewDifficulty(value as Difficulty)
-                }
+    <div>
+      <Header titleHeading="SUDOKU" />
+      <div className="flex justify-center items-center bg-slate-50 h-screen">
+        <div className="m-8 inline-flex justify-center items-center flex-row">
+          <div className="items-center justify-center inline-flex sm:flex-row flex-col">
+            <div className="flex flex-col items-center justify-center">
+              <div className="items-stretch inline-flex justify-stretch flex-row" />
+              <Main className="border-4 border-black mt-2 mr-4">
+                {board.map(buildBoard)}
+              </Main>
+              <span id="confettiReward" z-index={100} />
+              <span id="balloonsReward" z-index={101} />
+              <span
+                className={`${reenie_beanie.className} justify-start text-xl italic mt-4 w-full`}
               >
-                {difficulties.current.map((difficulty, index) => (
-                  <div
-                    className="flex items-center space-x-1"
-                    key={`radiogroup-${difficulty}-${index}`}
-                    id={`radiogroup-${difficulty}-${index}`}
-                  >
-                    <RadioGroupItem value={difficulty} />
-                    <Label
-                      htmlFor={`radiogroup-${difficulty}-${index}`}
-                      className="text-[10px]"
-                    >
-                      {difficulty.toUpperCase()}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
+                made with love, by yours truly ❤️
+              </span>
             </div>
+            <div className="flex flex-col items-center justify-center">
+              <div className="flex flex-row items-center justify-between w-full px-8">
+                <div className="flex flex-row">
+                  <p className="text-xs uppercase">Mistakes:&nbsp;</p>
+                  <p className="text-xs text-gray-700 ">{numMistakes}</p>
+                </div>
+                <div className="inline-flex flex-row w-[100px] justify-between items-center space-x-2">
+                  <Button
+                    className="rounded-full w-4 h-4 hover:border-2 hover:border-black"
+                    variant="secondary"
+                    onClick={isRunning ? pause : start}
+                  >
+                    {isRunning ? <PauseIcon /> : <PlayIcon />}
+                  </Button>
+                  <p className="text-xs">
+                    {hours} : {minutes.toString().padStart(2, "0")} :{" "}
+                    {seconds.toString().padStart(2, "0")}
+                  </p>
+                </div>
+                <RadioGroup
+                  defaultValue="easy"
+                  onValueChange={(value) =>
+                    handleResetNewDifficulty(value as Difficulty)
+                  }
+                >
+                  {difficulties.current.map((difficulty, index) => (
+                    <div
+                      className="flex items-center space-x-1"
+                      key={`radiogroup-${difficulty}-${index}`}
+                      id={`radiogroup-${difficulty}-${index}`}
+                    >
+                      <RadioGroupItem value={difficulty} />
+                      <Label
+                        htmlFor={`radiogroup-${difficulty}-${index}`}
+                        className="text-[10px]"
+                      >
+                        {difficulty.toUpperCase()}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
 
-            <ButtonBar
-              onClick={handleButtonPress}
-              notesOn={notesOn}
-              hintsRemaining={hintCount}
-            />
+              <ButtonBar
+                onClick={handleButtonPress}
+                notesOn={notesOn}
+                hintsRemaining={hintCount}
+              />
+            </div>
           </div>
         </div>
       </div>
