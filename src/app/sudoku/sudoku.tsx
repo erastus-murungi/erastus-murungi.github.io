@@ -689,7 +689,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
   };
 
   const { reward: confettiReward } = useReward("confettiReward", "confetti", {
-    lifetime: 5000,
+    lifetime: 10000,
     elementCount: 300,
     elementSize: 20,
     spread: 90,
@@ -701,7 +701,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
       confettiReward();
       // balloonsReward();
     }
-  }, [isSolved, confettiReward]);
+  }, [isSolved]);
 
   return (
     <div className="flex justify-center items-center">
