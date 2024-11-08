@@ -3,11 +3,11 @@
 import * as React from "react";
 import Image from "next/image";
 import { getImageUrl } from "@/lib/image-utils";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-function WelcomeMessage() {
-  return (
-    <div className="text-4xl">Pepi Pepi, Welcome to my playground! 🎉</div>
-  );
+function WelcomeTitle() {
+  return <div className="text-4xl mb-4">Pepi Pepi 💕</div>;
 }
 
 function WelcomeImage() {
@@ -33,12 +33,40 @@ function WelcomeAudio() {
   );
 }
 
+function WelcomeMessage() {
+  return (
+    <p className="mb-8">
+      Welcome to your playground! 🎉
+      <br />I hope you enjoy your stay! 🏡
+    </p>
+  );
+}
+
+function Navigation() {
+  return (
+    <div className="flex flex-row space-x-4">
+      <Button>
+        <Link href="/memories" className="text-2xl">
+          Memories
+        </Link>
+      </Button>
+      <Button>
+        <Link href="/sudoku" className="text-2xl">
+          Sudoku
+        </Link>
+      </Button>
+    </div>
+  );
+}
+
 export default function Home() {
   return (
     <div className="items-center justify-center flex h-screen flex-col">
+      <WelcomeTitle />
+      <WelcomeMessage />
       <WelcomeImage />
       <WelcomeAudio />
-      <WelcomeMessage />
+      <Navigation />
     </div>
   );
 }
