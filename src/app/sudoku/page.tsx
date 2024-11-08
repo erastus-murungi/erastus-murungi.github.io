@@ -1,11 +1,13 @@
-import React from "react";
-import { Sudoku } from "./sudoku";
-import { Global, css } from "@emotion/react";
-import { TooltipProvider } from "@/components/ui/tooltip";
+"use client";
 
-export default function SudokuApp() {
+import * as React from "react";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { css, Global } from "@emotion/react";
+import { Sudoku } from "./sudoku";
+
+export default function Home() {
   return (
-    <div className="items-center justify-center inline-flex flex-col">
+    <div className="flex justify-center items-center">
       <TooltipProvider>
         <Global
           styles={css`
@@ -22,6 +24,7 @@ export default function SudokuApp() {
             }
           `}
         />
+
         <Sudoku onComplete={() => {}} hide={false} />
       </TooltipProvider>
     </div>

@@ -11,8 +11,6 @@ import { useStopwatch } from "react-timer-hook";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import useWindowSize from "react-use/lib/useWindowSize";
-import Confetti from "react-confetti";
 import { toast } from "sonner";
 import { List, Set } from "immutable";
 import { css } from "@emotion/react";
