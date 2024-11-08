@@ -4,6 +4,7 @@ import * as React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { css, Global } from "@emotion/react";
 import { Sudoku } from "./sudoku";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function Home() {
   return (
@@ -23,8 +24,10 @@ export default function Home() {
           }
         `}
       />
-
-      <Sudoku onComplete={() => {}} hide={false} />
+      <>
+        <Sudoku onComplete={() => {}} hide={false} />
+        <Toaster position="top-center" />
+      </>
     </TooltipProvider>
   );
 }

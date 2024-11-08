@@ -757,12 +757,12 @@ export const Sudoku: React.FC<SudokuProps> = ({ hide }) => {
                 }
               >
                 {difficulties.current.map((difficulty, index) => (
-                  <div className="flex items-center space-x-1">
-                    <RadioGroupItem
-                      value={difficulty}
-                      key={`radiogroup-${difficulty}-${index}`}
-                      id={`radiogroup-${difficulty}-${index}`}
-                    />
+                  <div
+                    className="flex items-center space-x-1"
+                    key={`radiogroup-${difficulty}-${index}`}
+                    id={`radiogroup-${difficulty}-${index}`}
+                  >
+                    <RadioGroupItem value={difficulty} />
                     <Label
                       htmlFor={`radiogroup-${difficulty}-${index}`}
                       className="text-[10px]"
