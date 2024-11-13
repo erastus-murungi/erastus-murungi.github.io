@@ -60,6 +60,53 @@ export function getBoard(difficulty: Difficulty) {
   };
 }
 
+type StopWatchAction = "START" | "PAUSE" | "RESET" | "NOT_STARTED";
+
+const StopWatch: React.FC<{
+  stopwatchAction: StopWatchAction;
+  setStopwatchAction: React.Dispatch<React.SetStateAction<StopWatchAction>>;
+}> = React.memo(({ stopwatchAction, setStopwatchAction }) => {
+  const { seconds, minutes, hours, pause, start, reset } = useStopwatch({
+    autoStart: false,
+  });
+
+  React.useEffect(() => {
+    switch (stopwatchAction) {
+      case "START":
+        start();
+        break;
+      case "PAUSE":
+        pause();
+        break;
+      case "RESET":
+        reset();
+        break;
+    }
+  }, [stopwatchAction]);
+
+  return (
+    <div className="inline-flex flex-row w-[100px] justify-between items-center space-x-2">
+      <Button
+        className="rounded-full w-4 h-4 hover:border-2 hover:border-black"
+        variant="secondary"
+        onClick={() =>
+          stopwatchAction === "START"
+            ? setStopwatchAction("PAUSE")
+            : setStopwatchAction("START")
+        }
+      >
+        {stopwatchAction === "START" ? <PauseIcon /> : <PlayIcon />}
+      </Button>
+      <p className="text-xs">
+        {hours} : {minutes.toString().padStart(2, "0")} :{" "}
+        {seconds.toString().padStart(2, "0")}
+      </p>
+    </div>
+  );
+});
+
+StopWatch.displayName = "StopWatch";
+
 export const NotesStyledDiv = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -426,11 +473,8 @@ export const Sudoku: React.FC<SudokuProps> = () => {
   const history = React.useRef<List<State>>(List());
   const [notesOn, setNotesOn] = React.useState(false);
   const [hintCount, setHintCount] = React.useState(HINT_COUNT[difficulty]);
-
-  const { seconds, minutes, hours, isRunning, pause, start, reset } =
-    useStopwatch({
-      autoStart: true,
-    });
+  const [stopwatchAction, setStopwatchAction] =
+    React.useState<StopWatchAction>("NOT_STARTED");
 
   React.useEffect(() => {
     const { values, board } = getBoard(difficulty);
@@ -438,72 +482,95 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     setBoard(board);
   }, [difficulty]);
 
-  const getBoardIndex = (rowIndex: number, index: number) =>
-    rowIndex * 9 + index;
-
-  const setValue = (boardIndex: number, value: Value) => {
-    const newValues = values.set(boardIndex, value);
-    setValues(newValues);
-  };
-
-  const setSelectedBoardIndices = ({
-    selectedColumnIndex,
-    selectedRowIndex,
-    selectedBoardIndex,
-  }: {
-    selectedColumnIndex: number;
-    selectedRowIndex: number;
-    selectedBoardIndex: number;
-  }) => {
-    setSelectedColumnIndex(selectedColumnIndex);
-    setSelectedRowIndex(selectedRowIndex);
-    setSelectedBoardIndex(selectedBoardIndex);
-  };
-
-  const buildRow = (rowIndex: number) =>
-    function SudokuRow(value: Value, index: number) {
-      const boardIndex = getBoardIndex(rowIndex, index);
-      const val = values.get(boardIndex);
-
-      if (!val) {
-        return null;
-      }
-
-      return (
-        <SudokuSquare
-          key={`${difficulty}-${rowIndex}-${index}`}
-          value={val}
-          initialValue={value}
-          rowIndex={rowIndex}
-          boardIndex={boardIndex}
-          index={index}
-          selectedColumnIndex={selectedColumnIndex}
-          selectedRowIndex={selectedRowIndex}
-          selectedBoardIndex={selectedBoardIndex}
-          notesOn={notesOn}
-          setSelectedBoardIndices={setSelectedBoardIndices}
-          isConflictSquare={conflictBorderIndices.has(boardIndex)}
-          isHint={hintIndex === boardIndex}
-        />
-      );
-    };
-
-  buildRow.displayName = "buildRow";
-
-  const buildBoard = (rowValues: List<Value>, rowIndex: number) => (
-    <Board key={rowIndex}>{rowValues.map(buildRow(rowIndex))}</Board>
+  const getBoardIndex = React.useCallback(
+    (rowIndex: number, index: number) => rowIndex * 9 + index,
+    []
   );
 
-  const resetAllValues = () => {
+  const setValue = React.useCallback(
+    (boardIndex: number, value: Value) => {
+      const newValues = values.set(boardIndex, value);
+      setValues(newValues);
+    },
+    [values]
+  );
+
+  const setSelectedBoardIndices = React.useCallback(
+    ({
+      selectedColumnIndex,
+      selectedRowIndex,
+      selectedBoardIndex,
+    }: {
+      selectedColumnIndex: number;
+      selectedRowIndex: number;
+      selectedBoardIndex: number;
+    }) => {
+      setSelectedColumnIndex(selectedColumnIndex);
+      setSelectedRowIndex(selectedRowIndex);
+      setSelectedBoardIndex(selectedBoardIndex);
+    },
+    []
+  );
+
+  const buildRow = React.useCallback(
+    (rowIndex: number) =>
+      function SudokuRow(value: Value, index: number) {
+        const boardIndex = getBoardIndex(rowIndex, index);
+        const val = values.get(boardIndex);
+
+        if (!val) {
+          return null;
+        }
+
+        return (
+          <SudokuSquare
+            key={`${difficulty}-${rowIndex}-${index}`}
+            value={val}
+            initialValue={value}
+            rowIndex={rowIndex}
+            boardIndex={boardIndex}
+            index={index}
+            selectedColumnIndex={selectedColumnIndex}
+            selectedRowIndex={selectedRowIndex}
+            selectedBoardIndex={selectedBoardIndex}
+            notesOn={notesOn}
+            setSelectedBoardIndices={setSelectedBoardIndices}
+            isConflictSquare={conflictBorderIndices.has(boardIndex)}
+            isHint={hintIndex === boardIndex}
+          />
+        );
+      },
+    [
+      conflictBorderIndices,
+      difficulty,
+      getBoardIndex,
+      hintIndex,
+      notesOn,
+      selectedBoardIndex,
+      selectedColumnIndex,
+      selectedRowIndex,
+      setSelectedBoardIndices,
+      values,
+    ]
+  );
+
+  const buildBoard = React.useCallback(
+    (rowValues: List<Value>, rowIndex: number) => (
+      <Board key={rowIndex}>{rowValues.map(buildRow(rowIndex))}</Board>
+    ),
+    [buildRow]
+  );
+
+  const resetAllValues = React.useCallback(() => {
     const newValues = values.map((value) => ({
       ...value,
       ...(value.isOriginal ? { value: value.answer } : { value: null }),
       errorMessage: undefined,
     }));
     setValues(newValues);
-  };
+  }, [values]);
 
-  const handleUndo = () => {
+  const handleUndo = React.useCallback(() => {
     const lastState = history.current.last();
     if (lastState) {
       setValues(lastState.values);
@@ -515,12 +582,12 @@ export const Sudoku: React.FC<SudokuProps> = () => {
       setNotesOn(lastState.notesOn);
       history.current = history.current.pop();
     }
-  };
+  }, []);
 
-  const handleReset = () => {
+  const handleReset = React.useCallback(() => {
     resetAllValues();
     setBoard(board);
-    reset();
+    setStopwatchAction("RESET");
     setNumMistakes(0);
     setConflictBorderIndices(Set());
     setSelectedBoardIndex(null);
@@ -530,54 +597,61 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     setHintIndex(null);
     setNotesOn(false);
     setHintCount(HINT_COUNT[difficulty]);
-  };
+  }, [board, difficulty, resetAllValues, stopwatchAction]);
 
-  const handleResetNewDifficulty = (difficulty: Difficulty) => {
-    setDifficulty(difficulty);
-    handleReset();
-    setHintIndex(null);
-    setHintCount(HINT_COUNT[difficulty]);
-  };
+  const handleResetNewDifficulty = React.useCallback(
+    (difficulty: Difficulty) => {
+      setDifficulty(difficulty);
+      handleReset();
+      setHintIndex(null);
+      setHintCount(HINT_COUNT[difficulty]);
+    },
+    [handleReset]
+  );
 
-  const validateBoardAfterEntry = (toCheck: number) => {
-    const conflictBoardIndices = [];
-    if (selectedRowIndex != null) {
-      for (let offset = 0; offset < 9; offset++) {
-        const boardIndex = selectedRowIndex * 9 + offset;
-        const boardValue = values.get(boardIndex);
-        if (boardValue?.value === toCheck) {
-          conflictBoardIndices.push(boardIndex);
+  const validateBoardAfterEntry = React.useCallback(
+    (toCheck: number) => {
+      const conflictBoardIndices = [];
+      if (selectedRowIndex != null) {
+        for (let offset = 0; offset < 9; offset++) {
+          const boardIndex = selectedRowIndex * 9 + offset;
+          const boardValue = values.get(boardIndex);
+          if (boardValue?.value === toCheck) {
+            conflictBoardIndices.push(boardIndex);
+          }
         }
-      }
-      if (selectedColumnIndex != null) {
-        for (const [boardIndex, value] of values.entries()) {
-          if (boardIndex % 9 === selectedColumnIndex) {
-            if (value.value === toCheck) {
-              conflictBoardIndices.push(boardIndex);
+        if (selectedColumnIndex != null) {
+          for (const [boardIndex, value] of values.entries()) {
+            if (boardIndex % 9 === selectedColumnIndex) {
+              if (value.value === toCheck) {
+                conflictBoardIndices.push(boardIndex);
+              }
+            }
+          }
+
+          const gridRowIndex = selectedRowIndex - (selectedRowIndex % 3);
+          const gridColumnIndex =
+            selectedColumnIndex - (selectedColumnIndex % 3);
+          for (let colOffset = 0; colOffset < 3; colOffset++) {
+            for (let rowOffset = 0; rowOffset < 3; rowOffset++) {
+              const boardIndex = getBoardIndex(
+                gridRowIndex + rowOffset,
+                gridColumnIndex + colOffset
+              );
+              const boardValue = values.get(boardIndex);
+              if (boardValue?.value === toCheck) {
+                conflictBoardIndices.push(boardIndex);
+              }
             }
           }
         }
-
-        const gridRowIndex = selectedRowIndex - (selectedRowIndex % 3);
-        const gridColumnIndex = selectedColumnIndex - (selectedColumnIndex % 3);
-        for (let colOffset = 0; colOffset < 3; colOffset++) {
-          for (let rowOffset = 0; rowOffset < 3; rowOffset++) {
-            const boardIndex = getBoardIndex(
-              gridRowIndex + rowOffset,
-              gridColumnIndex + colOffset
-            );
-            const boardValue = values.get(boardIndex);
-            if (boardValue?.value === toCheck) {
-              conflictBoardIndices.push(boardIndex);
-            }
-          }
-        }
       }
-    }
-    return conflictBoardIndices.length > 0 ? Set(conflictBoardIndices) : null;
-  };
+      return conflictBoardIndices.length > 0 ? Set(conflictBoardIndices) : null;
+    },
+    [selectedRowIndex, selectedColumnIndex, values, getBoardIndex]
+  );
 
-  const handleCheck = () => {
+  const handleCheck = React.useCallback(() => {
     setValues(
       values.map((value) => ({
         ...value,
@@ -588,10 +662,11 @@ export const Sudoku: React.FC<SudokuProps> = () => {
 
     setIsSolved(true);
     setHintIndex(null);
+    setStopwatchAction("PAUSE");
     setConflictBorderIndices(Set());
-  };
+  }, [values]);
 
-  const handleHint = () => {
+  const handleHint = React.useCallback(() => {
     if (hintCount <= 0) {
       toast.error("Bebi Bebi 🐧", {
         className: "bold",
@@ -625,69 +700,106 @@ export const Sudoku: React.FC<SudokuProps> = () => {
         duration: 5000,
       });
     }
-  };
+  }, [hintCount, values, setValue]);
 
-  const handleButtonPress = (value: ButtonValue) => {
-    setHintIndex(null);
-    if (typeof value == "string") {
-      if (value == "check") {
-        handleCheck();
-      } else if (value == "reset") {
-        handleReset();
-      } else if (value == "undo") {
-        handleUndo();
-      } else if (value == "hint") {
-        handleHint();
-      } else if (value == "toggle-notes") {
-        setNotesOn(!notesOn);
-      }
-    } else {
-      if (selectedBoardIndex === null) {
-        return;
-      }
-
+  const handleDelete = React.useCallback(() => {
+    if (selectedBoardIndex !== null) {
       const selectedValue = values.get(selectedBoardIndex);
-      if (selectedValue?.isOriginal) {
-        return;
-      }
-
-      console.log(history.current);
-
-      if (selectedValue && typeof value === "number") {
-        if (selectedValue.value === value) {
-          setConflictBorderIndices(Set());
-          setValue(selectedBoardIndex, {
-            ...selectedValue,
-            value: null,
-            hasError: false,
-          });
-        } else {
-          const conflictBoardIndices = validateBoardAfterEntry(value);
-          if (conflictBoardIndices) {
-            setConflictBorderIndices(conflictBoardIndices);
-            setNumMistakes(numMistakes + 1);
-          }
-
-          history.current = history.current.push({
-            values,
-            selectedBoardIndex,
-            selectedColumnIndex,
-            selectedRowIndex,
-            difficulty,
-            conflictBorderIndices,
-            hintIndex,
-            notesOn,
-          });
-          setValue(selectedBoardIndex, {
-            ...selectedValue,
-            value,
-            answer: selectedValue.answer,
-            hasError: conflictBoardIndices !== null,
-          });
+      if (selectedValue) {
+        if (selectedValue.isOriginal) {
+          return;
         }
+        setValue(selectedBoardIndex, {
+          ...selectedValue,
+          value: null,
+          hasError: false,
+          isOriginal: false,
+        });
       }
     }
-  };
+  }, [selectedBoardIndex, values, setValue]);
+
+  const handleButtonPress = React.useCallback(
+    (value: ButtonValue) => {
+      setHintIndex(null);
+      if (typeof value == "string") {
+        if (value == "check") {
+          handleCheck();
+        } else if (value === "reset") {
+          handleReset();
+        } else if (value === "undo") {
+          handleUndo();
+        } else if (value === "hint") {
+          handleHint();
+        } else if (value === "toggle-notes") {
+          setNotesOn(!notesOn);
+        } else if (value === "delete") {
+          handleDelete();
+        }
+      } else {
+        if (selectedBoardIndex === null) {
+          return;
+        }
+
+        const selectedValue = values.get(selectedBoardIndex);
+        if (selectedValue?.isOriginal) {
+          return;
+        }
+
+        if (selectedValue && typeof value === "number") {
+          if (selectedValue.value === value) {
+            setConflictBorderIndices(Set());
+            setValue(selectedBoardIndex, {
+              ...selectedValue,
+              value: null,
+              hasError: false,
+            });
+          } else {
+            const conflictBoardIndices = validateBoardAfterEntry(value);
+            if (conflictBoardIndices) {
+              setConflictBorderIndices(conflictBoardIndices);
+              setNumMistakes(numMistakes + 1);
+            }
+
+            history.current = history.current.push({
+              values,
+              selectedBoardIndex,
+              selectedColumnIndex,
+              selectedRowIndex,
+              difficulty,
+              conflictBorderIndices,
+              hintIndex,
+              notesOn,
+            });
+            setValue(selectedBoardIndex, {
+              ...selectedValue,
+              value,
+              answer: selectedValue.answer,
+              hasError: conflictBoardIndices !== null,
+            });
+          }
+        }
+      }
+    },
+    [
+      handleCheck,
+      handleReset,
+      handleUndo,
+      handleHint,
+      handleDelete,
+      validateBoardAfterEntry,
+      selectedBoardIndex,
+      values,
+      setValue,
+      numMistakes,
+      difficulty,
+      selectedColumnIndex,
+      selectedRowIndex,
+      conflictBorderIndices,
+      hintIndex,
+      notesOn,
+    ]
+  );
 
   const { reward: confettiReward } = useReward("confettiReward", "confetti", {
     lifetime: 10000,
@@ -703,6 +815,8 @@ export const Sudoku: React.FC<SudokuProps> = () => {
       // balloonsReward();
     }
   }, [isSolved]);
+
+  console.log("Sudoku rendered");
 
   return (
     <div>
@@ -729,19 +843,10 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                   <p className="text-xs uppercase">Mistakes:&nbsp;</p>
                   <p className="text-xs text-gray-700 ">{numMistakes}</p>
                 </div>
-                <div className="inline-flex flex-row w-[100px] justify-between items-center space-x-2">
-                  <Button
-                    className="rounded-full w-4 h-4 hover:border-2 hover:border-black"
-                    variant="secondary"
-                    onClick={isRunning ? pause : start}
-                  >
-                    {isRunning ? <PauseIcon /> : <PlayIcon />}
-                  </Button>
-                  <p className="text-xs">
-                    {hours} : {minutes.toString().padStart(2, "0")} :{" "}
-                    {seconds.toString().padStart(2, "0")}
-                  </p>
-                </div>
+                <StopWatch
+                  stopwatchAction={stopwatchAction}
+                  setStopwatchAction={setStopwatchAction}
+                />
                 <RadioGroup
                   defaultValue="easy"
                   onValueChange={(value) =>

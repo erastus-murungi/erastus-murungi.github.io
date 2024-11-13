@@ -39,6 +39,7 @@ export type ButtonValue =
   | "undo"
   | "hint"
   | "toggle-notes"
+  | "delete"
   | "reset";
 type Row = React.FC<{
   onClick: (value: ButtonValue) => void;
