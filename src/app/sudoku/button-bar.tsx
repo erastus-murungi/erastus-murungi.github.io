@@ -35,11 +35,10 @@ export type ButtonValue =
   | 8
   | 9
   | 0
-  | "check"
+  | "submit"
   | "undo"
   | "hint"
   | "toggle-notes"
-  | "delete"
   | "reset";
 type Row = React.FC<{
   onClick: (value: ButtonValue) => void;
@@ -101,7 +100,7 @@ const ActionButtons: Row = ({ onClick, hintsRemaining = 0, notesOn }) => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => onClick("check")}>
+            <AlertDialogAction onClick={() => onClick("submit")}>
               Submit
             </AlertDialogAction>
           </AlertDialogFooter>

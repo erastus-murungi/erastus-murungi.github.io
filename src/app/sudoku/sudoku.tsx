@@ -64,13 +64,14 @@ type StopWatchAction = "START" | "PAUSE" | "RESET" | "NOT_STARTED";
 
 const StopWatch: React.FC<{
   stopwatchAction: StopWatchAction;
-  setStopwatchAction: React.Dispatch<React.SetStateAction<StopWatchAction>>;
+  setStopwatchAction: (stopwatchAction: StopWatchAction) => void;
 }> = React.memo(({ stopwatchAction, setStopwatchAction }) => {
   const { seconds, minutes, hours, pause, start, reset } = useStopwatch({
     autoStart: false,
   });
 
   React.useEffect(() => {
+    console.log("StopWatch rendered", stopwatchAction);
     switch (stopwatchAction) {
       case "START":
         start();
@@ -434,89 +435,304 @@ export interface SudokuProps {
   hide: boolean;
 }
 
-type State = {
+type HistoryState = {
   values: List<Value>;
   selectedBoardIndex: number | null;
   selectedColumnIndex: number | null;
   selectedRowIndex: number | null;
+  conflictBoardIndices: Set<number>;
   difficulty: Difficulty;
-  conflictBorderIndices: Set<number>;
   hintIndex: number | null;
   notesOn: boolean;
 };
 
+type ReducerState = HistoryState & {
+  history: List<HistoryState>;
+  stopwatchAction: StopWatchAction;
+  hintCount: number;
+  isSolved: boolean;
+  numMistakes: number;
+  board: List<List<Value>>;
+};
+
+type Action =
+  | {
+      type: "SUBMIT";
+    }
+  | {
+      type: "SET_VALUE";
+      value: number;
+    }
+  | {
+      type: "UNDO";
+    }
+  | {
+      type: "RESET";
+      difficulty: Difficulty;
+    }
+  | {
+      type: "SET_WATCH_ACTION";
+      stopwatchAction: StopWatchAction;
+    }
+  | {
+      type: "TOGGLE_NOTES";
+    }
+  | {
+      type: "INIT_SODUKU";
+      values: List<Value>;
+      board: List<List<Value>>;
+    }
+  | {
+      type: "SET_INDICES";
+      selectedBoardIndex: number;
+      selectedColumnIndex: number;
+      selectedRowIndex: number;
+    }
+  | {
+      type: "HINT";
+    };
+
+const getBoardIndex = (rowIndex: number, index: number) => rowIndex * 9 + index;
+
+const validateBoardAfterEntry = (state: ReducerState, toCheck: number) => {
+  const conflictBoardIndices = [];
+  if (state.selectedRowIndex != null) {
+    for (let offset = 0; offset < 9; offset++) {
+      const boardIndex = state.selectedRowIndex * 9 + offset;
+      const boardValue = state.values.get(boardIndex);
+      if (boardValue?.value === toCheck) {
+        conflictBoardIndices.push(boardIndex);
+      }
+    }
+    if (state.selectedColumnIndex != null) {
+      for (const [boardIndex, value] of state.values.entries()) {
+        if (boardIndex % 9 === state.selectedColumnIndex) {
+          if (value.value === toCheck) {
+            conflictBoardIndices.push(boardIndex);
+          }
+        }
+      }
+
+      const gridRowIndex =
+        state.selectedRowIndex - (state.selectedRowIndex % 3);
+      const gridColumnIndex =
+        state.selectedColumnIndex - (state.selectedColumnIndex % 3);
+      for (let colOffset = 0; colOffset < 3; colOffset++) {
+        for (let rowOffset = 0; rowOffset < 3; rowOffset++) {
+          const boardIndex = getBoardIndex(
+            gridRowIndex + rowOffset,
+            gridColumnIndex + colOffset
+          );
+          const boardValue = state.values.get(boardIndex);
+          if (boardValue?.value === toCheck) {
+            conflictBoardIndices.push(boardIndex);
+          }
+        }
+      }
+    }
+  }
+  return conflictBoardIndices.length > 0 ? Set(conflictBoardIndices) : null;
+};
+
+function reducer(state: ReducerState, action: Action): ReducerState {
+  switch (action.type) {
+    case "SET_VALUE":
+      const { selectedBoardIndex, values } = state;
+      const { value } = action;
+      if (selectedBoardIndex === null) {
+        return state;
+      }
+
+      const selectedValue = values.get(selectedBoardIndex);
+      if (!selectedValue || selectedValue.isOriginal) {
+        return state;
+      }
+
+      if (selectedValue.value === value) {
+        return {
+          ...state,
+          conflictBoardIndices: Set(),
+          hintIndex: null,
+          values: state.values.set(selectedBoardIndex, {
+            ...selectedValue,
+            value: null,
+            hasError: false,
+          }),
+        };
+      } else {
+        const conflictBoardIndices = validateBoardAfterEntry(state, value);
+        return {
+          ...state,
+          hintIndex: null,
+          history: state.history.push({
+            values,
+            selectedBoardIndex: state.selectedBoardIndex,
+            selectedColumnIndex: state.selectedColumnIndex,
+            selectedRowIndex: state.selectedRowIndex,
+            difficulty: state.difficulty,
+            conflictBoardIndices: state.conflictBoardIndices,
+            hintIndex: state.hintIndex,
+            notesOn: state.notesOn,
+          }),
+          values: state.values.set(selectedBoardIndex, {
+            ...selectedValue,
+            value,
+            answer: selectedValue.answer,
+            hasError: conflictBoardIndices !== null,
+          }),
+          ...(conflictBoardIndices && conflictBoardIndices.size > 0
+            ? { conflictBoardIndices, numMistakes: state.numMistakes + 1 }
+            : {}),
+        };
+      }
+    case "UNDO":
+      const lastState = state.history.last();
+      if (lastState) {
+        return {
+          ...state,
+          hintIndex: null,
+          values: lastState.values,
+          selectedBoardIndex: lastState.selectedBoardIndex,
+          selectedColumnIndex: lastState.selectedColumnIndex,
+          selectedRowIndex: lastState.selectedRowIndex,
+          difficulty: lastState.difficulty,
+          conflictBoardIndices: lastState.conflictBoardIndices,
+          notesOn: lastState.notesOn,
+          history: state.history.pop(),
+        };
+      }
+      return state;
+    case "RESET":
+      const { difficulty } = state;
+      return {
+        ...state,
+        values: state.values.map((value) => ({
+          ...value,
+          ...(value.isOriginal ? { value: value.answer } : { value: null }),
+          errorMessage: undefined,
+        })),
+        selectedBoardIndex: null,
+        selectedColumnIndex: null,
+        selectedRowIndex: null,
+        hintIndex: null,
+        conflictBoardIndices: Set(),
+        stopwatchAction: "RESET",
+        notesOn: false,
+        hintCount: HINT_COUNT[difficulty],
+        isSolved: false,
+        numMistakes: 0,
+      };
+    case "SET_WATCH_ACTION":
+      const { stopwatchAction } = action;
+      return { ...state, stopwatchAction };
+    case "SUBMIT":
+      return {
+        ...state,
+        values: state.values.map((value) => ({
+          ...value,
+          value: value.answer,
+          errorMessage: undefined,
+        })),
+        isSolved: true,
+        hintIndex: null,
+        stopwatchAction: "PAUSE",
+        conflictBoardIndices: Set(),
+      };
+    case "TOGGLE_NOTES":
+      return { ...state, notesOn: !state.notesOn, hintIndex: null };
+    case "INIT_SODUKU":
+      return {
+        ...state,
+        values: action.values,
+        board: action.board,
+        isSolved: false,
+        numMistakes: 0,
+      };
+    case "SET_INDICES":
+      const { selectedColumnIndex, selectedRowIndex } = action;
+      return {
+        ...state,
+        hintIndex: null,
+        selectedBoardIndex: action.selectedBoardIndex,
+        selectedColumnIndex,
+        selectedRowIndex,
+      };
+    case "HINT":
+      if (state.hintCount <= 0) {
+        toast.error("Bebi Bebi 🐧", {
+          className: "bold",
+          description:
+            "No more hints available for Bebi Bebi 🐧. Nisuke nikuongezee 😉",
+          duration: 5000,
+        });
+        return state;
+      }
+      const hintIndex = generateHint(state.values);
+      if (hintIndex !== undefined) {
+        const hint = state.values.get(hintIndex);
+        if (hint !== undefined) {
+          return {
+            ...state,
+            values: state.values.set(hintIndex, {
+              ...hint,
+              hasError: false,
+              value: hint.answer,
+            }),
+            hintIndex,
+            hintCount: state.hintCount - 1,
+          };
+        } else {
+          toast.error("Internal Error: hintIndex out of bounds", {
+            description: "No more hints available",
+            duration: 5000,
+          });
+        }
+      } else {
+        toast.error("No more hints available", {
+          className: "bold",
+          description: "No more hints available",
+          duration: 5000,
+        });
+      }
+    default:
+      throw new Error("Invalid action");
+  }
+}
+
 export const Sudoku: React.FC<SudokuProps> = () => {
-  const [values, setValues] = React.useState<List<Value>>(List());
-  const [selectedBoardIndex, setSelectedBoardIndex] = React.useState<
-    number | null
-  >(null);
-  const [selectedColumnIndex, setSelectedColumnIndex] = React.useState<
-    number | null
-  >(null);
-  const [selectedRowIndex, setSelectedRowIndex] = React.useState<number | null>(
-    null
-  );
-  const [numMistakes, setNumMistakes] = React.useState(0);
-  const [board, setBoard] = React.useState<List<List<Value>>>(List());
+  const [state, dispatch] = React.useReducer(reducer, {
+    values: List<Value>(),
+    board: List<List<Value>>(),
+    selectedBoardIndex: null,
+    selectedColumnIndex: null,
+    selectedRowIndex: null,
+    difficulty: "easy",
+    conflictBoardIndices: Set<number>(),
+    hintIndex: null,
+    notesOn: false,
+    history: List<HistoryState>(),
+    stopwatchAction: "NOT_STARTED",
+    hintCount: HINT_COUNT["easy"],
+    isSolved: false,
+    numMistakes: 0,
+  });
   const difficulties = React.useRef<Difficulty[]>([
     "easy",
     "medium",
     "hard",
     "expert",
   ]);
-  const [difficulty, setDifficulty] = React.useState<Difficulty>("easy");
-  const [isSolved, setIsSolved] = React.useState(false);
-  const [conflictBorderIndices, setConflictBorderIndices] = React.useState<
-    Set<number>
-  >(Set());
-  const [hintIndex, setHintIndex] = React.useState<number | null>(null);
-  const history = React.useRef<List<State>>(List());
-  const [notesOn, setNotesOn] = React.useState(false);
-  const [hintCount, setHintCount] = React.useState(HINT_COUNT[difficulty]);
-  const [stopwatchAction, setStopwatchAction] =
-    React.useState<StopWatchAction>("NOT_STARTED");
 
   React.useEffect(() => {
-    const { values, board } = getBoard(difficulty);
-    setValues(values);
-    setBoard(board);
-  }, [difficulty]);
-
-  const getBoardIndex = React.useCallback(
-    (rowIndex: number, index: number) => rowIndex * 9 + index,
-    []
-  );
-
-  const setValue = React.useCallback(
-    (boardIndex: number, value: Value) => {
-      const newValues = values.set(boardIndex, value);
-      setValues(newValues);
-    },
-    [values]
-  );
-
-  const setSelectedBoardIndices = React.useCallback(
-    ({
-      selectedColumnIndex,
-      selectedRowIndex,
-      selectedBoardIndex,
-    }: {
-      selectedColumnIndex: number;
-      selectedRowIndex: number;
-      selectedBoardIndex: number;
-    }) => {
-      setSelectedColumnIndex(selectedColumnIndex);
-      setSelectedRowIndex(selectedRowIndex);
-      setSelectedBoardIndex(selectedBoardIndex);
-    },
-    []
-  );
+    const { values, board } = getBoard(state.difficulty);
+    dispatch({ type: "INIT_SODUKU", values, board });
+  }, [state.difficulty]);
 
   const buildRow = React.useCallback(
     (rowIndex: number) =>
       function SudokuRow(value: Value, index: number) {
         const boardIndex = getBoardIndex(rowIndex, index);
-        const val = values.get(boardIndex);
+        const val = state.values.get(boardIndex);
 
         if (!val) {
           return null;
@@ -524,281 +740,70 @@ export const Sudoku: React.FC<SudokuProps> = () => {
 
         return (
           <SudokuSquare
-            key={`${difficulty}-${rowIndex}-${index}`}
+            key={`${state.difficulty}-${rowIndex}-${index}`}
             value={val}
             initialValue={value}
             rowIndex={rowIndex}
             boardIndex={boardIndex}
             index={index}
-            selectedColumnIndex={selectedColumnIndex}
-            selectedRowIndex={selectedRowIndex}
-            selectedBoardIndex={selectedBoardIndex}
-            notesOn={notesOn}
-            setSelectedBoardIndices={setSelectedBoardIndices}
-            isConflictSquare={conflictBorderIndices.has(boardIndex)}
-            isHint={hintIndex === boardIndex}
+            selectedColumnIndex={state.selectedColumnIndex}
+            selectedRowIndex={state.selectedRowIndex}
+            selectedBoardIndex={state.selectedBoardIndex}
+            notesOn={state.notesOn}
+            setSelectedBoardIndices={(values) =>
+              dispatch({ type: "SET_INDICES", ...values })
+            }
+            isConflictSquare={state.conflictBoardIndices.has(boardIndex)}
+            isHint={state.hintIndex === boardIndex}
           />
         );
       },
     [
-      conflictBorderIndices,
-      difficulty,
-      getBoardIndex,
-      hintIndex,
-      notesOn,
-      selectedBoardIndex,
-      selectedColumnIndex,
-      selectedRowIndex,
-      setSelectedBoardIndices,
-      values,
+      state.conflictBoardIndices,
+      state.difficulty,
+      state.hintIndex,
+      state.notesOn,
+      state.selectedBoardIndex,
+      state.selectedColumnIndex,
+      state.selectedRowIndex,
+      state.values,
     ]
   );
 
   const buildBoard = React.useCallback(
-    (rowValues: List<Value>, rowIndex: number) => (
-      <Board key={rowIndex}>{rowValues.map(buildRow(rowIndex))}</Board>
-    ),
+    (rowValues: List<Value>, rowIndex: number) => {
+      return <Board key={rowIndex}>{rowValues.map(buildRow(rowIndex))}</Board>;
+    },
     [buildRow]
   );
 
-  const resetAllValues = React.useCallback(() => {
-    const newValues = values.map((value) => ({
-      ...value,
-      ...(value.isOriginal ? { value: value.answer } : { value: null }),
-      errorMessage: undefined,
-    }));
-    setValues(newValues);
-  }, [values]);
-
-  const handleUndo = React.useCallback(() => {
-    const lastState = history.current.last();
-    if (lastState) {
-      setValues(lastState.values);
-      setSelectedBoardIndex(lastState.selectedBoardIndex);
-      setSelectedColumnIndex(lastState.selectedColumnIndex);
-      setSelectedRowIndex(lastState.selectedRowIndex);
-      setDifficulty(lastState.difficulty);
-      setConflictBorderIndices(lastState.conflictBorderIndices);
-      setNotesOn(lastState.notesOn);
-      history.current = history.current.pop();
-    }
-  }, []);
-
-  const handleReset = React.useCallback(() => {
-    resetAllValues();
-    setBoard(board);
-    setStopwatchAction("RESET");
-    setNumMistakes(0);
-    setConflictBorderIndices(Set());
-    setSelectedBoardIndex(null);
-    setSelectedColumnIndex(null);
-    setSelectedRowIndex(null);
-    setIsSolved(false);
-    setHintIndex(null);
-    setNotesOn(false);
-    setHintCount(HINT_COUNT[difficulty]);
-  }, [board, difficulty, resetAllValues, stopwatchAction]);
-
-  const handleResetNewDifficulty = React.useCallback(
-    (difficulty: Difficulty) => {
-      setDifficulty(difficulty);
-      handleReset();
-      setHintIndex(null);
-      setHintCount(HINT_COUNT[difficulty]);
-    },
-    [handleReset]
-  );
-
-  const validateBoardAfterEntry = React.useCallback(
-    (toCheck: number) => {
-      const conflictBoardIndices = [];
-      if (selectedRowIndex != null) {
-        for (let offset = 0; offset < 9; offset++) {
-          const boardIndex = selectedRowIndex * 9 + offset;
-          const boardValue = values.get(boardIndex);
-          if (boardValue?.value === toCheck) {
-            conflictBoardIndices.push(boardIndex);
-          }
-        }
-        if (selectedColumnIndex != null) {
-          for (const [boardIndex, value] of values.entries()) {
-            if (boardIndex % 9 === selectedColumnIndex) {
-              if (value.value === toCheck) {
-                conflictBoardIndices.push(boardIndex);
-              }
-            }
-          }
-
-          const gridRowIndex = selectedRowIndex - (selectedRowIndex % 3);
-          const gridColumnIndex =
-            selectedColumnIndex - (selectedColumnIndex % 3);
-          for (let colOffset = 0; colOffset < 3; colOffset++) {
-            for (let rowOffset = 0; rowOffset < 3; rowOffset++) {
-              const boardIndex = getBoardIndex(
-                gridRowIndex + rowOffset,
-                gridColumnIndex + colOffset
-              );
-              const boardValue = values.get(boardIndex);
-              if (boardValue?.value === toCheck) {
-                conflictBoardIndices.push(boardIndex);
-              }
-            }
-          }
-        }
-      }
-      return conflictBoardIndices.length > 0 ? Set(conflictBoardIndices) : null;
-    },
-    [selectedRowIndex, selectedColumnIndex, values, getBoardIndex]
-  );
-
-  const handleCheck = React.useCallback(() => {
-    setValues(
-      values.map((value) => ({
-        ...value,
-        value: value.answer,
-        errorMessage: undefined,
-      }))
-    );
-
-    setIsSolved(true);
-    setHintIndex(null);
-    setStopwatchAction("PAUSE");
-    setConflictBorderIndices(Set());
-  }, [values]);
-
-  const handleHint = React.useCallback(() => {
-    if (hintCount <= 0) {
-      toast.error("Bebi Bebi 🐧", {
-        className: "bold",
-        description:
-          "No more hints available for Bebi Bebi 🐧. Nisuke nikuongezee 😉",
-        duration: 5000,
-      });
-      return;
-    }
-    const hintIndex = generateHint(values);
-    if (hintIndex !== undefined) {
-      const hint = values.get(hintIndex);
-      if (hint !== undefined) {
-        setValue(hintIndex, {
-          ...hint,
-          hasError: false,
-          value: hint.answer,
-        });
-        setHintIndex(hintIndex);
-        setHintCount(hintCount - 1);
-      } else {
-        toast.error("Internal Error: hintIndex out of bounds", {
-          description: "No more hints available",
-          duration: 5000,
-        });
-      }
-    } else {
-      toast.error("No more hints available", {
-        className: "bold",
-        description: "No more hints available",
-        duration: 5000,
-      });
-    }
-  }, [hintCount, values, setValue]);
-
-  const handleDelete = React.useCallback(() => {
-    if (selectedBoardIndex !== null) {
-      const selectedValue = values.get(selectedBoardIndex);
-      if (selectedValue) {
-        if (selectedValue.isOriginal) {
-          return;
-        }
-        setValue(selectedBoardIndex, {
-          ...selectedValue,
-          value: null,
-          hasError: false,
-          isOriginal: false,
-        });
-      }
-    }
-  }, [selectedBoardIndex, values, setValue]);
-
   const handleButtonPress = React.useCallback(
     (value: ButtonValue) => {
-      setHintIndex(null);
       if (typeof value == "string") {
-        if (value == "check") {
-          handleCheck();
-        } else if (value === "reset") {
-          handleReset();
-        } else if (value === "undo") {
-          handleUndo();
-        } else if (value === "hint") {
-          handleHint();
-        } else if (value === "toggle-notes") {
-          setNotesOn(!notesOn);
-        } else if (value === "delete") {
-          handleDelete();
+        switch (value) {
+          case "submit":
+            dispatch({ type: "SUBMIT" });
+            break;
+          case "reset":
+            dispatch({ type: "RESET", difficulty: state.difficulty });
+            break;
+          case "undo":
+            dispatch({ type: "UNDO" });
+            break;
+          case "hint":
+            dispatch({ type: "HINT" });
+            break;
+          case "toggle-notes":
+            dispatch({ type: "TOGGLE_NOTES" });
+            break;
+          default:
+            throw new Error("Invalid button value");
         }
       } else {
-        if (selectedBoardIndex === null) {
-          return;
-        }
-
-        const selectedValue = values.get(selectedBoardIndex);
-        if (selectedValue?.isOriginal) {
-          return;
-        }
-
-        if (selectedValue && typeof value === "number") {
-          if (selectedValue.value === value) {
-            setConflictBorderIndices(Set());
-            setValue(selectedBoardIndex, {
-              ...selectedValue,
-              value: null,
-              hasError: false,
-            });
-          } else {
-            const conflictBoardIndices = validateBoardAfterEntry(value);
-            if (conflictBoardIndices) {
-              setConflictBorderIndices(conflictBoardIndices);
-              setNumMistakes(numMistakes + 1);
-            }
-
-            history.current = history.current.push({
-              values,
-              selectedBoardIndex,
-              selectedColumnIndex,
-              selectedRowIndex,
-              difficulty,
-              conflictBorderIndices,
-              hintIndex,
-              notesOn,
-            });
-            setValue(selectedBoardIndex, {
-              ...selectedValue,
-              value,
-              answer: selectedValue.answer,
-              hasError: conflictBoardIndices !== null,
-            });
-          }
-        }
+        dispatch({ type: "SET_VALUE", value });
       }
     },
-    [
-      handleCheck,
-      handleReset,
-      handleUndo,
-      handleHint,
-      handleDelete,
-      validateBoardAfterEntry,
-      selectedBoardIndex,
-      values,
-      setValue,
-      numMistakes,
-      difficulty,
-      selectedColumnIndex,
-      selectedRowIndex,
-      conflictBorderIndices,
-      hintIndex,
-      notesOn,
-    ]
+    [state.difficulty]
   );
 
   const { reward: confettiReward } = useReward("confettiReward", "confetti", {
@@ -807,14 +812,12 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     elementSize: 20,
     spread: 90,
   });
-  // const { reward: balloonsReward } = useReward("balloonsReward", "balloons");
 
   React.useEffect(() => {
-    if (isSolved) {
+    if (state.isSolved) {
       confettiReward();
-      // balloonsReward();
     }
-  }, [isSolved]);
+  }, [state.isSolved]);
 
   console.log("Sudoku rendered");
 
@@ -827,7 +830,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
             <div className="flex flex-col items-center justify-center">
               <div className="items-stretch inline-flex justify-stretch flex-row" />
               <Main className="border-4 border-black mt-2 mr-4">
-                {board.map(buildBoard)}
+                {state.board.map(buildBoard)}
               </Main>
               <span id="confettiReward" z-index={100} />
               <span id="balloonsReward" z-index={101} />
@@ -841,16 +844,18 @@ export const Sudoku: React.FC<SudokuProps> = () => {
               <div className="flex flex-row items-center justify-between w-full px-8">
                 <div className="flex flex-row">
                   <p className="text-xs uppercase">Mistakes:&nbsp;</p>
-                  <p className="text-xs text-gray-700 ">{numMistakes}</p>
+                  <p className="text-xs text-gray-700 ">{state.numMistakes}</p>
                 </div>
                 <StopWatch
-                  stopwatchAction={stopwatchAction}
-                  setStopwatchAction={setStopwatchAction}
+                  stopwatchAction={state.stopwatchAction}
+                  setStopwatchAction={(stopwatchAction) =>
+                    dispatch({ type: "SET_WATCH_ACTION", stopwatchAction })
+                  }
                 />
                 <RadioGroup
                   defaultValue="easy"
                   onValueChange={(value) =>
-                    handleResetNewDifficulty(value as Difficulty)
+                    dispatch({ type: "RESET", difficulty: value as Difficulty })
                   }
                 >
                   {difficulties.current.map((difficulty, index) => (
@@ -873,8 +878,8 @@ export const Sudoku: React.FC<SudokuProps> = () => {
 
               <ButtonBar
                 onClick={handleButtonPress}
-                notesOn={notesOn}
-                hintsRemaining={hintCount}
+                notesOn={state.notesOn}
+                hintsRemaining={state.hintCount}
               />
             </div>
           </div>
