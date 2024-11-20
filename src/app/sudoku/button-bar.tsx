@@ -1,5 +1,11 @@
 import React from "react";
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import {
   CheckIcon,
@@ -25,23 +31,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import styled from "@emotion/styled";
+import type { Difficulty } from "sudoku-gen/dist/types/difficulty.type";
+import { Label } from "@/components/ui/label";
 
-export type ButtonValue =
-  | 1
-  | 2
-  | 3
-  | 4
-  | 5
-  | 6
-  | 7
-  | 8
-  | 9
-  | 0
+type ActionButton =
   | "submit"
   | "undo"
   | "hint"
   | "toggle-notes"
-  | "reset";
+  | "reset"
+  | { type: "change-difficulty"; to: Difficulty };
+
+export type ButtonValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | ActionButton;
 type Row = React.FC<{
   onClick: (value: ButtonValue) => void;
   hintsRemaining: number;
@@ -59,22 +60,78 @@ const StyledButtonBar = styled.div`
   }
 `;
 
+export const StartButton: React.FC<{
+  onClick: (value: ButtonValue) => void;
+}> = ({ onClick }) => {
+  const difficulties = React.useRef<ReadonlyArray<[string, Difficulty]>>([
+    ["🥱", "easy"],
+    ["🤔", "medium"],
+    ["😅", "hard"],
+    ["🤯", "expert"],
+  ]);
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="secondary"
+          className="rounded-md h-14 mt-2 hover:border-2 hover:border-black flex items-center justify-center w-full"
+        >
+          New Game
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56">
+        <DropdownMenuLabel>
+          <div className="text-center">
+            <p className="text-xs">Current game progress will be lost</p>
+          </div>
+        </DropdownMenuLabel>
+        {difficulties.current.map(([secretText, difficulty], index) => (
+          <div
+            className="flex items-center space-x-1"
+            key={`dropdown-menu-item-${difficulty}-${index}`}
+            id={`dropdown-menu-item-${difficulty}-${index}`}
+          >
+            <DropdownMenuItem
+              className="w-full"
+              onSelect={(_event) =>
+                onClick({ type: "change-difficulty", to: difficulty })
+              }
+            >
+              <Label
+                htmlFor={`dropdown-menu-item-${difficulty}-${index}`}
+                className="text-sm"
+              >
+                {secretText} {difficulty.toLocaleUpperCase()}
+              </Label>
+            </DropdownMenuItem>
+          </div>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+StartButton.displayName = "StartButton";
+
 const NumPad: React.FC<{
   onClick: (value: ButtonValue) => void;
 }> = ({ onClick }) => {
   return (
-    <StyledButtonBar className="sm:flex sm:flex-row">
-      {[...Array(9).keys()].map((value) => (
-        <Button
-          key={`numpad-key-${value + 1}`}
-          className="text-2xl w-10 h-10 hover:scale-110 hover:shadow-lg hover:border-2 hover:border-black hover sm:w-16 sm:h-16 sm:text-xl"
-          variant="secondary"
-          onClick={() => onClick((value + 1) as ButtonValue)}
-        >
-          {value + 1}
-        </Button>
-      ))}
-    </StyledButtonBar>
+    <div>
+      <StyledButtonBar className="sm:flex sm:flex-row">
+        {[...Array(9).keys()].map((value) => (
+          <Button
+            key={`numpad-key-${value + 1}`}
+            className="text-2xl w-10 h-10 hover:scale-110 hover:shadow-lg hover:border-2 hover:border-black hover sm:w-16 sm:h-16 sm:text-xl"
+            variant="secondary"
+            onClick={() => onClick((value + 1) as ButtonValue)}
+          >
+            {value + 1}
+          </Button>
+        ))}
+      </StyledButtonBar>
+      <StartButton onClick={onClick} />
+    </div>
   );
 };
 

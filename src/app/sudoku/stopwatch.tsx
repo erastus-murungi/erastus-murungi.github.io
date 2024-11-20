@@ -4,7 +4,7 @@ import { PauseIcon, PlayIcon } from "@radix-ui/react-icons";
 import * as React from "react";
 import { useStopwatch } from "react-timer-hook";
 
-export type StopWatchAction = "START" | "PAUSE" | "RESET" | "NOT_STARTED";
+export type StopWatchAction = "start" | "pause" | "reset" | "idle";
 
 export const StopWatch: React.FC<{
   stopwatchAction: StopWatchAction;
@@ -16,13 +16,13 @@ export const StopWatch: React.FC<{
 
   React.useEffect(() => {
     switch (stopwatchAction) {
-      case "START":
+      case "start":
         start();
         break;
-      case "PAUSE":
+      case "pause":
         pause();
         break;
-      case "RESET":
+      case "reset":
         reset();
         break;
     }
@@ -34,12 +34,12 @@ export const StopWatch: React.FC<{
         className="rounded-full w-4 h-4 hover:border-2 hover:border-black"
         variant="secondary"
         onClick={() =>
-          stopwatchAction === "START"
-            ? setStopwatchAction("PAUSE")
-            : setStopwatchAction("START")
+          stopwatchAction === "start"
+            ? setStopwatchAction("pause")
+            : setStopwatchAction("start")
         }
       >
-        {stopwatchAction === "START" ? <PauseIcon /> : <PlayIcon />}
+        {stopwatchAction === "start" ? <PauseIcon /> : <PlayIcon />}
       </Button>
       <p className="text-xs">
         {hours} : {minutes.toString().padStart(2, "0")} :{" "}

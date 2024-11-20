@@ -1,8 +1,9 @@
 import styled from "@emotion/styled";
-import type { Value } from "./types";
 import { lora } from "@/styles/fonts";
+import type { Value } from "./types";
 
-export const ValueMain = styled.div`
+// Styled component for the main container
+export const CenteredContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -10,7 +11,8 @@ export const ValueMain = styled.div`
   height: 100%;
 `;
 
-export const ValueContent = styled.div<{
+// Styled component for the content with dynamic styling
+export const StyledValue = styled.div<{
   isOriginal: boolean;
   hasError: boolean;
 }>`
@@ -21,16 +23,17 @@ export const ValueContent = styled.div<{
   font-weight: bold;
 `;
 
-export const ValueWrapper: React.FC<Omit<Value, "noteValues">> = ({
+// Component to render the value with styling
+export const ValueDisplay: React.FC<Omit<Value, "noteValues">> = ({
   value,
   ...otherProps
 }) => (
-  <ValueMain>
-    <ValueContent
+  <CenteredContainer>
+    <StyledValue
       className={`${lora.className} items-center justify-center text-2xl`}
       {...otherProps}
     >
       {value}
-    </ValueContent>
-  </ValueMain>
+    </StyledValue>
+  </CenteredContainer>
 );

@@ -3,18 +3,16 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { reenie_beanie } from "@/styles/fonts";
-import { type Difficulty } from "sudoku-gen/dist/types/difficulty.type";
 import { ButtonBar, type ButtonValue } from "./button-bar";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { List, Set } from "immutable";
 import { useReward } from "react-rewards";
 import Header from "../header";
-import { StopWatch, type StopWatchAction } from "./stopwatch";
-import type { Value } from "./types";
 import { generateHint, getBoard } from "./utils";
 import { SudokuSquare } from "./square";
+import type { Value } from "./types";
+import type { Difficulty } from "sudoku-gen/dist/types/difficulty.type";
+import { StopWatch, type StopWatchAction } from "./stopwatch";
 
 const HINT_COUNT: Record<Difficulty, number> = {
   easy: 0,
@@ -57,7 +55,7 @@ type HistoryState = {
 
 type ReducerState = HistoryState & {
   history: List<HistoryState>;
-  stopwatchAction: StopWatchAction;
+  stopWatchAction: StopWatchAction;
   hintCount: number;
   isSolved: boolean;
   numMistakes: number;
@@ -76,12 +74,15 @@ type Action =
       type: "UNDO";
     }
   | {
+      type: "RESET_CURRENT_BOARD";
+    }
+  | {
       type: "RESET";
       difficulty: Difficulty;
     }
   | {
       type: "SET_WATCH_ACTION";
-      stopwatchAction: StopWatchAction;
+      stopWatchAction: StopWatchAction;
     }
   | {
       type: "TOGGLE_NOTES";
@@ -211,7 +212,7 @@ function reducer(state: ReducerState, action: Action): ReducerState {
         };
       }
       return state;
-    case "RESET":
+    case "RESET_CURRENT_BOARD":
       const { difficulty } = state;
       return {
         ...state,
@@ -225,15 +226,15 @@ function reducer(state: ReducerState, action: Action): ReducerState {
         selectedRowIndex: null,
         hintIndex: null,
         conflictBoardIndices: Set(),
-        stopwatchAction: "RESET",
+        stopWatchAction: "reset",
         notesOn: false,
         hintCount: HINT_COUNT[difficulty],
         isSolved: false,
         numMistakes: 0,
       };
     case "SET_WATCH_ACTION":
-      const { stopwatchAction } = action;
-      return { ...state, stopwatchAction };
+      const { stopWatchAction } = action;
+      return { ...state, stopWatchAction };
     case "SUBMIT":
       return {
         ...state,
@@ -244,7 +245,7 @@ function reducer(state: ReducerState, action: Action): ReducerState {
         })),
         isSolved: true,
         hintIndex: null,
-        stopwatchAction: "PAUSE",
+        stopWatchAction: "pause",
         conflictBoardIndices: Set(),
       };
     case "TOGGLE_NOTES":
@@ -295,6 +296,7 @@ function reducer(state: ReducerState, action: Action): ReducerState {
             description: "No more hints available",
             duration: 5000,
           });
+          return state;
         }
       } else {
         toast.error("No more hints available", {
@@ -302,7 +304,28 @@ function reducer(state: ReducerState, action: Action): ReducerState {
           description: "No more hints available",
           duration: 5000,
         });
+        return state;
       }
+    case "RESET":
+      const { difficulty: newDifficulty } = action;
+      const { values: newValues, board } = getBoard(newDifficulty);
+      return {
+        ...state,
+        values: newValues,
+        board,
+        selectedBoardIndex: null,
+        selectedColumnIndex: null,
+        selectedRowIndex: null,
+        difficulty: newDifficulty,
+        conflictBoardIndices: Set(),
+        hintIndex: null,
+        notesOn: false,
+        history: List(),
+        stopWatchAction: "reset",
+        hintCount: HINT_COUNT[newDifficulty],
+        isSolved: false,
+        numMistakes: 0,
+      };
     default:
       throw new Error("Invalid action");
   }
@@ -320,17 +343,11 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     hintIndex: null,
     notesOn: false,
     history: List<HistoryState>(),
-    stopwatchAction: "NOT_STARTED",
     hintCount: HINT_COUNT["easy"],
     isSolved: false,
+    stopWatchAction: "idle",
     numMistakes: 0,
   });
-  const difficulties = React.useRef<Difficulty[]>([
-    "easy",
-    "medium",
-    "hard",
-    "expert",
-  ]);
 
   React.useEffect(() => {
     const { values, board } = getBoard(state.difficulty);
@@ -388,13 +405,13 @@ export const Sudoku: React.FC<SudokuProps> = () => {
 
   const handleButtonPress = React.useCallback(
     (value: ButtonValue) => {
-      if (typeof value == "string") {
+      if (typeof value === "string") {
         switch (value) {
           case "submit":
             dispatch({ type: "SUBMIT" });
             break;
           case "reset":
-            dispatch({ type: "RESET", difficulty: state.difficulty });
+            dispatch({ type: "RESET_CURRENT_BOARD" });
             break;
           case "undo":
             dispatch({ type: "UNDO" });
@@ -408,8 +425,10 @@ export const Sudoku: React.FC<SudokuProps> = () => {
           default:
             throw new Error("Invalid button value");
         }
-      } else {
+      } else if (typeof value === "number") {
         dispatch({ type: "SET_VALUE", value });
+      } else if (value.type === "change-difficulty") {
+        dispatch({ type: "RESET", difficulty: value.to });
       }
     },
     [state.difficulty]
@@ -456,33 +475,11 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                   <p className="text-xs text-gray-700 ">{state.numMistakes}</p>
                 </div>
                 <StopWatch
-                  stopwatchAction={state.stopwatchAction}
-                  setStopwatchAction={(stopwatchAction) =>
-                    dispatch({ type: "SET_WATCH_ACTION", stopwatchAction })
+                  stopwatchAction={state.stopWatchAction}
+                  setStopwatchAction={(stopWatchAction) =>
+                    dispatch({ type: "SET_WATCH_ACTION", stopWatchAction })
                   }
                 />
-                <RadioGroup
-                  defaultValue="easy"
-                  onValueChange={(value) =>
-                    dispatch({ type: "RESET", difficulty: value as Difficulty })
-                  }
-                >
-                  {difficulties.current.map((difficulty, index) => (
-                    <div
-                      className="flex items-center space-x-1"
-                      key={`radiogroup-${difficulty}-${index}`}
-                      id={`radiogroup-${difficulty}-${index}`}
-                    >
-                      <RadioGroupItem value={difficulty} />
-                      <Label
-                        htmlFor={`radiogroup-${difficulty}-${index}`}
-                        className="text-[10px]"
-                      >
-                        {difficulty.toUpperCase()}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
               </div>
 
               <ButtonBar

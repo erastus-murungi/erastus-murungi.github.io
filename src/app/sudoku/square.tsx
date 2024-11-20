@@ -1,8 +1,8 @@
-import { css } from "@emotion/react";
-import type { Maybe, Value } from "./types";
 import styled from "@emotion/styled";
-import { NotesWrapper } from "./note-value";
-import { ValueWrapper } from "./value";
+import { css } from "@emotion/react";
+import { NotesGrid } from "./note-value";
+import { ValueDisplay } from "./value";
+import type { Maybe, Value } from "./types";
 
 export interface SudokuSquareProps {
   selectedColumnIndex: Maybe<number>;
@@ -185,9 +185,9 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
       }}
     >
       {isShowingNotes ? (
-        <NotesWrapper noteValues={value.noteValues} />
+        <NotesGrid noteValues={value.noteValues} />
       ) : (
-        <ValueWrapper
+        <ValueDisplay
           answer={initialValue.answer}
           hasError={value.hasError}
           isOriginal={value.isOriginal}
