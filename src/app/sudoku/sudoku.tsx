@@ -21,6 +21,8 @@ const HINT_COUNT: Record<Difficulty, number> = {
   expert: 3,
 };
 
+const SCORE_REFRESH_INTERVAL_MS = 10_000;
+
 export const Main = styled.div`
   position: relative;
   display: flex;
@@ -60,6 +62,45 @@ type ReducerState = HistoryState & {
   isSolved: boolean;
   numMistakes: number;
   board: List<List<Value>>;
+  totalSeconds: number;
+  score: string;
+  intervalId?: NodeJS.Timeout;
+  intervalStartTime?: number;
+};
+
+const MUTLIPLIERS = {
+  basePointsMap: {
+    easy: 100,
+    medium: 200,
+    hard: 300,
+    expert: 400,
+  },
+  hintMultiplier: 10,
+  timePenaltyExponent: 0.002,
+};
+
+/**
+ * We calculate the score using a number of factors:
+ * - Time taken to solve the puzzle
+ * - Difficulty of the puzzle
+ * - Number of hints used
+ *
+ * @param reducerState
+ */
+const calculateScore = (
+  reducerState: ReducerState,
+  multipliers: typeof MUTLIPLIERS = MUTLIPLIERS
+): string => {
+  const { totalSeconds, difficulty, hintCount } = reducerState;
+  const { hintMultiplier, timePenaltyExponent, basePointsMap } = multipliers;
+  const basePoints = basePointsMap[difficulty];
+  const hintsPenalty = hintMultiplier * hintCount;
+  const scoreAfterHintsPenalty = basePoints - hintsPenalty;
+
+  return (
+    scoreAfterHintsPenalty *
+    Math.pow(Math.E, 1 - timePenaltyExponent * totalSeconds)
+  ).toFixed();
 };
 
 type Action =
@@ -99,7 +140,18 @@ type Action =
       selectedRowIndex: number;
     }
   | {
+      type: "CALCULATE_SCORE";
+    }
+  | {
       type: "HINT";
+    }
+  | {
+      type: "UPDATE_TIME";
+      totalSeconds: number;
+    }
+  | {
+      type: "SET_INTERVAL_ID";
+      intervalId: NodeJS.Timeout;
     };
 
 const getBoardIndex = (rowIndex: number, index: number) => rowIndex * 9 + index;
@@ -145,6 +197,7 @@ const validateBoardAfterEntry = (state: ReducerState, toCheck: number) => {
 };
 
 function reducer(state: ReducerState, action: Action): ReducerState {
+  console.log("Action", action.type);
   switch (action.type) {
     case "SET_VALUE":
       const { selectedBoardIndex, values } = state;
@@ -231,6 +284,7 @@ function reducer(state: ReducerState, action: Action): ReducerState {
         hintCount: HINT_COUNT[difficulty],
         isSolved: false,
         numMistakes: 0,
+        score: "0",
       };
     case "SET_WATCH_ACTION":
       const { stopWatchAction } = action;
@@ -250,6 +304,12 @@ function reducer(state: ReducerState, action: Action): ReducerState {
       };
     case "TOGGLE_NOTES":
       return { ...state, notesOn: !state.notesOn, hintIndex: null };
+    case "UPDATE_TIME":
+      return { ...state, totalSeconds: action.totalSeconds };
+    case "CALCULATE_SCORE":
+      const score = calculateScore(state);
+      console.log(score);
+      return { ...state, score };
     case "INIT_SODUKU":
       return {
         ...state,
@@ -306,6 +366,8 @@ function reducer(state: ReducerState, action: Action): ReducerState {
         });
         return state;
       }
+    case "SET_INTERVAL_ID":
+      return { ...state, intervalId: action.intervalId };
     case "RESET":
       const { difficulty: newDifficulty } = action;
       const { values: newValues, board } = getBoard(newDifficulty);
@@ -325,9 +387,10 @@ function reducer(state: ReducerState, action: Action): ReducerState {
         hintCount: HINT_COUNT[newDifficulty],
         isSolved: false,
         numMistakes: 0,
+        score: "0",
       };
     default:
-      throw new Error("Invalid action");
+      throw new Error(`$unknown action type: ${JSON.stringify(action)}`);
   }
 }
 
@@ -347,12 +410,34 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     isSolved: false,
     stopWatchAction: "idle",
     numMistakes: 0,
+    totalSeconds: 0,
+    score: "0",
+    intervalStartTime: Date.now(),
   });
 
   React.useEffect(() => {
     const { values, board } = getBoard(state.difficulty);
     dispatch({ type: "INIT_SODUKU", values, board });
   }, [state.difficulty]);
+
+  const setTotalSeconds = React.useCallback(
+    (totalSeconds: number) => dispatch({ type: "UPDATE_TIME", totalSeconds }),
+    []
+  );
+
+  React.useEffect(() => {
+    if (state.intervalStartTime) {
+      if (state.intervalId) {
+        clearInterval(state.intervalId);
+      }
+      if (state.stopWatchAction === "start") {
+        const newIntervalId = setInterval(() => {
+          dispatch({ type: "CALCULATE_SCORE" });
+        }, SCORE_REFRESH_INTERVAL_MS);
+        dispatch({ type: "SET_INTERVAL_ID", intervalId: newIntervalId });
+      }
+    }
+  }, [state.intervalStartTime, state.stopWatchAction]);
 
   const buildRow = React.useCallback(
     (rowIndex: number) =>
@@ -447,8 +532,6 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     }
   }, [state.isSolved]);
 
-  console.log("Sudoku rendered");
-
   return (
     <div>
       <Header titleHeading="SUDOKU" />
@@ -474,11 +557,16 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                   <p className="text-xs uppercase">Mistakes:&nbsp;</p>
                   <p className="text-xs text-gray-700 ">{state.numMistakes}</p>
                 </div>
+                <div className="flex flex-row">
+                  <p className="text-xs uppercase">Score:&nbsp;</p>
+                  <p className="text-xs text-gray-700 ">{state.score}</p>
+                </div>
                 <StopWatch
                   stopwatchAction={state.stopWatchAction}
                   setStopwatchAction={(stopWatchAction) =>
                     dispatch({ type: "SET_WATCH_ACTION", stopWatchAction })
                   }
+                  setTotalSeconds={setTotalSeconds}
                 />
               </div>
 

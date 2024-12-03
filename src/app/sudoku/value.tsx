@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { lora } from "@/styles/fonts";
+import { publicSans } from "@/styles/fonts";
 import type { Value } from "./types";
 
 // Styled component for the main container
@@ -30,7 +30,7 @@ export const ValueDisplay: React.FC<Omit<Value, "noteValues">> = ({
 }) => (
   <CenteredContainer>
     <StyledValue
-      className={`${lora.className} items-center justify-center text-2xl`}
+      className={`${publicSans.className} items-center justify-center text-2xl`}
       {...otherProps}
     >
       {value}

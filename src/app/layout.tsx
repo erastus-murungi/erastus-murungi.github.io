@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
-import { Open_Sans } from "next/font/google";
+import { publicSans } from "@/styles/fonts";
 import "./globals.css";
-
-const primaryFont = Open_Sans({
-  weight: "600",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Pepi Pepi's playground ❤️",
@@ -19,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${primaryFont.className} antialiased`}>
+      <body className={`${publicSans.className} antialiased`}>
         <main>{children}</main>
       </body>
     </html>
