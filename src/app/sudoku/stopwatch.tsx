@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PauseIcon, PlayIcon, ResetIcon } from "@radix-ui/react-icons";
 import { useStopwatch } from "react-timer-hook";
 import { spaceMono } from "@/styles/fonts";
-
-export type StopWatchAction = "start" | "pause" | "reset" | "idle";
+import type { StopWatchAction } from "./types";
 
 export const StopWatch: React.FC<{
   stopwatchAction: StopWatchAction;

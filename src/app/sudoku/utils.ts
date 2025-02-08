@@ -1,7 +1,13 @@
 import { List } from "immutable";
-import type { Value } from "./types";
-import type { Difficulty } from "sudoku-gen/dist/types/difficulty.type";
 import { getSudoku } from "sudoku-gen";
+import type { Difficulty, Value, ReducerState } from "./types";
+
+export const HINT_COUNT: Record<Difficulty, number> = {
+  easy: 0,
+  medium: 1,
+  hard: 2,
+  expert: 3,
+};
 
 export const generateHint = (values: List<Value>) => {
   // if the values are all filled, return
@@ -36,3 +42,41 @@ export function getBoard(difficulty: Difficulty) {
     ),
   };
 }
+
+export const getBoardIndex = (rowIndex: number, index: number) =>
+  rowIndex * 9 + index;
+
+const MUTLIPLIERS = {
+  basePointsMap: {
+    easy: 100,
+    medium: 200,
+    hard: 300,
+    expert: 400,
+  },
+  hintMultiplier: 10,
+  timePenaltyExponent: 0.002,
+};
+
+/**
+ * We calculate the score using a number of factors:
+ * - Time taken to solve the puzzle
+ * - Difficulty of the puzzle
+ * - Number of hints used
+ *
+ * @param reducerState
+ */
+export const calculateScore = (
+  reducerState: ReducerState,
+  multipliers: typeof MUTLIPLIERS = MUTLIPLIERS
+): string => {
+  const { totalSeconds, difficulty, hintCount } = reducerState;
+  const { hintMultiplier, timePenaltyExponent, basePointsMap } = multipliers;
+  const basePoints = basePointsMap[difficulty];
+  const hintsPenalty = hintMultiplier * hintCount;
+  const scoreAfterHintsPenalty = basePoints - hintsPenalty;
+
+  return (
+    scoreAfterHintsPenalty *
+    Math.pow(Math.E, 1 - timePenaltyExponent * totalSeconds)
+  ).toFixed();
+};
