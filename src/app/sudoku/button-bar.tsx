@@ -63,7 +63,7 @@ const StyledButtonBar = styled.div`
 export const StartButton: React.FC<{
   onClick: (value: ButtonValue) => void;
 }> = ({ onClick }) => {
-  const difficulties = React.useRef<ReadonlyArray<[string, Difficulty]>>([
+  const difficulties = React.useRef<readonly [string, Difficulty][]>([
     ["🥱", "easy"],
     ["🤔", "medium"],
     ["😅", "hard"],
@@ -93,7 +93,7 @@ export const StartButton: React.FC<{
           >
             <DropdownMenuItem
               className="w-full"
-              onSelect={(_event) =>
+              onSelect={() =>
                 onClick({ type: "change-difficulty", to: difficulty })
               }
             >
@@ -113,15 +113,15 @@ export const StartButton: React.FC<{
 
 StartButton.displayName = "StartButton";
 
-const NumPad: React.FC<{
+const NumberPad: React.FC<{
   onClick: (value: ButtonValue) => void;
 }> = ({ onClick }) => {
   return (
     <div>
       <StyledButtonBar className="sm:flex sm:flex-row">
-        {[...Array(9).keys()].map((value) => (
+        {[...Array.from({ length: 9 }).keys()].map((value) => (
           <Button
-            key={`numpad-key-${value + 1}`}
+            key={`numberpad-key-${value + 1}`}
             className="text-2xl w-10 h-10 hover:scale-110 hover:shadow-lg hover:border-2 hover:border-black hover sm:w-16 sm:h-16 sm:text-xl"
             variant="secondary"
             onClick={() => onClick((value + 1) as ButtonValue)}
@@ -275,7 +275,7 @@ export const ButtonBar: Row = React.memo(
           hintsRemaining={hintsRemaining}
           notesOn={notesOn}
         />
-        <NumPad onClick={onClick} />
+        <NumberPad onClick={onClick} />
       </div>
     );
   }

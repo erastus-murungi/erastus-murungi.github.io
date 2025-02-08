@@ -44,7 +44,7 @@ export interface SudokuProps {
   hide: boolean;
 }
 
-type HistoryState = {
+interface HistoryState {
   values: List<Value>;
   selectedBoardIndex: number | null;
   selectedColumnIndex: number | null;
@@ -53,9 +53,9 @@ type HistoryState = {
   difficulty: Difficulty;
   hintIndex: number | null;
   notesOn: boolean;
-};
+}
 
-type ReducerState = HistoryState & {
+interface ReducerState extends HistoryState {
   history: List<HistoryState>;
   stopWatchAction: StopWatchAction;
   hintCount: number;
@@ -66,7 +66,7 @@ type ReducerState = HistoryState & {
   score: string;
   intervalId?: NodeJS.Timeout;
   intervalStartTime?: number;
-};
+}
 
 const MUTLIPLIERS = {
   basePointsMap: {
@@ -197,9 +197,11 @@ const validateBoardAfterEntry = (state: ReducerState, toCheck: number) => {
 };
 
 function reducer(state: ReducerState, action: Action): ReducerState {
+  // eslint-disable-next-line no-console
   console.log("Action", action.type);
+
   switch (action.type) {
-    case "SET_VALUE":
+    case "SET_VALUE": {
       const { selectedBoardIndex, values } = state;
       const { value } = action;
       if (selectedBoardIndex === null) {
@@ -248,7 +250,8 @@ function reducer(state: ReducerState, action: Action): ReducerState {
             : {}),
         };
       }
-    case "UNDO":
+    }
+    case "UNDO": {
       const lastState = state.history.last();
       if (lastState) {
         return {
@@ -265,7 +268,8 @@ function reducer(state: ReducerState, action: Action): ReducerState {
         };
       }
       return state;
-    case "RESET_CURRENT_BOARD":
+    }
+    case "RESET_CURRENT_BOARD": {
       const { difficulty } = state;
       return {
         ...state,
@@ -286,10 +290,12 @@ function reducer(state: ReducerState, action: Action): ReducerState {
         numMistakes: 0,
         score: "0",
       };
-    case "SET_WATCH_ACTION":
+    }
+    case "SET_WATCH_ACTION": {
       const { stopWatchAction } = action;
       return { ...state, stopWatchAction };
-    case "SUBMIT":
+    }
+    case "SUBMIT": {
       return {
         ...state,
         values: state.values.map((value) => ({
@@ -302,32 +308,39 @@ function reducer(state: ReducerState, action: Action): ReducerState {
         stopWatchAction: "pause",
         conflictBoardIndices: Set(),
       };
-    case "TOGGLE_NOTES":
+    }
+    case "TOGGLE_NOTES": {
       return { ...state, notesOn: !state.notesOn, hintIndex: null };
-    case "UPDATE_TIME":
+    }
+    case "UPDATE_TIME": {
       return { ...state, totalSeconds: action.totalSeconds };
-    case "CALCULATE_SCORE":
+    }
+    case "CALCULATE_SCORE": {
       const score = calculateScore(state);
-      console.log(score);
       return { ...state, score };
-    case "INIT_SODUKU":
+    }
+    case "INIT_SODUKU": {
+      const { values, board } = action;
       return {
         ...state,
-        values: action.values,
-        board: action.board,
+        values,
+        board,
         isSolved: false,
         numMistakes: 0,
       };
-    case "SET_INDICES":
-      const { selectedColumnIndex, selectedRowIndex } = action;
+    }
+    case "SET_INDICES": {
+      const { selectedColumnIndex, selectedRowIndex, selectedBoardIndex } =
+        action;
       return {
         ...state,
         hintIndex: null,
-        selectedBoardIndex: action.selectedBoardIndex,
+        selectedBoardIndex,
         selectedColumnIndex,
         selectedRowIndex,
       };
-    case "HINT":
+    }
+    case "HINT": {
       if (state.hintCount <= 0) {
         toast.error("Bebi Bebi 🐧", {
           className: "bold",
@@ -366,29 +379,33 @@ function reducer(state: ReducerState, action: Action): ReducerState {
         });
         return state;
       }
-    case "SET_INTERVAL_ID":
-      return { ...state, intervalId: action.intervalId };
-    case "RESET":
-      const { difficulty: newDifficulty } = action;
-      const { values: newValues, board } = getBoard(newDifficulty);
+    }
+    case "SET_INTERVAL_ID": {
+      const { intervalId } = action;
+      return { ...state, intervalId };
+    }
+    case "RESET": {
+      const { difficulty } = action;
+      const { values, board } = getBoard(difficulty);
       return {
         ...state,
-        values: newValues,
+        values,
         board,
         selectedBoardIndex: null,
         selectedColumnIndex: null,
         selectedRowIndex: null,
-        difficulty: newDifficulty,
+        difficulty,
         conflictBoardIndices: Set(),
         hintIndex: null,
         notesOn: false,
         history: List(),
         stopWatchAction: "reset",
-        hintCount: HINT_COUNT[newDifficulty],
+        hintCount: HINT_COUNT[difficulty],
         isSolved: false,
         numMistakes: 0,
         score: "0",
       };
+    }
     default:
       throw new Error(`$unknown action type: ${JSON.stringify(action)}`);
   }
@@ -535,7 +552,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
   return (
     <div>
       <Header titleHeading="SUDOKU" />
-      <div className="flex justify-center items-center bg-slate-50 h-screen">
+      <div className="flex justify-center items-center h-screen">
         <div className="m-8 inline-flex justify-center items-center flex-row">
           <div className="items-center justify-center inline-flex sm:flex-row flex-col">
             <div className="flex flex-col items-center justify-center">

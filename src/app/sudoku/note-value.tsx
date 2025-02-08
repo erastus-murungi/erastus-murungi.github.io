@@ -9,16 +9,14 @@ export const StyledNotesGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   cursor: pointer;
-  background-color: #61b3fa;
-  padding-bottom: 1px;
 `;
 
 // Function to generate styles based on selection state
 const noteStyles = ({ isSelected }: { isSelected: boolean }) => css`
   font-size: 12px;
-  color: ${isSelected ? "black" : "#61b3fa"};
-  background-color: #61b3fa;
-  transition: color 0.5s ease;
+  color: ${isSelected ? "black" : "#488470"};
+  background-color: #488470;
+  transition: color 0.25s ease;
 
   &:hover {
     color: ${!isSelected ? "white" : "black"};
