@@ -1,0 +1,14 @@
+.github/
+public/
+dist/
+node_modules/
+tmp/
+generated/
+build/
+package-lock.json
+*.generated.ts
+
+.next/
+
+## Handled by syncpack
+**/package.json

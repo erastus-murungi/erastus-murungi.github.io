@@ -7,7 +7,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "format:check:all": "prettier --check ./src",
+    "format:write:all": "prettier --write ./src"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -60,6 +62,8 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-unicorn": "^56.0.1",
     "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.23.0"

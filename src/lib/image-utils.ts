@@ -1,5 +1,5 @@
-const isProd = process.env.NODE_ENV === "production";
+const isProd = process.env.NODE_ENV === 'production';
 
 export const getImageUrl = (image: string) => {
-  return isProd ? `/${image}` : image;
+    return isProd ? `/${image}` : image;
 };
