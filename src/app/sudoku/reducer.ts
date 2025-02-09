@@ -6,6 +6,7 @@ import {
   generateHint,
   HINT_COUNT,
   calculateScore,
+  type IndexSet,
 } from "./utils";
 import type {
   ReducerState,
@@ -17,15 +18,15 @@ import type {
 
 const validateBoardAfterEntry = ({
   values,
-  selectedColumnIndex,
-  selectedRowIndex,
+  selectedIndexSet,
   toCheck,
 }: {
   values: ReducerState["values"];
-  selectedColumnIndex: ReducerState["selectedColumnIndex"];
-  selectedRowIndex: ReducerState["selectedRowIndex"];
+  selectedIndexSet: ReducerState["selectedIndexSet"];
   toCheck: number;
 }) => {
+  const { rowIndex: selectedRowIndex, columnIndex: selectedColumnIndex } =
+    selectedIndexSet || {};
   const conflictBoardIndices: number[] = [];
   if (selectedRowIndex != undefined) {
     for (let offset = 0; offset < 9; offset++) {
@@ -102,9 +103,7 @@ type Action =
     }
   | {
       type: "SET_INDICES";
-      selectedBoardIndex: number;
-      selectedColumnIndex: number;
-      selectedRowIndex: number;
+      selectedIndexSet: IndexSet;
     }
   | {
       type: "CALCULATE_SCORE";
@@ -127,7 +126,8 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
 
   switch (action.type) {
     case "SET_VALUE": {
-      const { selectedBoardIndex, values } = state;
+      const { boardIndex: selectedBoardIndex } = state.selectedIndexSet || {};
+      const { values } = state;
       const { value } = action;
       if (selectedBoardIndex === undefined) {
         return state;
@@ -151,8 +151,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         };
       } else {
         const conflictBoardIndices = validateBoardAfterEntry({
-          selectedColumnIndex: state.selectedColumnIndex,
-          selectedRowIndex: state.selectedRowIndex,
+          selectedIndexSet: state.selectedIndexSet,
           values: state.values,
           toCheck: value,
         });
@@ -161,9 +160,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
           hintIndex: undefined,
           history: state.history.push({
             values,
-            selectedBoardIndex: state.selectedBoardIndex,
-            selectedColumnIndex: state.selectedColumnIndex,
-            selectedRowIndex: state.selectedRowIndex,
+            selectedIndexSet: state.selectedIndexSet,
             difficulty: state.difficulty,
             conflictBoardIndices: state.conflictBoardIndices,
             hintIndex: state.hintIndex,
@@ -182,7 +179,8 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
       }
     }
     case "DELETE_VALUE": {
-      const { selectedBoardIndex, values } = state;
+      const { boardIndex: selectedBoardIndex } = state.selectedIndexSet || {};
+      const { values } = state;
       if (selectedBoardIndex === undefined) {
         return state;
       }
@@ -209,9 +207,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
           ...state,
           hintIndex: undefined,
           values: lastState.values,
-          selectedBoardIndex: lastState.selectedBoardIndex,
-          selectedColumnIndex: lastState.selectedColumnIndex,
-          selectedRowIndex: lastState.selectedRowIndex,
+          selectedIndexSet: lastState.selectedIndexSet,
           difficulty: lastState.difficulty,
           conflictBoardIndices: lastState.conflictBoardIndices,
           notesOn: lastState.notesOn,
@@ -231,9 +227,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             : { value: undefined }),
           errorMessage: undefined,
         })),
-        selectedBoardIndex: undefined,
-        selectedColumnIndex: undefined,
-        selectedRowIndex: undefined,
+        selectedIndexSet: undefined,
         hintIndex: undefined,
         conflictBoardIndices: Set(),
         stopWatchAction: "reset",
@@ -283,14 +277,11 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
       };
     }
     case "SET_INDICES": {
-      const { selectedColumnIndex, selectedRowIndex, selectedBoardIndex } =
-        action;
+      const { selectedIndexSet } = action;
       return {
         ...state,
         hintIndex: undefined,
-        selectedBoardIndex,
-        selectedColumnIndex,
-        selectedRowIndex,
+        selectedIndexSet,
       };
     }
     case "HINT": {
@@ -344,9 +335,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         ...state,
         values,
         board,
-        selectedBoardIndex: undefined,
-        selectedColumnIndex: undefined,
-        selectedRowIndex: undefined,
+        selectedIndexSet: undefined,
         difficulty,
         conflictBoardIndices: Set(),
         hintIndex: undefined,
@@ -368,9 +357,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
 export const INITIAL_STATE: ReducerState = {
   values: List(),
   board: List(),
-  selectedBoardIndex: undefined,
-  selectedColumnIndex: undefined,
-  selectedRowIndex: undefined,
+  selectedIndexSet: undefined,
   difficulty: "easy",
   conflictBoardIndices: Set(),
   hintIndex: undefined,

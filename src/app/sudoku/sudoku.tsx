@@ -5,7 +5,7 @@ import { reenie_beanie } from "@/styles/fonts";
 import Header from "../header";
 import { ButtonBar, type ButtonValue } from "./button-bar";
 import { useReward } from "react-rewards";
-import { getBoard, getBoardIndex } from "./utils";
+import { getBoard } from "./utils";
 import { Board } from "./sudoku-board";
 import { StopWatch } from "./stopwatch";
 import { reducer, INITIAL_STATE } from "./reducer";
@@ -50,91 +50,48 @@ export const Sudoku: React.FC<SudokuProps> = React.memo(() => {
     );
     if (wasAnyKeyPressed) {
       event.preventDefault();
+
       switch (event.key as HandledKeyPress) {
         case "Backspace": {
           dispatch({ type: "DELETE_VALUE" });
           break;
         }
         case "ArrowUp": {
-          if (
-            state.selectedColumnIndex !== undefined &&
-            state.selectedColumnIndex > 0
-          ) {
-            const updatedSelectedColumnIndex = state.selectedColumnIndex - 1;
-            const updatedBoardIndex = getBoardIndex(
-              // @ts-expect-error will fix soon
-              state.selectedRowIndex,
-              updatedSelectedColumnIndex
-            );
+          const selectedIndexSet = state.selectedIndexSet?.up;
+          if (selectedIndexSet) {
             dispatch({
               type: "SET_INDICES",
-              // @ts-expect-error will fix soon
-              selectedRowIndex: state.selectedRowIndex,
-              selectedBoardIndex: updatedBoardIndex,
-              selectedColumnIndex: updatedSelectedColumnIndex,
+              selectedIndexSet,
             });
           }
           break;
         }
         case "ArrowDown": {
-          if (
-            state.selectedColumnIndex !== undefined &&
-            state.selectedColumnIndex < 8
-          ) {
-            const updatedSelectedColumnIndex = state.selectedColumnIndex + 1;
-            const updatedBoardIndex = getBoardIndex(
-              // @ts-expect-error will fix soon
-              state.selectedRowIndex,
-              updatedSelectedColumnIndex
-            );
+          const selectedIndexSet = state.selectedIndexSet?.down;
+          if (selectedIndexSet) {
             dispatch({
               type: "SET_INDICES",
-              // @ts-expect-error will fix soon
-              selectedRowIndex: state.selectedRowIndex,
-              selectedBoardIndex: updatedBoardIndex,
-              selectedColumnIndex: updatedSelectedColumnIndex,
+              selectedIndexSet,
             });
           }
           break;
         }
         case "ArrowLeft": {
-          if (
-            state.selectedRowIndex !== undefined &&
-            state.selectedRowIndex > 0
-          ) {
-            const updatedSelectedRowIndex = state.selectedRowIndex - 1;
-            const updatedBoardIndex = getBoardIndex(
-              updatedSelectedRowIndex,
-              // @ts-expect-error will fix soon
-              state.selectedColumnIndex
-            );
+          const selectedIndexSet = state.selectedIndexSet?.left;
+          if (selectedIndexSet) {
             dispatch({
               type: "SET_INDICES",
-              selectedRowIndex: updatedSelectedRowIndex,
-              selectedBoardIndex: updatedBoardIndex,
-              // @ts-expect-error will fix soon
-              selectedColumnIndex: state.selectedColumnIndex,
+              selectedIndexSet,
             });
           }
           break;
         }
         case "ArrowRight": {
-          if (
-            state.selectedRowIndex !== undefined &&
-            state.selectedRowIndex < 8
-          ) {
-            const updatedSelectedRowIndex = state.selectedRowIndex + 1;
-            const updatedBoardIndex = getBoardIndex(
-              updatedSelectedRowIndex,
-              // @ts-expect-error will fix soon
-              state.selectedColumnIndex
-            );
+          const selectedIndexSet = state.selectedIndexSet?.right;
+          if (selectedIndexSet) {
             dispatch({
               type: "SET_INDICES",
-              selectedRowIndex: updatedSelectedRowIndex,
-              selectedBoardIndex: updatedBoardIndex,
-              // @ts-expect-error will fix soon
-              selectedColumnIndex: state.selectedColumnIndex,
+              selectedIndexSet,
             });
           }
           break;
@@ -240,11 +197,12 @@ export const Sudoku: React.FC<SudokuProps> = React.memo(() => {
                 conflictBoardIndices={state.conflictBoardIndices}
                 board={state.board}
                 values={state.values}
-                selectedColumnIndex={state.selectedColumnIndex}
-                selectedRowIndex={state.selectedRowIndex}
-                selectedBoardIndex={state.selectedBoardIndex}
-                setSelectedBoardIndices={(values) =>
-                  dispatch({ type: "SET_INDICES", ...values })
+                selectedIndexSet={state.selectedIndexSet}
+                setSelectedIndexSet={(indexSet) =>
+                  dispatch({
+                    type: "SET_INDICES",
+                    selectedIndexSet: indexSet,
+                  })
                 }
               />
               <span id="confettiReward" z-index={100} />

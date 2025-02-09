@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { SudokuSquare, type SudokuSquareProps } from "./sudoku-square";
-import { getBoardIndex } from "./utils";
+import { createIndexSet, getBoardIndex } from "./utils";
 import type { Prettify, ReducerState, SudokuBoardRow, Value } from "./types";
 
 const StyledBoardDiv = styled.div`
@@ -45,12 +45,10 @@ type BoardProps = Prettify<
     | "conflictBoardIndices"
     | "hintIndex"
     | "notesOn"
-    | "selectedBoardIndex"
-    | "selectedColumnIndex"
-    | "selectedRowIndex"
+    | "selectedIndexSet"
     | "values"
   > &
-    Pick<SudokuSquareProps, "setSelectedBoardIndices">
+    Pick<SudokuSquareProps, "setSelectedIndexSet">
 >;
 
 export const Board: React.FC<BoardProps> = React.memo(
@@ -59,12 +57,16 @@ export const Board: React.FC<BoardProps> = React.memo(
     conflictBoardIndices,
     hintIndex,
     notesOn,
-    selectedBoardIndex,
-    selectedColumnIndex,
-    selectedRowIndex,
+    selectedIndexSet,
     values,
-    setSelectedBoardIndices,
+    setSelectedIndexSet,
   }) => {
+    const {
+      columnIndex: selectedColumnIndex,
+      rowIndex: selectedRowIndex,
+      boardIndex: selectedBoardIndex,
+    } = selectedIndexSet || {};
+
     const buildRow = React.useCallback(
       (rowIndex: number) =>
         function SudokuRow(value: Value, columnIndex: number) {
@@ -85,16 +87,10 @@ export const Board: React.FC<BoardProps> = React.memo(
               key={`$square-${rowIndex}-${columnIndex}`}
               value={val}
               initialValue={value}
-              rowIndex={rowIndex}
-              boardIndex={boardIndex}
-              columnIndex={columnIndex}
-              selectedColumnIndex={selectedColumnIndex}
-              selectedRowIndex={selectedRowIndex}
-              selectedBoardIndex={selectedBoardIndex}
+              indexSet={createIndexSet({ rowIndex, columnIndex })}
+              selectedIndexSet={selectedIndexSet}
               showNotes={showNotes}
-              setSelectedBoardIndices={(values) =>
-                setSelectedBoardIndices(values)
-              }
+              setSelectedIndexSet={(values) => setSelectedIndexSet(values)}
               isConflictSquare={conflictBoardIndices.has(boardIndex)}
               isHint={hintIndex === boardIndex}
             />

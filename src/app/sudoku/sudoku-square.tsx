@@ -1,23 +1,16 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { css } from "@emotion/react";
-import type { Maybe, Value } from "./types";
 import { SudokuCell } from "./sudoku-cell";
+import type { Value } from "./types";
+import type { IndexSet } from "./utils";
 
 export interface SudokuSquareProps {
-  selectedColumnIndex: Maybe<number>;
-  selectedRowIndex: Maybe<number>;
-  selectedBoardIndex: Maybe<number>;
-  columnIndex: number;
-  rowIndex: number;
-  boardIndex: number;
+  selectedIndexSet?: IndexSet;
+  indexSet: IndexSet;
   value: Value;
   initialValue: Value;
-  setSelectedBoardIndices: (values: {
-    selectedBoardIndex: number;
-    selectedColumnIndex: number;
-    selectedRowIndex: number;
-  }) => void;
+  setSelectedIndexSet: (indexSet: IndexSet) => void;
   showNotes: boolean;
   isConflictSquare: boolean;
   isHint: boolean;
@@ -118,19 +111,22 @@ const OuterContainer = styled.div`
 
 export const SudokuSquare: React.FC<SudokuSquareProps> = React.memo(
   ({
-    selectedColumnIndex,
-    selectedRowIndex,
-    selectedBoardIndex,
-    rowIndex,
-    boardIndex,
-    columnIndex,
+    selectedIndexSet,
+    indexSet,
     value,
     initialValue,
-    setSelectedBoardIndices,
+    setSelectedIndexSet,
     showNotes,
     isConflictSquare,
     isHint,
   }) => {
+    const { columnIndex, rowIndex, boardIndex } = indexSet;
+    const {
+      columnIndex: selectedColumnIndex,
+      rowIndex: selectedRowIndex,
+      boardIndex: selectedBoardIndex,
+    } = selectedIndexSet || {};
+
     return (
       <OuterContainer
         className="min-[1200px]:w-20 min-[1200px]:h-20 lg:w-16 lg:h-16 md:w-15 md:h-15 w-11 h-11 rainbow"
@@ -142,11 +138,7 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = React.memo(
         isShowingNotes={showNotes}
         isHint={isHint}
         onClick={() => {
-          setSelectedBoardIndices({
-            selectedColumnIndex: columnIndex,
-            selectedRowIndex: rowIndex,
-            selectedBoardIndex: boardIndex,
-          });
+          setSelectedIndexSet(indexSet);
         }}
       >
         <SudokuCell

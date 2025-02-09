@@ -1,5 +1,6 @@
 import type { List, Set } from "immutable";
 import type { Difficulty } from "sudoku-gen/dist/types/difficulty.type";
+import type { IndexSet } from "./utils";
 
 export type { Difficulty } from "sudoku-gen/dist/types/difficulty.type";
 
@@ -26,9 +27,7 @@ export type SudokuBoard = List<SudokuBoardRow>;
 
 export interface HistoryState {
   values: List<Value>;
-  selectedBoardIndex?: number;
-  selectedColumnIndex?: number;
-  selectedRowIndex?: number;
+  selectedIndexSet?: IndexSet;
   conflictBoardIndices: Set<number>;
   difficulty: Difficulty;
   hintIndex?: number;
