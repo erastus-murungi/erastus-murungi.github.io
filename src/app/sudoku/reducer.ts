@@ -17,7 +17,7 @@ import type {
 
 const validateBoardAfterEntry = (state: ReducerState, toCheck: number) => {
   const conflictBoardIndices: number[] = [];
-  if (state.selectedRowIndex != null) {
+  if (state.selectedRowIndex != undefined) {
     for (let offset = 0; offset < 9; offset++) {
       const boardIndex = state.selectedRowIndex * 9 + offset;
       const boardValue = state.values.get(boardIndex);
@@ -25,11 +25,13 @@ const validateBoardAfterEntry = (state: ReducerState, toCheck: number) => {
         conflictBoardIndices.push(boardIndex);
       }
     }
-    if (state.selectedColumnIndex != null) {
+    if (state.selectedColumnIndex != undefined) {
       for (const [boardIndex, value] of state.values.entries()) {
         if (boardIndex % 9 === state.selectedColumnIndex) {
           if (value.value === toCheck) {
             conflictBoardIndices.push(boardIndex);
+          } else {
+            continue;
           }
         }
       }
@@ -52,7 +54,9 @@ const validateBoardAfterEntry = (state: ReducerState, toCheck: number) => {
       }
     }
   }
-  return conflictBoardIndices.length > 0 ? Set(conflictBoardIndices) : null;
+  return conflictBoardIndices.length > 0
+    ? Set(conflictBoardIndices)
+    : undefined;
 };
 
 type Action =
@@ -114,7 +118,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
     case "SET_VALUE": {
       const { selectedBoardIndex, values } = state;
       const { value } = action;
-      if (selectedBoardIndex === null) {
+      if (selectedBoardIndex === undefined) {
         return state;
       }
 
@@ -127,10 +131,10 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         return {
           ...state,
           conflictBoardIndices: Set(),
-          hintIndex: null,
+          hintIndex: undefined,
           values: state.values.set(selectedBoardIndex, {
             ...selectedValue,
-            value: null,
+            value: undefined,
             hasError: false,
           }),
         };
@@ -138,7 +142,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         const conflictBoardIndices = validateBoardAfterEntry(state, value);
         return {
           ...state,
-          hintIndex: null,
+          hintIndex: undefined,
           history: state.history.push({
             values,
             selectedBoardIndex: state.selectedBoardIndex,
@@ -153,7 +157,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             ...selectedValue,
             value,
             answer: selectedValue.answer,
-            hasError: conflictBoardIndices !== null,
+            hasError: conflictBoardIndices !== undefined,
           }),
           ...(conflictBoardIndices && conflictBoardIndices.size > 0
             ? { conflictBoardIndices, numMistakes: state.numMistakes + 1 }
@@ -166,7 +170,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
       if (lastState) {
         return {
           ...state,
-          hintIndex: null,
+          hintIndex: undefined,
           values: lastState.values,
           selectedBoardIndex: lastState.selectedBoardIndex,
           selectedColumnIndex: lastState.selectedColumnIndex,
@@ -185,13 +189,15 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         ...state,
         values: state.values.map((value) => ({
           ...value,
-          ...(value.isOriginal ? { value: value.answer } : { value: null }),
+          ...(value.isOriginal
+            ? { value: value.answer }
+            : { value: undefined }),
           errorMessage: undefined,
         })),
-        selectedBoardIndex: null,
-        selectedColumnIndex: null,
-        selectedRowIndex: null,
-        hintIndex: null,
+        selectedBoardIndex: undefined,
+        selectedColumnIndex: undefined,
+        selectedRowIndex: undefined,
+        hintIndex: undefined,
         conflictBoardIndices: Set(),
         stopWatchAction: "reset",
         notesOn: false,
@@ -214,13 +220,13 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
           errorMessage: undefined,
         })),
         isSolved: true,
-        hintIndex: null,
+        hintIndex: undefined,
         stopWatchAction: "pause",
         conflictBoardIndices: Set(),
       };
     }
     case "TOGGLE_NOTES": {
-      return { ...state, notesOn: !state.notesOn, hintIndex: null };
+      return { ...state, notesOn: !state.notesOn, hintIndex: undefined };
     }
     case "UPDATE_TIME": {
       return { ...state, totalSeconds: action.totalSeconds };
@@ -244,7 +250,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         action;
       return {
         ...state,
-        hintIndex: null,
+        hintIndex: undefined,
         selectedBoardIndex,
         selectedColumnIndex,
         selectedRowIndex,
@@ -261,9 +267,22 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         return state;
       }
       const hintIndex = generateHint(state.values);
-      if (hintIndex !== undefined) {
+      if (hintIndex === undefined) {
+        toast.error("No more hints available", {
+          className: "bold",
+          description: "No more hints available",
+          duration: 5000,
+        });
+        return state;
+      } else {
         const hint = state.values.get(hintIndex);
-        if (hint !== undefined) {
+        if (hint === undefined) {
+          toast.error("Internal Error: hintIndex out of bounds", {
+            description: "No more hints available",
+            duration: 5000,
+          });
+          return state;
+        } else {
           return {
             ...state,
             values: state.values.set(hintIndex, {
@@ -274,20 +293,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             hintIndex,
             hintCount: state.hintCount - 1,
           };
-        } else {
-          toast.error("Internal Error: hintIndex out of bounds", {
-            description: "No more hints available",
-            duration: 5000,
-          });
-          return state;
         }
-      } else {
-        toast.error("No more hints available", {
-          className: "bold",
-          description: "No more hints available",
-          duration: 5000,
-        });
-        return state;
       }
     }
     case "SET_INTERVAL_ID": {
@@ -301,12 +307,12 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         ...state,
         values,
         board,
-        selectedBoardIndex: null,
-        selectedColumnIndex: null,
-        selectedRowIndex: null,
+        selectedBoardIndex: undefined,
+        selectedColumnIndex: undefined,
+        selectedRowIndex: undefined,
         difficulty,
         conflictBoardIndices: Set(),
-        hintIndex: null,
+        hintIndex: undefined,
         notesOn: false,
         history: List(),
         stopWatchAction: "reset",
@@ -316,20 +322,21 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         score: "0",
       };
     }
-    default:
+    default: {
       throw new Error(`$unknown action type: ${JSON.stringify(action)}`);
+    }
   }
 }
 
 export const INITIAL_STATE: ReducerState = {
   values: List(),
   board: List(),
-  selectedBoardIndex: null,
-  selectedColumnIndex: null,
-  selectedRowIndex: null,
+  selectedBoardIndex: undefined,
+  selectedColumnIndex: undefined,
+  selectedRowIndex: undefined,
   difficulty: "easy",
   conflictBoardIndices: Set(),
-  hintIndex: null,
+  hintIndex: undefined,
   notesOn: false,
   history: List<HistoryState>(),
   hintCount: HINT_COUNT["easy"],

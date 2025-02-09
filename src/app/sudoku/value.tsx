@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import styled from "@emotion/styled";
 import { publicSans } from "@/styles/fonts";
 import type { Value } from "./types";
-// import type { List } from "immutable";
 
 const SudokuCellWrapper = styled.div`
   position: relative;
@@ -72,17 +71,17 @@ export const SudokuCell: React.FC<SudokuCellProps> = ({
   showNotes,
 }) => {
   // Local state to manage selection
-  const [selectedStates, setSelectedStates] = useState(
+  const [selectedStates, setSelectedStates] = React.useState(
     noteValues.map((note) => note.isSelected)
   );
 
   // Toggle selection state
   const handleToggleSelection = (index: number) => {
-    const updatedStates = selectedStates.update(
-      index,
-      (isSelected) => !isSelected
-    );
-    setSelectedStates(updatedStates);
+    const noteValue = noteValues.get(index);
+    if (noteValue) {
+      noteValue.isSelected = !noteValue.isSelected;
+    }
+    setSelectedStates(noteValues.map((note) => note.isSelected));
   };
 
   return (

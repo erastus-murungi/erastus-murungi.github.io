@@ -11,12 +11,12 @@ export const HINT_COUNT: Record<Difficulty, number> = {
 
 export const generateHint = (values: List<Value>) => {
   // if the values are all filled, return
-  if (values.every((value) => value.value !== null)) {
+  if (values.every((value) => value.value !== undefined)) {
     return;
   }
   while (true) {
     const index = Math.floor(Math.random() * 81);
-    if (values.get(index)?.value === null) {
+    if (values.get(index)?.value === undefined) {
       return index;
     }
   }
@@ -24,11 +24,11 @@ export const generateHint = (values: List<Value>) => {
 
 export function getBoard(difficulty: Difficulty) {
   const sudoku = getSudoku(difficulty);
-  const values = sudoku.puzzle.split("").map((value, index) => ({
-    value: value === "-" ? null : parseInt(value, 10),
+  const values = [...sudoku.puzzle].map((value, index) => ({
+    value: value === "-" ? undefined : Number.parseInt(value, 10),
     hasError: false,
     isOriginal: value !== "-",
-    answer: parseInt(sudoku.solution[index], 10),
+    answer: Number.parseInt(sudoku.solution[index], 10),
     isSelectedBoardIndex: false,
     noteValues: List([1, 2, 3, 4, 5, 6, 7, 8, 9] as const).map((val) => ({
       value: val,
@@ -78,5 +78,5 @@ export const calculateScore = (
   return (
     scoreAfterHintsPenalty *
     Math.pow(Math.E, 1 - timePenaltyExponent * totalSeconds)
-  ).toFixed();
+  ).toFixed(0);
 };

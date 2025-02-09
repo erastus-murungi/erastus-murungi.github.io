@@ -3,10 +3,10 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { reenie_beanie } from "@/styles/fonts";
+import Header from "../header";
 import { ButtonBar, type ButtonValue } from "./button-bar";
 import { List } from "immutable";
 import { useReward } from "react-rewards";
-import Header from "../header";
 import { getBoard, getBoardIndex } from "./utils";
 import { SudokuSquare } from "./square";
 import { StopWatch } from "./stopwatch";
@@ -26,7 +26,6 @@ export const Main = styled.div`
   color: black;
   border-color: black;
 `;
-
 export interface SudokuProps {
   onComplete: () => void;
   hide: boolean;
@@ -66,8 +65,13 @@ export const Sudoku: React.FC<SudokuProps> = () => {
         const val = state.values.get(boardIndex);
 
         if (!val) {
-          return null;
+          return;
         }
+
+        const showNotes =
+          state.notesOn &&
+          (value.noteValues.some((noteValue) => noteValue.isSelected) ||
+            state.selectedBoardIndex === boardIndex);
 
         return (
           <SudokuSquare
@@ -80,7 +84,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
             selectedColumnIndex={state.selectedColumnIndex}
             selectedRowIndex={state.selectedRowIndex}
             selectedBoardIndex={state.selectedBoardIndex}
-            notesOn={state.notesOn}
+            showNotes={showNotes}
             setSelectedBoardIndices={(values) =>
               dispatch({ type: "SET_INDICES", ...values })
             }
@@ -101,14 +105,18 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     ]
   );
 
-  const buildBoard = React.useCallback(
-    (rowValues: List<Value>, rowIndex: number) => {
-      return (
-        <div className="inline-flex" key={rowIndex}>
-          {rowValues.map(buildRow(rowIndex))}
-        </div>
-      );
-    },
+  const sudokuBoard = React.useMemo(
+    () => (
+      <Main>
+        {state.board.map((rowValues: List<Value>, rowIndex: number) => {
+          return (
+            <div className="inline-flex" key={rowIndex}>
+              {rowValues.map(buildRow(rowIndex))}
+            </div>
+          );
+        })}
+      </Main>
+    ),
     [buildRow]
   );
 
@@ -116,23 +124,29 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     (value: ButtonValue) => {
       if (typeof value === "string") {
         switch (value) {
-          case "submit":
+          case "submit": {
             dispatch({ type: "SUBMIT" });
             break;
-          case "reset":
+          }
+          case "reset": {
             dispatch({ type: "RESET_CURRENT_BOARD" });
             break;
-          case "undo":
+          }
+          case "undo": {
             dispatch({ type: "UNDO" });
             break;
-          case "hint":
+          }
+          case "hint": {
             dispatch({ type: "HINT" });
             break;
-          case "toggle-notes":
+          }
+          case "toggle-notes": {
             dispatch({ type: "TOGGLE_NOTES" });
             break;
-          default:
+          }
+          default: {
             throw new Error("Invalid button value");
+          }
         }
       } else if (typeof value === "number") {
         dispatch({ type: "SET_VALUE", value });
@@ -144,7 +158,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
   );
 
   const { reward: confettiReward } = useReward("confettiReward", "confetti", {
-    lifetime: 10000,
+    lifetime: 10_000,
     elementCount: 300,
     elementSize: 20,
     spread: 90,
@@ -164,7 +178,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
           <div className="items-center justify-center inline-flex sm:flex-row flex-col">
             <div className="flex flex-col items-center justify-center">
               <div className="items-stretch inline-flex justify-stretch flex-row" />
-              <Main>{state.board.map(buildBoard)}</Main>
+              {sudokuBoard}
               <span id="confettiReward" z-index={100} />
               <span id="balloonsReward" z-index={101} />
               <span

@@ -1,13 +1,13 @@
 import type { List, Set } from "immutable";
 import type { Difficulty } from "sudoku-gen/dist/types/difficulty.type";
 
-export type { Difficulty };
+export type { Difficulty } from "sudoku-gen/dist/types/difficulty.type";
 
-export type Maybe<T> = T | null | undefined;
+export type Maybe<T> = T | undefined;
 export type StopWatchAction = "start" | "pause" | "reset" | "idle";
 
 export interface Value {
-  value: number | null;
+  value?: number;
   hasError: boolean;
   isOriginal: boolean;
   isSelectedBoardIndex: boolean;
@@ -20,12 +20,12 @@ export interface Value {
 
 export interface HistoryState {
   values: List<Value>;
-  selectedBoardIndex: number | null;
-  selectedColumnIndex: number | null;
-  selectedRowIndex: number | null;
+  selectedBoardIndex?: number;
+  selectedColumnIndex?: number;
+  selectedRowIndex?: number;
   conflictBoardIndices: Set<number>;
   difficulty: Difficulty;
-  hintIndex: number | null;
+  hintIndex?: number;
   notesOn: boolean;
 }
 

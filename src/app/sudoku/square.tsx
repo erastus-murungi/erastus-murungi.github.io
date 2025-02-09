@@ -17,7 +17,7 @@ export interface SudokuSquareProps {
     selectedColumnIndex: number;
     selectedRowIndex: number;
   }) => void;
-  notesOn: boolean;
+  showNotes: boolean;
   isConflictSquare: boolean;
   isHint: boolean;
 }
@@ -155,14 +155,10 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
   value,
   initialValue,
   setSelectedBoardIndices,
-  notesOn,
+  showNotes,
   isConflictSquare,
   isHint,
 }) => {
-  const showNotes =
-    notesOn &&
-    (value.noteValues.some((noteValue) => noteValue.isSelected) ||
-      (value.value === null && selectedBoardIndex === boardIndex));
   return (
     <OuterContainer
       className="sm:w-14 sm:h-14 w-8 h-8 rainbow"

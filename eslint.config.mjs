@@ -49,6 +49,8 @@ export default [
       "react/no-direct-mutation-state": "error",
       "react-hooks/exhaustive-deps": "off",
       "@next/next/no-img-element": "off",
+      "unicorn/prevent-abbreviations": "off",
+      "unicorn/no-nested-ternary": "off",
       curly: ["error", "all"],
     },
   },

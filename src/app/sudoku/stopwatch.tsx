@@ -19,15 +19,18 @@ export const StopWatch: React.FC<{
 
   React.useEffect(() => {
     switch (stopwatchAction) {
-      case "start":
+      case "start": {
         start();
         break;
-      case "pause":
+      }
+      case "pause": {
         pause();
         break;
-      case "reset":
+      }
+      case "reset": {
         reset();
         break;
+      }
     }
   }, [stopwatchAction]);
 

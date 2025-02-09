@@ -30,6 +30,7 @@ type CarouselContextProps = {
   canScrollNext: boolean;
 } & CarouselProps;
 
+// eslint-disable-next-line unicorn/no-null
 const CarouselContext = React.createContext<CarouselContextProps | null>(null);
 
 function useCarousel() {
