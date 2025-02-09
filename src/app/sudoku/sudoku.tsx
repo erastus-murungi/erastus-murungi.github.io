@@ -4,38 +4,27 @@ import React from "react";
 import styled from "@emotion/styled";
 import { reenie_beanie } from "@/styles/fonts";
 import { ButtonBar, type ButtonValue } from "./button-bar";
-import { List, Set } from "immutable";
+import { List } from "immutable";
 import { useReward } from "react-rewards";
 import Header from "../header";
 import { getBoard, getBoardIndex } from "./utils";
 import { SudokuSquare } from "./square";
 import { StopWatch } from "./stopwatch";
 import { reducer, INITIAL_STATE } from "./reducer";
-import type { Value, HistoryState } from "./types";
-import type { Difficulty } from "sudoku-gen/dist/types/difficulty.type";
-
-const HINT_COUNT: Record<Difficulty, number> = {
-  easy: 0,
-  medium: 1,
-  hard: 2,
-  expert: 3,
-};
+import type { Value } from "./types";
 
 const SCORE_REFRESH_INTERVAL_MS = 10_000;
 
 export const Main = styled.div`
   position: relative;
   display: flex;
+  width: 100%;
   flex-direction: column;
   background-color: white;
 
   overflow: hidden;
   color: black;
   border-color: black;
-`;
-
-export const BoardRow = styled.div`
-  display: flex;
 `;
 
 export interface SudokuProps {
@@ -115,7 +104,9 @@ export const Sudoku: React.FC<SudokuProps> = () => {
   const buildBoard = React.useCallback(
     (rowValues: List<Value>, rowIndex: number) => {
       return (
-        <BoardRow key={rowIndex}>{rowValues.map(buildRow(rowIndex))}</BoardRow>
+        <div className="inline-flex" key={rowIndex}>
+          {rowValues.map(buildRow(rowIndex))}
+        </div>
       );
     },
     [buildRow]
@@ -169,13 +160,11 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     <div>
       <Header titleHeading="SUDOKU" />
       <div className="flex justify-center items-center h-screen">
-        <div className="m-8 inline-flex justify-center items-center flex-row">
+        <div className="inline-flex justify-center items-center flex-row">
           <div className="items-center justify-center inline-flex sm:flex-row flex-col">
             <div className="flex flex-col items-center justify-center">
               <div className="items-stretch inline-flex justify-stretch flex-row" />
-              <Main className="border-4 border-black mt-2 mr-4">
-                {state.board.map(buildBoard)}
-              </Main>
+              <Main>{state.board.map(buildBoard)}</Main>
               <span id="confettiReward" z-index={100} />
               <span id="balloonsReward" z-index={101} />
               <span

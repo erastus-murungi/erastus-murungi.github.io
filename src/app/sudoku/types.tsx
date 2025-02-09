@@ -6,18 +6,16 @@ export type { Difficulty };
 export type Maybe<T> = T | null | undefined;
 export type StopWatchAction = "start" | "pause" | "reset" | "idle";
 
-export interface NoteValue {
-  value: number;
-  isSelected: boolean;
-}
-
 export interface Value {
   value: number | null;
   hasError: boolean;
   isOriginal: boolean;
   isSelectedBoardIndex: boolean;
   answer: number;
-  noteValues: List<NoteValue>;
+  noteValues: List<{
+    value: number;
+    isSelected: boolean;
+  }>;
 }
 
 export interface HistoryState {

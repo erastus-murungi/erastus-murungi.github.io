@@ -245,9 +245,9 @@ const ActionButtons: Row = React.memo(
                 >
                   <Pencil2Icon className="rounded-full w-16 h-16 mb-2" />
                 </Button>
-                <span className="absolute top-0 right-0 bg-gray-500 text-white text-xs font-bold rounded-lg h-6 w-7 flex items-center justify-center">
+                <div className="absolute top-0 right-0 bg-green-400 text-white text-xs font-bold rounded-lg h-6 w-7 flex items-center justify-center">
                   {notesOn ? "ON" : "OFF"}
-                </span>
+                </div>
                 <p className="text-xs uppercase">Notes</p>
               </div>
             </TooltipTrigger>

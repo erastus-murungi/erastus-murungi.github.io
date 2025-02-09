@@ -1,8 +1,7 @@
 import styled from "@emotion/styled";
 import { css } from "@emotion/react";
-import { NotesGrid } from "./note-value";
-import { ValueDisplay } from "./value";
 import type { Maybe, Value } from "./types";
+import { SudokuCell } from "./value";
 
 export interface SudokuSquareProps {
   selectedColumnIndex: Maybe<number>;
@@ -160,7 +159,7 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
   isConflictSquare,
   isHint,
 }) => {
-  const isShowingNotes =
+  const showNotes =
     notesOn &&
     (value.noteValues.some((noteValue) => noteValue.isSelected) ||
       (value.value === null && selectedBoardIndex === boardIndex));
@@ -174,7 +173,7 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
       isThickBottom={rowIndex === 2 || rowIndex === 5}
       isSelectedBoardIndex={selectedBoardIndex === boardIndex}
       isConflictSquare={isConflictSquare}
-      isShowingNotes={isShowingNotes}
+      isShowingNotes={showNotes}
       isHint={isHint}
       onClick={() => {
         setSelectedBoardIndices({
@@ -184,17 +183,15 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
         });
       }}
     >
-      {isShowingNotes ? (
-        <NotesGrid noteValues={value.noteValues} />
-      ) : (
-        <ValueDisplay
-          answer={initialValue.answer}
-          hasError={value.hasError}
-          isOriginal={value.isOriginal}
-          isSelectedBoardIndex={selectedBoardIndex === boardIndex}
-          value={value?.value || initialValue.value}
-        />
-      )}
+      <SudokuCell
+        answer={initialValue.answer}
+        noteValues={value.noteValues}
+        hasError={value.hasError}
+        value={value.value || initialValue.value}
+        isSelectedBoardIndex={selectedBoardIndex === boardIndex}
+        isOriginal={value.isOriginal}
+        showNotes={showNotes}
+      />
     </OuterContainer>
   );
 };
