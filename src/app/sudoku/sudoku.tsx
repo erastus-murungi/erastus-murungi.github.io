@@ -60,8 +60,8 @@ export const Sudoku: React.FC<SudokuProps> = () => {
 
   const buildRow = React.useCallback(
     (rowIndex: number) =>
-      function SudokuRow(value: Value, index: number) {
-        const boardIndex = getBoardIndex(rowIndex, index);
+      function SudokuRow(value: Value, columnIndex: number) {
+        const boardIndex = getBoardIndex(rowIndex, columnIndex);
         const val = state.values.get(boardIndex);
 
         if (!val) {
@@ -75,12 +75,12 @@ export const Sudoku: React.FC<SudokuProps> = () => {
 
         return (
           <SudokuSquare
-            key={`${state.difficulty}-${rowIndex}-${index}`}
+            key={`${state.difficulty}-${rowIndex}-${columnIndex}`}
             value={val}
             initialValue={value}
             rowIndex={rowIndex}
             boardIndex={boardIndex}
-            index={index}
+            columnIndex={columnIndex}
             selectedColumnIndex={state.selectedColumnIndex}
             selectedRowIndex={state.selectedRowIndex}
             selectedBoardIndex={state.selectedBoardIndex}
@@ -175,7 +175,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
       <Header titleHeading="SUDOKU" />
       <div className="flex justify-center items-center h-screen">
         <div className="inline-flex justify-center items-center flex-row">
-          <div className="items-center justify-center inline-flex sm:flex-row flex-col">
+          <div className="items-center justify-center inline-flex min-[1120px]:flex-row flex-col">
             <div className="flex flex-col items-center justify-center">
               <div className="items-stretch inline-flex justify-stretch flex-row" />
               {sudokuBoard}

@@ -43,17 +43,12 @@ type ActionButton =
   | { type: "change-difficulty"; to: Difficulty };
 
 export type ButtonValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | ActionButton;
-type Row = React.FC<{
-  onClick: (value: ButtonValue) => void;
-  hintsRemaining: number;
-  notesOn: boolean;
-}>;
 
 const StyledButtonBar = styled.div`
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(3, 1fr);
-  @media (max-width: 640px) {
+  @media (max-width: 1120px) {
     display: flex;
     flex-direction: row;
     gap: 5px;
@@ -69,6 +64,7 @@ export const StartButton: React.FC<{
     ["😅", "hard"],
     ["🤯", "expert"],
   ]);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -118,7 +114,7 @@ const NumberPad: React.FC<{
 }> = ({ onClick }) => {
   return (
     <div>
-      <StyledButtonBar className="sm:flex sm:flex-row">
+      <StyledButtonBar>
         {[...Array.from({ length: 9 }).keys()].map((value) => (
           <Button
             key={`numberpad-key-${value + 1}`}
@@ -135,150 +131,153 @@ const NumberPad: React.FC<{
   );
 };
 
-const ActionButtons: Row = React.memo(
-  ({ onClick, hintsRemaining = 0, notesOn }) => {
-    return (
-      <div className="space-x-3 m-6 inline-flex">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <div className="flex items-center flex-col hover:scale-110">
-              <Button
-                className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
-                variant="secondary"
-              >
-                <CheckIcon />
-              </Button>
-              <span className="text-xs uppercase">Submit</span>
-            </div>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Submit Game</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will delete all your progress.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => onClick("submit")}>
-                Submit
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+const ActionButtons: React.FC<{
+  onClick: (value: ButtonValue) => void;
+  hintsRemaining: number;
+  notesOn: boolean;
+}> = React.memo(({ onClick, hintsRemaining = 0, notesOn }) => {
+  return (
+    <div className="space-x-3 m-6 inline-flex">
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <div className="flex items-center flex-col hover:scale-110">
+            <Button
+              className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
+              variant="secondary"
+            >
+              <CheckIcon />
+            </Button>
+            <span className="text-xs uppercase">Submit</span>
+          </div>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Submit Game</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete all your progress.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => onClick("submit")}>
+              Submit
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-        <div className="flex items-center flex-col hover:scale-110">
-          <Button
-            className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
-            variant="secondary"
-            onClick={() => onClick("undo")}
-          >
-            <CounterClockwiseClockIcon />
-          </Button>
-          <span className="text-xs uppercase">Undo</span>
-        </div>
-
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <div className="flex items-center flex-col hover:scale-110">
-              <Button
-                className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
-                variant="secondary"
-              >
-                <ResetIcon />
-              </Button>
-              <span className="text-xs uppercase">Reset</span>
-            </div>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Reset Game</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will delete all your progress.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => onClick("reset")}>
-                Reset
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        <div className="flex items-center flex-col hover:scale-110">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className="relative inline-block text-center"
-                onClick={() => onClick("hint")}
-                role="button"
-              >
-                <Button
-                  className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
-                  variant="secondary"
-                >
-                  <SunIcon />
-                </Button>
-                <span className="absolute top-0 right-0 bg-gray-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {hintsRemaining}
-                </span>
-                <p className="text-xs uppercase">Hint</p>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>You have {hintsRemaining} hints remaining</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-
-        <div className="flex items-center flex-col hover:scale-110">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div
-                className="relative inline-block text-center"
-                onClick={() => onClick("toggle-notes")}
-                role="button"
-              >
-                <Button
-                  className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
-                  variant="secondary"
-                >
-                  <Pencil2Icon className="rounded-full w-16 h-16 mb-2" />
-                </Button>
-                <div className="absolute top-0 right-0 bg-green-400 text-white text-xs font-bold rounded-lg h-6 w-7 flex items-center justify-center">
-                  {notesOn ? "ON" : "OFF"}
-                </div>
-                <p className="text-xs uppercase">Notes</p>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                You have turned off notes, click the button again to turn them
-                on
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+      <div className="flex items-center flex-col hover:scale-110">
+        <Button
+          className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
+          variant="secondary"
+          onClick={() => onClick("undo")}
+        >
+          <CounterClockwiseClockIcon />
+        </Button>
+        <span className="text-xs uppercase">Undo</span>
       </div>
-    );
-  }
-);
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <div className="flex items-center flex-col hover:scale-110">
+            <Button
+              className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
+              variant="secondary"
+            >
+              <ResetIcon />
+            </Button>
+            <span className="text-xs uppercase">Reset</span>
+          </div>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Game</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete all your progress.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => onClick("reset")}>
+              Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <div className="flex items-center flex-col hover:scale-110">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className="relative inline-block text-center"
+              onClick={() => onClick("hint")}
+              role="button"
+            >
+              <Button
+                className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
+                variant="secondary"
+              >
+                <SunIcon />
+              </Button>
+              <span className="absolute top-0 right-0  bg-black text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {hintsRemaining}
+              </span>
+              <p className="text-xs uppercase">Hint</p>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>You have {hintsRemaining} hints remaining</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+
+      <div className="flex items-center flex-col hover:scale-110">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className="relative inline-block text-center"
+              onClick={() => onClick("toggle-notes")}
+              role="button"
+            >
+              <Button
+                className="rounded-full w-16 h-16 mb-2 hover:border-2 hover:border-black"
+                variant="secondary"
+              >
+                <Pencil2Icon className="rounded-full w-16 h-16 mb-2" />
+              </Button>
+              <div className="absolute top-0 right-0 bg-black text-white text-xs font-bold rounded-lg h-6 w-7 flex items-center justify-center">
+                {notesOn ? "ON" : "OFF"}
+              </div>
+              <p className="text-xs uppercase">Notes</p>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>
+              You have turned off notes, click the button again to turn them on
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </div>
+  );
+});
 
 ActionButtons.displayName = "ActionButtons";
 
-export const ButtonBar: Row = React.memo(
-  ({ onClick, hintsRemaining, notesOn }) => {
-    return (
-      <div className="items-center justify-center flex flex-col">
-        <ActionButtons
-          onClick={onClick}
-          hintsRemaining={hintsRemaining}
-          notesOn={notesOn}
-        />
-        <NumberPad onClick={onClick} />
-      </div>
-    );
-  }
-);
+export const ButtonBar: React.FC<{
+  onClick: (value: ButtonValue) => void;
+  hintsRemaining: number;
+  notesOn: boolean;
+}> = React.memo(({ onClick, hintsRemaining, notesOn }) => {
+  return (
+    <div className="items-center justify-center flex flex-col">
+      <ActionButtons
+        onClick={onClick}
+        hintsRemaining={hintsRemaining}
+        notesOn={notesOn}
+      />
+      <NumberPad onClick={onClick} />
+    </div>
+  );
+});
 
 ButtonBar.displayName = "ButtonBar";

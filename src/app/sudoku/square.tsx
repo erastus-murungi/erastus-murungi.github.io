@@ -7,9 +7,9 @@ export interface SudokuSquareProps {
   selectedColumnIndex: Maybe<number>;
   selectedRowIndex: Maybe<number>;
   selectedBoardIndex: Maybe<number>;
+  columnIndex: number;
   rowIndex: number;
   boardIndex: number;
-  index: number;
   value: Value;
   initialValue: Value;
   setSelectedBoardIndices: (values: {
@@ -22,136 +22,141 @@ export interface SudokuSquareProps {
   isHint: boolean;
 }
 
-const outerDivStyles = ({
-  isThickRight,
-  isLastColumn,
-  isThickBottom,
-  isLastRow,
-  isSelected,
-  isShowingNotes,
-  isConflictSquare,
-  isSelectedBoardIndex,
-  isHint,
-}: {
-  isThickRight: boolean;
-  isSelected: boolean;
-  isThickBottom: boolean;
-  isLastColumn: boolean;
-  isLastRow: boolean;
-  isSelectedBoardIndex: boolean;
-  isShowingNotes: boolean;
-  isConflictSquare: boolean;
-  isHint: boolean;
-}) =>
-  isHint
-    ? css`
-        @keyframes rotate {
-          100% {
-            transform: rotate(1turn);
-          }
-        }
-
-        position: relative;
-        z-index: 0;
-        border-radius: 2px;
-        overflow: hidden;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-
-        &::before {
-          content: "";
-          position: absolute;
-          z-index: -2;
-          left: -50%;
-          top: -50%;
-          width: 200%;
-          height: 200%;
-          background-color: #399953;
-          background-repeat: no-repeat;
-          background-size: 50% 50%, 50% 50%;
-          background-position: 0 0, 100% 0, 100% 100%, 0 100%;
-          background-image: linear-gradient(#399953, #399953),
-            linear-gradient(#fbb300, #fbb300), linear-gradient(#d53e33, #d53e33),
-            linear-gradient(#377af5, #377af5);
-          animation: rotate 4s linear infinite;
-        }
-
-        &::after {
-          content: "";
-          position: absolute;
-          z-index: -1;
-          left: 6px;
-          top: 6px;
-          width: calc(100% - 12px);
-          height: calc(100% - 12px);
-          background: white;
-          border-radius: 5px;
-        }
-
-        border-right: ${isThickRight
-          ? `solid 4px #000`
-          : isLastColumn
-          ? ""
-          : "solid 1px #000"};
-        border-bottom: ${isThickBottom
-          ? `solid 4px #000`
-          : isLastRow
-          ? ""
-          : "solid 1px #000"};
-        &:hover {
-          cursor: "pointer";
-          background-color: rgba(28, 28, 28, 0.5);
-        }
-        background-color: ${isConflictSquare
-          ? "rgba(226, 26, 12, 0.25)"
-          : isShowingNotes
-          ? "rgba(11, 53, 207, 0.25)"
-          : isSelectedBoardIndex
-          ? ""
-          : isSelected
-          ? "rgba(28, 28, 28, 0.25)"
-          : ""};
-        animation: ${isConflictSquare ? "bounceZoom 0.5s ease-in-out" : ""};
-      `
-    : css`
-        position: relative;
-        border-right: ${isThickRight
-          ? `solid 4px #000`
-          : isLastColumn
-          ? ""
-          : "solid 1px #000"};
-        border-bottom: ${isThickBottom
-          ? `solid 4px #000`
-          : isLastRow
-          ? ""
-          : "solid 1px #000"};
-        &:hover {
-          cursor: "pointer";
-          background-color: rgba(28, 28, 28, 0.5);
-        }
-        background-color: ${isConflictSquare
-          ? "rgba(226, 26, 12, 0.25)"
-          : isShowingNotes
-          ? "rgba(11, 53, 207, 0.25)"
-          : isSelectedBoardIndex
-          ? ""
-          : isSelected
-          ? "rgba(28, 28, 28, 0.25)"
-          : ""};
-      `;
-
 const OuterContainer = styled.div`
-  ${outerDivStyles}
+  ${({
+    isFirstColumn,
+    isLastColumn,
+    isFirstRow,
+    isLastRow,
+    isThickRight,
+    isThickBottom,
+    isSelected,
+    isShowingNotes,
+    isConflictSquare,
+    isSelectedBoardIndex,
+    isHint,
+  }: {
+    isFirstColumn: boolean;
+    isLastColumn: boolean;
+    isFirstRow: boolean;
+    isLastRow: boolean;
+    isThickRight: boolean;
+    isSelected: boolean;
+    isThickBottom: boolean;
+    isSelectedBoardIndex: boolean;
+    isShowingNotes: boolean;
+    isConflictSquare: boolean;
+    isHint: boolean;
+  }) =>
+    isHint
+      ? css`
+          @keyframes rotate {
+            100% {
+              transform: rotate(1turn);
+            }
+          }
+
+          position: relative;
+          z-index: 0;
+          border-radius: 2px;
+          overflow: hidden;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+
+          &::before {
+            content: "";
+            position: absolute;
+            z-index: -2;
+            left: -50%;
+            top: -50%;
+            width: 200%;
+            height: 200%;
+            background-color: #399953;
+            background-repeat: no-repeat;
+            background-size: 50% 50%, 50% 50%;
+            background-position: 0 0, 100% 0, 100% 100%, 0 100%;
+            background-image: linear-gradient(#399953, #399953),
+              linear-gradient(#fbb300, #fbb300),
+              linear-gradient(#d53e33, #d53e33),
+              linear-gradient(#377af5, #377af5);
+            animation: rotate 4s linear infinite;
+          }
+
+          &::after {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            left: 6px;
+            top: 6px;
+            width: calc(100% - 12px);
+            height: calc(100% - 12px);
+            background: white;
+            border-radius: 2px;
+          }
+
+          border-right: ${isThickRight
+            ? `solid 2px #000`
+            : isLastColumn
+            ? ""
+            : "solid 1px #000"};
+          border-bottom: ${isThickBottom
+            ? `solid 2px #000`
+            : isLastRow
+            ? ""
+            : "solid 1px #000"};
+          &:hover {
+            cursor: "pointer";
+            background-color: rgba(28, 28, 28, 0.5);
+          }
+          background-color: ${isConflictSquare
+            ? "rgba(226, 26, 12, 0.25)"
+            : isShowingNotes
+            ? "rgba(11, 53, 207, 0.25)"
+            : isSelectedBoardIndex
+            ? ""
+            : isSelected
+            ? "rgba(28, 28, 28, 0.25)"
+            : ""};
+          animation: ${isConflictSquare ? "bounceZoom 0.5s ease-in-out" : ""};
+        `
+      : css`
+          position: relative;
+          border-left: ${isFirstColumn ? "solid 2px #000" : ""};
+          border-top: ${isFirstRow ? "solid 2px #000" : ""};
+          border-right: ${isThickRight
+            ? `solid 2px #000`
+            : isLastColumn
+            ? ""
+            : "solid 1px #00000089"};
+          border-bottom: ${isThickBottom
+            ? `solid 2px #000`
+            : isLastRow
+            ? ""
+            : "solid 1px #00000089"};
+          &:hover {
+            cursor: "pointer";
+            background-color: rgba(28, 28, 28, 0.5);
+          }
+          background-color: ${isConflictSquare
+            ? "rgba(226, 26, 12, 0.25)"
+            : isShowingNotes
+            ? "rgba(11, 53, 207, 0.25)"
+            : isSelectedBoardIndex
+            ? ""
+            : isSelected
+            ? "rgba(28, 28, 28, 0.25)"
+            : ""};
+        `}
 `;
 
 export const SudokuSquare: React.FC<SudokuSquareProps> = ({
-  selectedColumnIndex: selectedIndex,
+  selectedColumnIndex,
   selectedRowIndex,
   selectedBoardIndex,
   rowIndex,
   boardIndex,
-  index,
+  columnIndex,
   value,
   initialValue,
   setSelectedBoardIndices,
@@ -161,19 +166,23 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
 }) => {
   return (
     <OuterContainer
-      className="sm:w-14 sm:h-14 w-8 h-8 rainbow"
-      isSelected={selectedIndex === index || rowIndex === selectedRowIndex}
-      isLastColumn={index === 8}
+      className="min-[1200px]:w-20 min-[1200px]:h-20 lg:w-16 lg:h-16 md:w-15 md:h-15 w-11 h-11 rainbow"
+      isSelected={
+        selectedColumnIndex === columnIndex || rowIndex === selectedRowIndex
+      }
+      isFirstColumn={columnIndex === 0}
+      isFirstRow={rowIndex === 0}
+      isLastColumn={columnIndex === 8}
       isLastRow={rowIndex === 8}
-      isThickRight={index === 2 || index === 5}
-      isThickBottom={rowIndex === 2 || rowIndex === 5}
+      isThickRight={columnIndex === 2 || columnIndex === 5 || columnIndex === 8}
+      isThickBottom={rowIndex === 2 || rowIndex === 5 || rowIndex === 8}
       isSelectedBoardIndex={selectedBoardIndex === boardIndex}
       isConflictSquare={isConflictSquare}
       isShowingNotes={showNotes}
       isHint={isHint}
       onClick={() => {
         setSelectedBoardIndices({
-          selectedColumnIndex: index,
+          selectedColumnIndex: columnIndex,
           selectedRowIndex: rowIndex,
           selectedBoardIndex: boardIndex,
         });

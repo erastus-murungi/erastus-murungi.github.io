@@ -7,11 +7,10 @@ const SudokuCellWrapper = styled.div`
   position: relative;
   width: 100%;
   height: 100%;
-  border: 1px solid #000;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 32px;
   box-sizing: border-box;
 `;
 
@@ -26,13 +25,13 @@ const NotesGrid = styled.div`
   width: 100%;
   height: 100%;
   display: grid;
-  font-size: 11px;
+  font-size: 14px;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
   color: #888;
 
   @media (max-width: 599px) {
-    font-size: 6px;
+    font-size: 8px;
   }
 `;
 
