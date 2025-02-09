@@ -64,43 +64,43 @@ interface SudokuCellProps extends Value {
   showNotes: boolean;
 }
 
-export const SudokuCell: React.FC<SudokuCellProps> = ({
-  value,
-  noteValues,
-  showNotes,
-}) => {
-  // Local state to manage selection
-  const [selectedStates, setSelectedStates] = React.useState(
-    noteValues.map((note) => note.isSelected)
-  );
+export const SudokuCell: React.FC<SudokuCellProps> = React.memo(
+  ({ value, noteValues, showNotes }) => {
+    // Local state to manage selection
+    const [selectedStates, setSelectedStates] = React.useState(
+      noteValues.map((note) => note.isSelected)
+    );
 
-  // Toggle selection state
-  const handleToggleSelection = (index: number) => {
-    const noteValue = noteValues.get(index);
-    if (noteValue) {
-      noteValue.isSelected = !noteValue.isSelected;
-    }
-    setSelectedStates(noteValues.map((note) => note.isSelected));
-  };
+    // Toggle selection state
+    const handleToggleSelection = (index: number) => {
+      const noteValue = noteValues.get(index);
+      if (noteValue) {
+        noteValue.isSelected = !noteValue.isSelected;
+      }
+      setSelectedStates(noteValues.map((note) => note.isSelected));
+    };
 
-  return (
-    <SudokuCellWrapper>
-      {showNotes ? (
-        <NotesGrid>
-          {noteValues.map((noteValue, index) => (
-            <Note
-              className="flex items-center justify-center"
-              isSelected={selectedStates.get(index) ?? false}
-              key={`note_${noteValue.value}`}
-              onClick={() => handleToggleSelection(index)}
-            >
-              {noteValue.value}
-            </Note>
-          ))}
-        </NotesGrid>
-      ) : (
-        <MainNumber className={`${publicSans.className}`}>{value}</MainNumber>
-      )}
-    </SudokuCellWrapper>
-  );
-};
+    return (
+      <SudokuCellWrapper>
+        {showNotes ? (
+          <NotesGrid>
+            {noteValues.map((noteValue, index) => (
+              <Note
+                className="flex items-center justify-center"
+                isSelected={selectedStates.get(index) ?? false}
+                key={`note_${noteValue.value}`}
+                onClick={() => handleToggleSelection(index)}
+              >
+                {noteValue.value}
+              </Note>
+            ))}
+          </NotesGrid>
+        ) : (
+          <MainNumber className={`${publicSans.className}`}>{value}</MainNumber>
+        )}
+      </SudokuCellWrapper>
+    );
+  }
+);
+
+SudokuCell.displayName = "SudokuCell";

@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "@emotion/styled";
-import { SudokuSquare, type SudokuSquareProps } from "./square";
+import { SudokuSquare, type SudokuSquareProps } from "./sudoku-square";
 import { getBoardIndex } from "./utils";
 import type { Prettify, ReducerState, SudokuBoardRow, Value } from "./types";
 

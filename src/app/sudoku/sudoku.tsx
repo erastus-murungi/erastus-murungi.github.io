@@ -6,7 +6,7 @@ import Header from "../header";
 import { ButtonBar, type ButtonValue } from "./button-bar";
 import { useReward } from "react-rewards";
 import { getBoard } from "./utils";
-import { Board } from "./board";
+import { Board } from "./sudoku-board";
 import { StopWatch } from "./stopwatch";
 import { reducer, INITIAL_STATE } from "./reducer";
 
@@ -17,7 +17,7 @@ export interface SudokuProps {
   hide: boolean;
 }
 
-export const Sudoku: React.FC<SudokuProps> = () => {
+export const Sudoku: React.FC<SudokuProps> = React.memo(() => {
   const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
 
   React.useEffect(() => {
@@ -153,6 +153,6 @@ export const Sudoku: React.FC<SudokuProps> = () => {
       </div>
     </div>
   );
-};
+});
 
 Sudoku.displayName = "Sudoku";
