@@ -7,7 +7,13 @@ import {
   HINT_COUNT,
   calculateScore,
 } from "./utils";
-import type { ReducerState, StopWatchAction, Difficulty, Value } from "./types";
+import type {
+  ReducerState,
+  HistoryState,
+  StopWatchAction,
+  Difficulty,
+  Value,
+} from "./types";
 
 const validateBoardAfterEntry = (state: ReducerState, toCheck: number) => {
   const conflictBoardIndices: number[] = [];
@@ -314,3 +320,23 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
       throw new Error(`$unknown action type: ${JSON.stringify(action)}`);
   }
 }
+
+export const INITIAL_STATE: ReducerState = {
+  values: List(),
+  board: List(),
+  selectedBoardIndex: null,
+  selectedColumnIndex: null,
+  selectedRowIndex: null,
+  difficulty: "easy",
+  conflictBoardIndices: Set(),
+  hintIndex: null,
+  notesOn: false,
+  history: List<HistoryState>(),
+  hintCount: HINT_COUNT["easy"],
+  isSolved: false,
+  stopWatchAction: "idle",
+  numMistakes: 0,
+  totalSeconds: 0,
+  score: "0",
+  intervalStartTime: Date.now(),
+};

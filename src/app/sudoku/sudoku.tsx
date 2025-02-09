@@ -10,8 +10,8 @@ import Header from "../header";
 import { getBoard, getBoardIndex } from "./utils";
 import { SudokuSquare } from "./square";
 import { StopWatch } from "./stopwatch";
-import { reducer } from "./reducer";
-import type { Value } from "./types";
+import { reducer, INITIAL_STATE } from "./reducer";
+import type { Value, HistoryState } from "./types";
 import type { Difficulty } from "sudoku-gen/dist/types/difficulty.type";
 
 const HINT_COUNT: Record<Difficulty, number> = {
@@ -27,16 +27,15 @@ export const Main = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
-  background-color: ${({}) => `white`};
+  background-color: white;
 
   overflow: hidden;
-  color: ${({}) => `black`};
+  color: black;
+  border-color: black;
 `;
 
-export const Board = styled.div`
+export const BoardRow = styled.div`
   display: flex;
-  border-color: ${({}) => `black`};
-  border-radius: 3px;
 `;
 
 export interface SudokuProps {
@@ -44,37 +43,8 @@ export interface SudokuProps {
   hide: boolean;
 }
 
-interface HistoryState {
-  values: List<Value>;
-  selectedBoardIndex: number | null;
-  selectedColumnIndex: number | null;
-  selectedRowIndex: number | null;
-  conflictBoardIndices: Set<number>;
-  difficulty: Difficulty;
-  hintIndex: number | null;
-  notesOn: boolean;
-}
-
 export const Sudoku: React.FC<SudokuProps> = () => {
-  const [state, dispatch] = React.useReducer(reducer, {
-    values: List<Value>(),
-    board: List<List<Value>>(),
-    selectedBoardIndex: null,
-    selectedColumnIndex: null,
-    selectedRowIndex: null,
-    difficulty: "easy",
-    conflictBoardIndices: Set<number>(),
-    hintIndex: null,
-    notesOn: false,
-    history: List<HistoryState>(),
-    hintCount: HINT_COUNT["easy"],
-    isSolved: false,
-    stopWatchAction: "idle",
-    numMistakes: 0,
-    totalSeconds: 0,
-    score: "0",
-    intervalStartTime: Date.now(),
-  });
+  const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
 
   React.useEffect(() => {
     const { values, board } = getBoard(state.difficulty);
@@ -144,7 +114,9 @@ export const Sudoku: React.FC<SudokuProps> = () => {
 
   const buildBoard = React.useCallback(
     (rowValues: List<Value>, rowIndex: number) => {
-      return <Board key={rowIndex}>{rowValues.map(buildRow(rowIndex))}</Board>;
+      return (
+        <BoardRow key={rowIndex}>{rowValues.map(buildRow(rowIndex))}</BoardRow>
+      );
     },
     [buildRow]
   );
