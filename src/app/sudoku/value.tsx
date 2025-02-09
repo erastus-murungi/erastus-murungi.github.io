@@ -31,7 +31,7 @@ const NotesGrid = styled.div`
   color: #888;
 
   @media (max-width: 599px) {
-    font-size: 8px;
+    font-size: 9px;
   }
 `;
 

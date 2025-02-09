@@ -15,19 +15,29 @@ import type {
   Value,
 } from "./types";
 
-const validateBoardAfterEntry = (state: ReducerState, toCheck: number) => {
+const validateBoardAfterEntry = ({
+  values,
+  selectedColumnIndex,
+  selectedRowIndex,
+  toCheck,
+}: {
+  values: ReducerState["values"];
+  selectedColumnIndex: ReducerState["selectedColumnIndex"];
+  selectedRowIndex: ReducerState["selectedRowIndex"];
+  toCheck: number;
+}) => {
   const conflictBoardIndices: number[] = [];
-  if (state.selectedRowIndex != undefined) {
+  if (selectedRowIndex != undefined) {
     for (let offset = 0; offset < 9; offset++) {
-      const boardIndex = state.selectedRowIndex * 9 + offset;
-      const boardValue = state.values.get(boardIndex);
+      const boardIndex = selectedRowIndex * 9 + offset;
+      const boardValue = values.get(boardIndex);
       if (boardValue?.value === toCheck) {
         conflictBoardIndices.push(boardIndex);
       }
     }
-    if (state.selectedColumnIndex != undefined) {
-      for (const [boardIndex, value] of state.values.entries()) {
-        if (boardIndex % 9 === state.selectedColumnIndex) {
+    if (selectedColumnIndex != undefined) {
+      for (const [boardIndex, value] of values.entries()) {
+        if (boardIndex % 9 === selectedColumnIndex) {
           if (value.value === toCheck) {
             conflictBoardIndices.push(boardIndex);
           } else {
@@ -36,17 +46,15 @@ const validateBoardAfterEntry = (state: ReducerState, toCheck: number) => {
         }
       }
 
-      const gridRowIndex =
-        state.selectedRowIndex - (state.selectedRowIndex % 3);
-      const gridColumnIndex =
-        state.selectedColumnIndex - (state.selectedColumnIndex % 3);
+      const gridRowIndex = selectedRowIndex - (selectedRowIndex % 3);
+      const gridColumnIndex = selectedColumnIndex - (selectedColumnIndex % 3);
       for (let colOffset = 0; colOffset < 3; colOffset++) {
         for (let rowOffset = 0; rowOffset < 3; rowOffset++) {
           const boardIndex = getBoardIndex(
             gridRowIndex + rowOffset,
             gridColumnIndex + colOffset
           );
-          const boardValue = state.values.get(boardIndex);
+          const boardValue = values.get(boardIndex);
           if (boardValue?.value === toCheck) {
             conflictBoardIndices.push(boardIndex);
           }
@@ -139,7 +147,12 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
           }),
         };
       } else {
-        const conflictBoardIndices = validateBoardAfterEntry(state, value);
+        const conflictBoardIndices = validateBoardAfterEntry({
+          selectedColumnIndex: state.selectedColumnIndex,
+          selectedRowIndex: state.selectedRowIndex,
+          values: state.values,
+          toCheck: value,
+        });
         return {
           ...state,
           hintIndex: undefined,

@@ -24,25 +24,13 @@ export interface SudokuSquareProps {
 
 const OuterContainer = styled.div`
   ${({
-    isFirstColumn,
-    isLastColumn,
-    isFirstRow,
-    isLastRow,
-    isThickRight,
-    isThickBottom,
     isSelected,
     isShowingNotes,
     isConflictSquare,
     isSelectedBoardIndex,
     isHint,
   }: {
-    isFirstColumn: boolean;
-    isLastColumn: boolean;
-    isFirstRow: boolean;
-    isLastRow: boolean;
-    isThickRight: boolean;
     isSelected: boolean;
-    isThickBottom: boolean;
     isSelectedBoardIndex: boolean;
     isShowingNotes: boolean;
     isConflictSquare: boolean;
@@ -94,17 +82,6 @@ const OuterContainer = styled.div`
             background: white;
             border-radius: 2px;
           }
-
-          border-right: ${isThickRight
-            ? `solid 2px #000`
-            : isLastColumn
-            ? ""
-            : "solid 1px #000"};
-          border-bottom: ${isThickBottom
-            ? `solid 2px #000`
-            : isLastRow
-            ? ""
-            : "solid 1px #000"};
           &:hover {
             cursor: "pointer";
             background-color: rgba(28, 28, 28, 0.5);
@@ -122,18 +99,6 @@ const OuterContainer = styled.div`
         `
       : css`
           position: relative;
-          border-left: ${isFirstColumn ? "solid 2px #000" : ""};
-          border-top: ${isFirstRow ? "solid 2px #000" : ""};
-          border-right: ${isThickRight
-            ? `solid 2px #000`
-            : isLastColumn
-            ? ""
-            : "solid 1px #00000089"};
-          border-bottom: ${isThickBottom
-            ? `solid 2px #000`
-            : isLastRow
-            ? ""
-            : "solid 1px #00000089"};
           &:hover {
             cursor: "pointer";
             background-color: rgba(28, 28, 28, 0.5);
@@ -170,12 +135,6 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
       isSelected={
         selectedColumnIndex === columnIndex || rowIndex === selectedRowIndex
       }
-      isFirstColumn={columnIndex === 0}
-      isFirstRow={rowIndex === 0}
-      isLastColumn={columnIndex === 8}
-      isLastRow={rowIndex === 8}
-      isThickRight={columnIndex === 2 || columnIndex === 5 || columnIndex === 8}
-      isThickBottom={rowIndex === 2 || rowIndex === 5 || rowIndex === 8}
       isSelectedBoardIndex={selectedBoardIndex === boardIndex}
       isConflictSquare={isConflictSquare}
       isShowingNotes={showNotes}

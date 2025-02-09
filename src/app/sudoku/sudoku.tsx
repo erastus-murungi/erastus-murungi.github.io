@@ -1,31 +1,17 @@
 "use client";
 
 import React from "react";
-import styled from "@emotion/styled";
 import { reenie_beanie } from "@/styles/fonts";
 import Header from "../header";
 import { ButtonBar, type ButtonValue } from "./button-bar";
-import { List } from "immutable";
 import { useReward } from "react-rewards";
-import { getBoard, getBoardIndex } from "./utils";
-import { SudokuSquare } from "./square";
+import { getBoard } from "./utils";
+import { Board } from "./board";
 import { StopWatch } from "./stopwatch";
 import { reducer, INITIAL_STATE } from "./reducer";
-import type { Value } from "./types";
 
 const SCORE_REFRESH_INTERVAL_MS = 10_000;
 
-export const Main = styled.div`
-  position: relative;
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  background-color: white;
-
-  overflow: hidden;
-  color: black;
-  border-color: black;
-`;
 export interface SudokuProps {
   onComplete: () => void;
   hide: boolean;
@@ -57,68 +43,6 @@ export const Sudoku: React.FC<SudokuProps> = () => {
       }
     }
   }, [state.intervalStartTime, state.stopWatchAction]);
-
-  const buildRow = React.useCallback(
-    (rowIndex: number) =>
-      function SudokuRow(value: Value, columnIndex: number) {
-        const boardIndex = getBoardIndex(rowIndex, columnIndex);
-        const val = state.values.get(boardIndex);
-
-        if (!val) {
-          return;
-        }
-
-        const showNotes =
-          state.notesOn &&
-          (value.noteValues.some((noteValue) => noteValue.isSelected) ||
-            state.selectedBoardIndex === boardIndex);
-
-        return (
-          <SudokuSquare
-            key={`${state.difficulty}-${rowIndex}-${columnIndex}`}
-            value={val}
-            initialValue={value}
-            rowIndex={rowIndex}
-            boardIndex={boardIndex}
-            columnIndex={columnIndex}
-            selectedColumnIndex={state.selectedColumnIndex}
-            selectedRowIndex={state.selectedRowIndex}
-            selectedBoardIndex={state.selectedBoardIndex}
-            showNotes={showNotes}
-            setSelectedBoardIndices={(values) =>
-              dispatch({ type: "SET_INDICES", ...values })
-            }
-            isConflictSquare={state.conflictBoardIndices.has(boardIndex)}
-            isHint={state.hintIndex === boardIndex}
-          />
-        );
-      },
-    [
-      state.conflictBoardIndices,
-      state.difficulty,
-      state.hintIndex,
-      state.notesOn,
-      state.selectedBoardIndex,
-      state.selectedColumnIndex,
-      state.selectedRowIndex,
-      state.values,
-    ]
-  );
-
-  const sudokuBoard = React.useMemo(
-    () => (
-      <Main>
-        {state.board.map((rowValues: List<Value>, rowIndex: number) => {
-          return (
-            <div className="inline-flex" key={rowIndex}>
-              {rowValues.map(buildRow(rowIndex))}
-            </div>
-          );
-        })}
-      </Main>
-    ),
-    [buildRow]
-  );
 
   const handleButtonPress = React.useCallback(
     (value: ButtonValue) => {
@@ -178,7 +102,19 @@ export const Sudoku: React.FC<SudokuProps> = () => {
           <div className="items-center justify-center inline-flex min-[1120px]:flex-row flex-col">
             <div className="flex flex-col items-center justify-center">
               <div className="items-stretch inline-flex justify-stretch flex-row" />
-              {sudokuBoard}
+              <Board
+                notesOn={state.notesOn}
+                hintIndex={state.hintIndex}
+                conflictBoardIndices={state.conflictBoardIndices}
+                board={state.board}
+                values={state.values}
+                selectedColumnIndex={state.selectedColumnIndex}
+                selectedRowIndex={state.selectedRowIndex}
+                selectedBoardIndex={state.selectedBoardIndex}
+                setSelectedBoardIndices={(values) =>
+                  dispatch({ type: "SET_INDICES", ...values })
+                }
+              />
               <span id="confettiReward" z-index={100} />
               <span id="balloonsReward" z-index={101} />
               <span

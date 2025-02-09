@@ -4,6 +4,9 @@ import type { Difficulty } from "sudoku-gen/dist/types/difficulty.type";
 export type { Difficulty } from "sudoku-gen/dist/types/difficulty.type";
 
 export type Maybe<T> = T | undefined;
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
 export type StopWatchAction = "start" | "pause" | "reset" | "idle";
 
 export interface Value {
@@ -17,6 +20,9 @@ export interface Value {
     isSelected: boolean;
   }>;
 }
+
+export type SudokuBoardRow = List<Value>;
+export type SudokuBoard = List<SudokuBoardRow>;
 
 export interface HistoryState {
   values: List<Value>;
@@ -35,7 +41,7 @@ export interface ReducerState extends HistoryState {
   hintCount: number;
   isSolved: boolean;
   numMistakes: number;
-  board: List<List<Value>>;
+  board: SudokuBoard;
   totalSeconds: number;
   score: string;
   intervalId?: NodeJS.Timeout;
