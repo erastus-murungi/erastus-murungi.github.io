@@ -76,6 +76,9 @@ type Action =
       value: number;
     }
   | {
+      type: "DELETE_VALUE";
+    }
+  | {
       type: "UNDO";
     }
   | {
@@ -177,6 +180,27 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             : {}),
         };
       }
+    }
+    case "DELETE_VALUE": {
+      const { selectedBoardIndex, values } = state;
+      if (selectedBoardIndex === undefined) {
+        return state;
+      }
+
+      const selectedValue = values.get(selectedBoardIndex);
+      if (!selectedValue || selectedValue.isOriginal) {
+        return state;
+      }
+      return {
+        ...state,
+        conflictBoardIndices: Set(),
+        hintIndex: undefined,
+        values: state.values.set(selectedBoardIndex, {
+          ...selectedValue,
+          value: undefined,
+          hasError: false,
+        }),
+      };
     }
     case "UNDO": {
       const lastState = state.history.last();

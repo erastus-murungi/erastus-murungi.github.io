@@ -5,7 +5,7 @@ import { reenie_beanie } from "@/styles/fonts";
 import Header from "../header";
 import { ButtonBar, type ButtonValue } from "./button-bar";
 import { useReward } from "react-rewards";
-import { getBoard } from "./utils";
+import { getBoard, getBoardIndex } from "./utils";
 import { Board } from "./sudoku-board";
 import { StopWatch } from "./stopwatch";
 import { reducer, INITIAL_STATE } from "./reducer";
@@ -17,18 +17,150 @@ export interface SudokuProps {
   hide: boolean;
 }
 
+const ALLOWED_KEYS = [
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "Backspace",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+] as const;
+
+type HandledKeyPress = (typeof ALLOWED_KEYS)[number];
+
 export const Sudoku: React.FC<SudokuProps> = React.memo(() => {
   const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
+
+  const setTotalSeconds = React.useCallback(
+    (totalSeconds: number) => dispatch({ type: "UPDATE_TIME", totalSeconds }),
+    []
+  );
+
+  const onKeyDown = React.useCallback((event: globalThis.KeyboardEvent) => {
+    const wasAnyKeyPressed = ALLOWED_KEYS.includes(
+      event.key as HandledKeyPress
+    );
+    if (wasAnyKeyPressed) {
+      event.preventDefault();
+      switch (event.key as HandledKeyPress) {
+        case "Backspace": {
+          dispatch({ type: "DELETE_VALUE" });
+          break;
+        }
+        case "ArrowUp": {
+          if (
+            state.selectedColumnIndex !== undefined &&
+            state.selectedColumnIndex > 0
+          ) {
+            const updatedSelectedColumnIndex = state.selectedColumnIndex - 1;
+            const updatedBoardIndex = getBoardIndex(
+              // @ts-expect-error will fix soon
+              state.selectedRowIndex,
+              updatedSelectedColumnIndex
+            );
+            dispatch({
+              type: "SET_INDICES",
+              // @ts-expect-error will fix soon
+              selectedRowIndex: state.selectedRowIndex,
+              selectedBoardIndex: updatedBoardIndex,
+              selectedColumnIndex: updatedSelectedColumnIndex,
+            });
+          }
+          break;
+        }
+        case "ArrowDown": {
+          if (
+            state.selectedColumnIndex !== undefined &&
+            state.selectedColumnIndex < 8
+          ) {
+            const updatedSelectedColumnIndex = state.selectedColumnIndex + 1;
+            const updatedBoardIndex = getBoardIndex(
+              // @ts-expect-error will fix soon
+              state.selectedRowIndex,
+              updatedSelectedColumnIndex
+            );
+            dispatch({
+              type: "SET_INDICES",
+              // @ts-expect-error will fix soon
+              selectedRowIndex: state.selectedRowIndex,
+              selectedBoardIndex: updatedBoardIndex,
+              selectedColumnIndex: updatedSelectedColumnIndex,
+            });
+          }
+          break;
+        }
+        case "ArrowLeft": {
+          if (
+            state.selectedRowIndex !== undefined &&
+            state.selectedRowIndex > 0
+          ) {
+            const updatedSelectedRowIndex = state.selectedRowIndex - 1;
+            const updatedBoardIndex = getBoardIndex(
+              updatedSelectedRowIndex,
+              // @ts-expect-error will fix soon
+              state.selectedColumnIndex
+            );
+            dispatch({
+              type: "SET_INDICES",
+              selectedRowIndex: updatedSelectedRowIndex,
+              selectedBoardIndex: updatedBoardIndex,
+              // @ts-expect-error will fix soon
+              selectedColumnIndex: state.selectedColumnIndex,
+            });
+          }
+          break;
+        }
+        case "ArrowRight": {
+          if (
+            state.selectedRowIndex !== undefined &&
+            state.selectedRowIndex < 8
+          ) {
+            const updatedSelectedRowIndex = state.selectedRowIndex + 1;
+            const updatedBoardIndex = getBoardIndex(
+              updatedSelectedRowIndex,
+              // @ts-expect-error will fix soon
+              state.selectedColumnIndex
+            );
+            dispatch({
+              type: "SET_INDICES",
+              selectedRowIndex: updatedSelectedRowIndex,
+              selectedBoardIndex: updatedBoardIndex,
+              // @ts-expect-error will fix soon
+              selectedColumnIndex: state.selectedColumnIndex,
+            });
+          }
+          break;
+        }
+        default: {
+          const value = Number.parseInt(event.key, 10);
+          if (value <= 9 && value >= 1) {
+            dispatch({ type: "SET_VALUE", value });
+          }
+          break;
+        }
+      }
+    }
+  }, []);
 
   React.useEffect(() => {
     const { values, board } = getBoard(state.difficulty);
     dispatch({ type: "INIT_SODUKU", values, board });
   }, [state.difficulty]);
 
-  const setTotalSeconds = React.useCallback(
-    (totalSeconds: number) => dispatch({ type: "UPDATE_TIME", totalSeconds }),
-    []
-  );
+  React.useEffect(() => {
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onKeyDown]);
 
   React.useEffect(() => {
     if (state.intervalStartTime) {
