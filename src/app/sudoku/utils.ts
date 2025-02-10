@@ -1,4 +1,4 @@
-import { List } from 'immutable';
+import { List, Set } from 'immutable';
 import { getSudoku } from 'sudoku-gen';
 import type { Difficulty, Value, ReducerState } from './types';
 
@@ -30,10 +30,7 @@ export function getBoard(difficulty: Difficulty) {
         isOriginal: value !== '-',
         answer: Number.parseInt(sudoku.solution[index], 10),
         isSelectedBoardIndex: false,
-        noteValues: List([1, 2, 3, 4, 5, 6, 7, 8, 9] as const).map((val) => ({
-            value: val,
-            isSelected: false,
-        })),
+        notes: Set<number>(),
     }));
     return {
         values: List(values),

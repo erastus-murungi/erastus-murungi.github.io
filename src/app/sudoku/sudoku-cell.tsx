@@ -62,47 +62,40 @@ const Note = styled.div<{ isSelected: boolean }>`
 
 interface SudokuCellProps extends Value {
     showNotes: boolean;
+    onNoteClick: (note: number) => void;
 }
 
-export const SudokuCell: React.FC<SudokuCellProps> = React.memo(
-    ({ value, noteValues, showNotes }) => {
-        // Local state to manage selection
-        const [selectedStates, setSelectedStates] = React.useState(
-            noteValues.map((note) => note.isSelected)
-        );
-
-        // Toggle selection state
-        const handleToggleSelection = (index: number) => {
-            const noteValue = noteValues.get(index);
-            if (noteValue) {
-                noteValue.isSelected = !noteValue.isSelected;
-            }
-            setSelectedStates(noteValues.map((note) => note.isSelected));
-        };
-
-        return (
-            <SudokuCellWrapper>
-                {showNotes ? (
-                    <NotesGrid>
-                        {noteValues.map((noteValue, index) => (
+export const SudokuCell: React.FC<SudokuCellProps> = ({
+    value,
+    notes,
+    showNotes,
+    onNoteClick,
+}) => {
+    return (
+        <SudokuCellWrapper>
+            {showNotes ? (
+                <NotesGrid>
+                    {Array.from({ length: 9 }, (_x, i) => i + 1).map((note) => {
+                        const isSelected = notes.includes(note);
+                        return (
                             <Note
                                 className="flex items-center justify-center"
-                                isSelected={selectedStates.get(index) ?? false}
-                                key={`note_${noteValue.value}`}
-                                onClick={() => handleToggleSelection(index)}
+                                isSelected={isSelected}
+                                key={`note_${note}`}
+                                onClick={() => onNoteClick(note)}
                             >
-                                {noteValue.value}
+                                {note}
                             </Note>
-                        ))}
-                    </NotesGrid>
-                ) : (
-                    <MainNumber className={`${publicSans.className}`}>
-                        {value}
-                    </MainNumber>
-                )}
-            </SudokuCellWrapper>
-        );
-    }
-);
+                        );
+                    })}
+                </NotesGrid>
+            ) : (
+                <MainNumber className={`${publicSans.className}`}>
+                    {value}
+                </MainNumber>
+            )}
+        </SudokuCellWrapper>
+    );
+};
 
 SudokuCell.displayName = 'SudokuCell';

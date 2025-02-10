@@ -36,7 +36,7 @@ const ALLOWED_KEYS = [
 
 type HandledKeyPress = (typeof ALLOWED_KEYS)[number];
 
-export const Sudoku: React.FC<SudokuProps> = React.memo(() => {
+export const Sudoku: React.FC<SudokuProps> = () => {
     const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
 
     const setTotalSeconds = React.useCallback(
@@ -45,68 +45,78 @@ export const Sudoku: React.FC<SudokuProps> = React.memo(() => {
         []
     );
 
-    const onKeyDown = React.useCallback((event: globalThis.KeyboardEvent) => {
-        const wasAnyKeyPressed = ALLOWED_KEYS.includes(
-            event.key as HandledKeyPress
-        );
-        if (wasAnyKeyPressed) {
-            event.preventDefault();
+    const onKeyDown = React.useCallback(
+        (event: globalThis.KeyboardEvent) => {
+            const wasAnyKeyPressed = ALLOWED_KEYS.includes(
+                event.key as HandledKeyPress
+            );
+            if (wasAnyKeyPressed) {
+                event.preventDefault();
 
-            switch (event.key as HandledKeyPress) {
-                case 'Backspace': {
-                    dispatch({ type: 'DELETE_VALUE' });
-                    break;
-                }
-                case 'ArrowUp': {
-                    const selectedIndexSet = state.selectedIndexSet?.up;
-                    if (selectedIndexSet) {
-                        dispatch({
-                            type: 'SET_INDICES',
-                            selectedIndexSet,
-                        });
+                switch (event.key as HandledKeyPress) {
+                    case 'Backspace': {
+                        dispatch({ type: 'DELETE_VALUE' });
+                        break;
                     }
-                    break;
-                }
-                case 'ArrowDown': {
-                    const selectedIndexSet = state.selectedIndexSet?.down;
-                    if (selectedIndexSet) {
-                        dispatch({
-                            type: 'SET_INDICES',
-                            selectedIndexSet,
-                        });
+                    case 'ArrowUp': {
+                        const selectedIndexSet = state.selectedIndexSet?.up;
+                        if (selectedIndexSet) {
+                            dispatch({
+                                type: 'SET_INDICES',
+                                selectedIndexSet,
+                            });
+                        }
+                        break;
                     }
-                    break;
-                }
-                case 'ArrowLeft': {
-                    const selectedIndexSet = state.selectedIndexSet?.left;
-                    if (selectedIndexSet) {
-                        dispatch({
-                            type: 'SET_INDICES',
-                            selectedIndexSet,
-                        });
+                    case 'ArrowDown': {
+                        const selectedIndexSet = state.selectedIndexSet?.down;
+                        if (selectedIndexSet) {
+                            dispatch({
+                                type: 'SET_INDICES',
+                                selectedIndexSet,
+                            });
+                        }
+                        break;
                     }
-                    break;
-                }
-                case 'ArrowRight': {
-                    const selectedIndexSet = state.selectedIndexSet?.right;
-                    if (selectedIndexSet) {
-                        dispatch({
-                            type: 'SET_INDICES',
-                            selectedIndexSet,
-                        });
+                    case 'ArrowLeft': {
+                        const selectedIndexSet = state.selectedIndexSet?.left;
+                        if (selectedIndexSet) {
+                            dispatch({
+                                type: 'SET_INDICES',
+                                selectedIndexSet,
+                            });
+                        }
+                        break;
                     }
-                    break;
-                }
-                default: {
-                    const value = Number.parseInt(event.key, 10);
-                    if (value <= 9 && value >= 1) {
-                        dispatch({ type: 'SET_VALUE', value });
+                    case 'ArrowRight': {
+                        const selectedIndexSet = state.selectedIndexSet?.right;
+                        if (selectedIndexSet) {
+                            dispatch({
+                                type: 'SET_INDICES',
+                                selectedIndexSet,
+                            });
+                        }
+                        break;
                     }
-                    break;
+                    default: {
+                        const value = Number.parseInt(event.key, 10);
+                        if (value <= 9 && value >= 1) {
+                            if (state.notesOn) {
+                                dispatch({
+                                    type: 'SET_NOTE',
+                                    note: value,
+                                });
+                            } else {
+                                dispatch({ type: 'SET_VALUE', value });
+                            }
+                        }
+                        break;
+                    }
                 }
             }
-        }
-    }, []);
+        },
+        [state.notesOn, state.selectedIndexSet]
+    );
 
     React.useEffect(() => {
         const { values, board } = getBoard(state.difficulty);
@@ -135,7 +145,7 @@ export const Sudoku: React.FC<SudokuProps> = React.memo(() => {
                 });
             }
         }
-    }, [state.intervalStartTime, state.stopWatchAction]);
+    }, [state.intervalStartTime, state.stopWatchAction, state.intervalId]);
 
     const handleButtonPress = React.useCallback(
         (value: ButtonValue) => {
@@ -166,12 +176,16 @@ export const Sudoku: React.FC<SudokuProps> = React.memo(() => {
                     }
                 }
             } else if (typeof value === 'number') {
-                dispatch({ type: 'SET_VALUE', value });
+                if (state.notesOn) {
+                    dispatch({ type: 'SET_NOTE', note: value });
+                } else {
+                    dispatch({ type: 'SET_VALUE', value });
+                }
             } else if (value.type === 'change-difficulty') {
                 dispatch({ type: 'RESET', difficulty: value.to });
             }
         },
-        [state.difficulty]
+        [state.notesOn]
     );
 
     const { reward: confettiReward } = useReward('confettiReward', 'confetti', {
@@ -208,6 +222,12 @@ export const Sudoku: React.FC<SudokuProps> = React.memo(() => {
                                     dispatch({
                                         type: 'SET_INDICES',
                                         selectedIndexSet: indexSet,
+                                    })
+                                }
+                                onNoteClick={(note) =>
+                                    dispatch({
+                                        type: 'SET_NOTE',
+                                        note,
                                     })
                                 }
                             />
@@ -260,6 +280,6 @@ export const Sudoku: React.FC<SudokuProps> = React.memo(() => {
             </div>
         </div>
     );
-});
+};
 
 Sudoku.displayName = 'Sudoku';

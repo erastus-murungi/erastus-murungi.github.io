@@ -11,6 +11,7 @@ export interface SudokuSquareProps {
     value: Value;
     initialValue: Value;
     setSelectedIndexSet: (indexSet: IndexSet) => void;
+    onNoteClick: (note: number) => void;
     showNotes: boolean;
     isConflictSquare: boolean;
     isHint: boolean;
@@ -117,51 +118,51 @@ const OuterContainer = styled.div`
               `}
 `;
 
-export const SudokuSquare: React.FC<SudokuSquareProps> = React.memo(
-    ({
-        selectedIndexSet,
-        indexSet,
-        value,
-        initialValue,
-        setSelectedIndexSet,
-        showNotes,
-        isConflictSquare,
-        isHint,
-    }) => {
-        const { columnIndex, rowIndex, boardIndex } = indexSet;
-        const {
-            columnIndex: selectedColumnIndex,
-            rowIndex: selectedRowIndex,
-            boardIndex: selectedBoardIndex,
-        } = selectedIndexSet || {};
+export const SudokuSquare: React.FC<SudokuSquareProps> = ({
+    selectedIndexSet,
+    indexSet,
+    value,
+    initialValue,
+    setSelectedIndexSet,
+    showNotes,
+    onNoteClick,
+    isConflictSquare,
+    isHint,
+}) => {
+    const { columnIndex, rowIndex, boardIndex } = indexSet;
+    const {
+        columnIndex: selectedColumnIndex,
+        rowIndex: selectedRowIndex,
+        boardIndex: selectedBoardIndex,
+    } = selectedIndexSet || {};
 
-        return (
-            <OuterContainer
-                className="rainbow h-11 w-11 min-[1200px]:h-20 min-[1200px]:w-20 md:h-15 md:w-15 lg:h-16 lg:w-16"
-                isSelected={
-                    selectedColumnIndex === columnIndex ||
-                    rowIndex === selectedRowIndex
-                }
+    return (
+        <OuterContainer
+            className="rainbow h-11 w-11 min-[1200px]:h-20 min-[1200px]:w-20 md:h-15 md:w-15 lg:h-16 lg:w-16"
+            isSelected={
+                selectedColumnIndex === columnIndex ||
+                rowIndex === selectedRowIndex
+            }
+            isSelectedBoardIndex={selectedBoardIndex === boardIndex}
+            isConflictSquare={isConflictSquare}
+            isShowingNotes={showNotes}
+            isHint={isHint}
+            onClick={() => {
+                setSelectedIndexSet(indexSet);
+            }}
+        >
+            <SudokuCell
+                answer={initialValue.answer}
+                notes={value.notes}
+                onNoteClick={(note) => onNoteClick(note)}
+                hasError={value.hasError}
+                value={value.value || initialValue.value}
                 isSelectedBoardIndex={selectedBoardIndex === boardIndex}
-                isConflictSquare={isConflictSquare}
-                isShowingNotes={showNotes}
-                isHint={isHint}
-                onClick={() => {
-                    setSelectedIndexSet(indexSet);
-                }}
-            >
-                <SudokuCell
-                    answer={initialValue.answer}
-                    noteValues={value.noteValues}
-                    hasError={value.hasError}
-                    value={value.value || initialValue.value}
-                    isSelectedBoardIndex={selectedBoardIndex === boardIndex}
-                    isOriginal={value.isOriginal}
-                    showNotes={showNotes}
-                />
-            </OuterContainer>
-        );
-    }
-);
+                isOriginal={value.isOriginal}
+                showNotes={showNotes}
+            />
+        </OuterContainer>
+    );
+};
 
 SudokuSquare.displayName = 'SudokuSquare';

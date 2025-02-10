@@ -48,82 +48,77 @@ type BoardProps = Prettify<
         | 'selectedIndexSet'
         | 'values'
     > &
-        Pick<SudokuSquareProps, 'setSelectedIndexSet'>
+        Pick<SudokuSquareProps, 'setSelectedIndexSet'> & {
+            onNoteClick: (note: number) => void;
+        }
 >;
 
-export const Board: React.FC<BoardProps> = React.memo(
-    ({
-        board,
-        conflictBoardIndices,
-        hintIndex,
-        notesOn,
-        selectedIndexSet,
-        values,
-        setSelectedIndexSet,
-    }) => {
-        const {
-            columnIndex: selectedColumnIndex,
-            rowIndex: selectedRowIndex,
-            boardIndex: selectedBoardIndex,
-        } = selectedIndexSet || {};
+export const Board: React.FC<BoardProps> = ({
+    board,
+    conflictBoardIndices,
+    hintIndex,
+    notesOn,
+    selectedIndexSet,
+    values,
+    setSelectedIndexSet,
+    onNoteClick,
+}) => {
+    const selectedBoardIndex = selectedIndexSet?.boardIndex;
 
-        const buildRow = React.useCallback(
-            (rowIndex: number) =>
-                function SudokuRow(value: Value, columnIndex: number) {
-                    const boardIndex = getBoardIndex(rowIndex, columnIndex);
-                    const val = values.get(boardIndex);
+    const buildRow = React.useCallback(
+        (rowIndex: number) =>
+            function SudokuRow(value: Value, columnIndex: number) {
+                const boardIndex = getBoardIndex(rowIndex, columnIndex);
+                const val = values.get(boardIndex);
 
-                    if (!val) {
-                        return;
-                    }
+                if (!val) {
+                    return;
+                }
 
-                    const showNotes =
-                        notesOn &&
-                        (value.noteValues.some(
-                            (noteValue) => noteValue.isSelected
-                        ) ||
-                            selectedBoardIndex === boardIndex);
+                const showNotes =
+                    notesOn &&
+                    (!value.notes.isEmpty() ||
+                        selectedBoardIndex === boardIndex);
 
-                    return (
-                        <SudokuSquare
-                            key={`$square-${rowIndex}-${columnIndex}`}
-                            value={val}
-                            initialValue={value}
-                            indexSet={createIndexSet({ rowIndex, columnIndex })}
-                            selectedIndexSet={selectedIndexSet}
-                            showNotes={showNotes}
-                            setSelectedIndexSet={(values) =>
-                                setSelectedIndexSet(values)
-                            }
-                            isConflictSquare={conflictBoardIndices.has(
-                                boardIndex
-                            )}
-                            isHint={hintIndex === boardIndex}
-                        />
-                    );
-                },
-            [
-                conflictBoardIndices,
-                hintIndex,
-                notesOn,
-                selectedBoardIndex,
-                selectedColumnIndex,
-                selectedRowIndex,
-                values,
-            ]
-        );
-        return (
-            <StyledBoardDiv>
-                {board.map((rowValues: SudokuBoardRow, rowIndex: number) => {
-                    return (
-                        <StyledRowDiv className="inline-flex" key={rowIndex}>
-                            {rowValues.map(buildRow(rowIndex))}
-                        </StyledRowDiv>
-                    );
-                })}
-            </StyledBoardDiv>
-        );
-    }
-);
+                return (
+                    <SudokuSquare
+                        key={`$square-${rowIndex}-${columnIndex}`}
+                        value={val}
+                        initialValue={value}
+                        indexSet={createIndexSet({ rowIndex, columnIndex })}
+                        selectedIndexSet={selectedIndexSet}
+                        showNotes={showNotes}
+                        setSelectedIndexSet={(values) =>
+                            setSelectedIndexSet(values)
+                        }
+                        onNoteClick={(note) => onNoteClick(note)}
+                        isConflictSquare={conflictBoardIndices.has(boardIndex)}
+                        isHint={hintIndex === boardIndex}
+                    />
+                );
+            },
+        [
+            conflictBoardIndices,
+            hintIndex,
+            notesOn,
+            selectedIndexSet,
+            selectedBoardIndex,
+            values,
+            setSelectedIndexSet,
+            onNoteClick,
+        ]
+    );
+    return (
+        <StyledBoardDiv>
+            {board.map((rowValues: SudokuBoardRow, rowIndex: number) => {
+                return (
+                    <StyledRowDiv className="inline-flex" key={rowIndex}>
+                        {rowValues.map(buildRow(rowIndex))}
+                    </StyledRowDiv>
+                );
+            })}
+        </StyledBoardDiv>
+    );
+};
 
 Board.displayName = 'Board';

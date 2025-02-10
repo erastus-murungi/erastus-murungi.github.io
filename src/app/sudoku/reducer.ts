@@ -78,6 +78,10 @@ type Action =
           value: number;
       }
     | {
+          type: 'SET_NOTE';
+          note: number;
+      }
+    | {
           type: 'DELETE_VALUE';
       }
     | {
@@ -126,6 +130,38 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
     console.log('Action', action.type);
 
     switch (action.type) {
+        case 'SET_NOTE': {
+            if (!state.notesOn) {
+                throw new Error('Notes are not enabled');
+            }
+            const { note } = action;
+            const { boardIndex: selectedBoardIndex } =
+                state.selectedIndexSet || {};
+            if (selectedBoardIndex === undefined) {
+                return state;
+            }
+            const selectedValue = state.values.get(selectedBoardIndex);
+            if (!selectedValue || selectedValue.isOriginal) {
+                return state;
+            }
+            const isSelected = selectedValue.notes.has(note);
+
+            return isSelected
+                ? {
+                      ...state,
+                      values: state.values.set(selectedBoardIndex, {
+                          ...selectedValue,
+                          notes: selectedValue.notes.delete(note),
+                      }),
+                  }
+                : {
+                      ...state,
+                      values: state.values.set(selectedBoardIndex, {
+                          ...selectedValue,
+                          notes: selectedValue.notes.add(note),
+                      }),
+                  };
+        }
         case 'SET_VALUE': {
             const { boardIndex: selectedBoardIndex } =
                 state.selectedIndexSet || {};
@@ -263,7 +299,11 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             };
         }
         case 'TOGGLE_NOTES': {
-            return { ...state, notesOn: !state.notesOn, hintIndex: undefined };
+            return {
+                ...state,
+                notesOn: !state.notesOn,
+                hintIndex: undefined,
+            };
         }
         case 'UPDATE_TIME': {
             return { ...state, totalSeconds: action.totalSeconds };

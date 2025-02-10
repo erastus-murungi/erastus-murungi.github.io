@@ -16,10 +16,7 @@ export interface Value {
     isOriginal: boolean;
     isSelectedBoardIndex: boolean;
     answer: number;
-    noteValues: List<{
-        value: number;
-        isSelected: boolean;
-    }>;
+    notes: Set<number>;
 }
 
 export type SudokuBoardRow = List<Value>;
