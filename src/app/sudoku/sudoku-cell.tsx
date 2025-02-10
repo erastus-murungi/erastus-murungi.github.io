@@ -14,8 +14,9 @@ const SudokuCellWrapper = styled.div`
     box-sizing: border-box;
 `;
 
-const MainNumber = styled.div`
+const MainNumber = styled.div<{ isOriginal: boolean }>`
     z-index: 1;
+    color: ${({ isOriginal }) => (isOriginal ? 'inherit' : '#488470')};
 `;
 
 const NotesGrid = styled.div`
@@ -67,6 +68,7 @@ interface SudokuCellProps extends Value {
 
 export const SudokuCell: React.FC<SudokuCellProps> = ({
     value,
+    isOriginal,
     notes,
     showNotes,
     onNoteClick,
@@ -90,7 +92,10 @@ export const SudokuCell: React.FC<SudokuCellProps> = ({
                     })}
                 </NotesGrid>
             ) : (
-                <MainNumber className={`${publicSans.className}`}>
+                <MainNumber
+                    isOriginal={isOriginal}
+                    className={`${publicSans.className}`}
+                >
                     {value}
                 </MainNumber>
             )}
