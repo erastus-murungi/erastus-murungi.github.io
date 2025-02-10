@@ -123,7 +123,7 @@ const NumberPad: React.FC<{
                 {[...Array.from({ length: 9 }).keys()].map((value) => (
                     <Button
                         key={`numberpad-key-${value + 1}`}
-                        className="hover h-10 w-10 text-2xl hover:scale-110 hover:border-2 hover:border-black hover:shadow-lg sm:h-16 sm:w-16 sm:text-xl"
+                        className="hover h-12 w-10 text-3xl hover:scale-110 hover:border-2 hover:border-black hover:shadow-lg sm:h-16 sm:w-16"
                         variant="secondary"
                         onClick={() => onClick((value + 1) as ButtonValue)}
                     >
