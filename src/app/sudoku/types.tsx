@@ -1,6 +1,6 @@
 import type { List, Set } from 'immutable';
 import type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
-import type { IndexSet } from './utils';
+import type { Board, IndexSet } from './utils';
 
 export type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
 
@@ -20,10 +20,9 @@ export interface Value {
 }
 
 export type SudokuBoardRow = List<Value>;
-export type SudokuBoard = List<SudokuBoardRow>;
 
 export interface HistoryState {
-    values: List<Value>;
+    board: Board;
     selectedIndexSet?: IndexSet;
     conflictBoardIndices: Set<number>;
     difficulty: Difficulty;
@@ -38,7 +37,6 @@ export interface ReducerState extends HistoryState {
     isSolved: boolean;
     numMoves: number;
     numMistakes: number;
-    board: SudokuBoard;
     totalSeconds: number;
     score: string;
     intervalId?: NodeJS.Timeout;

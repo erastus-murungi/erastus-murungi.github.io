@@ -9,32 +9,35 @@ export const HINT_COUNT: Record<Difficulty, number> = {
     expert: 3,
 };
 
-export const generateHint = (values: List<Value>) => {
+export const generateHint = (board: Board) => {
     // if the values are all filled, return
-    if (values.every((value) => value.value !== undefined)) {
+    if (board.values.every((value) => value.value !== undefined)) {
         return;
     }
     while (true) {
         const index = Math.floor(Math.random() * 81);
-        if (values.get(index)?.value === undefined) {
+        if (board.values.get(index)?.value === undefined) {
             return index;
         }
     }
 };
 
-export const generateHints = (count: number, values: List<Value>) => {
+export const generateHints = (count: number, board: Board) => {
     // if the values are all filled, return
-    if (values.every((value) => value.value !== undefined)) {
+    if (board.values.every((value) => value.value !== undefined)) {
         return;
     }
     let numHints = Math.min(
         count,
-        81 - values.count((value) => value.value !== undefined)
+        81 - board.values.count((value) => value.value !== undefined)
     );
     const hints: number[] = [];
     while (numHints > 0) {
         const index = Math.floor(Math.random() * 81);
-        if (!hints.includes(index) && values.get(index)?.value === undefined) {
+        if (
+            !hints.includes(index) &&
+            board.values.get(index)?.value === undefined
+        ) {
             hints.push(index);
             numHints--;
         }
@@ -48,23 +51,6 @@ export const genBoardFromValues = (values: List<Value>) =>
             List(values.slice(i * 9, i * 9 + 9))
         )
     );
-
-export function getBoard(difficulty: Difficulty) {
-    const sudoku = getSudoku(difficulty);
-    const valuesList = [...sudoku.puzzle].map((value, index) => ({
-        value: value === '-' ? undefined : Number.parseInt(value, 10),
-        hasError: false,
-        isOriginal: value !== '-',
-        answer: Number.parseInt(sudoku.solution[index], 10),
-        isSelectedBoardIndex: false,
-        notes: Set<number>(),
-    }));
-    const values = List(valuesList);
-    return {
-        values,
-        board: genBoardFromValues(values),
-    };
-}
 
 export const getBoardIndex = (rowIndex: number, index: number) =>
     rowIndex * 9 + index;
@@ -136,6 +122,65 @@ export class IndexSet {
         return this.rowIndex < 8
             ? new IndexSet(this.columnIndex, this.rowIndex + 1)
             : undefined;
+    }
+}
+
+export class Board {
+    readonly values: List<Value>;
+
+    constructor(values: List<Value>) {
+        this.values = values;
+    }
+
+    public static createWithDifficulty(difficulty: Difficulty) {
+        const sudoku = getSudoku(difficulty);
+        const valuesList = [...sudoku.puzzle].map((value, index) => ({
+            value: value === '-' ? undefined : Number.parseInt(value, 10),
+            hasError: false,
+            isOriginal: value !== '-',
+            answer: Number.parseInt(sudoku.solution[index], 10),
+            isSelectedBoardIndex: false,
+            notes: Set<number>(),
+        }));
+        return new Board(List(valuesList));
+    }
+
+    public static createFromValues(values: List<Value>) {
+        return new Board(values);
+    }
+
+    public static empty() {
+        return new Board(List());
+    }
+
+    get grid(): List<List<Value>> {
+        return List(
+            Array.from({ length: 9 }, (_, i) =>
+                List(this.values.slice(i * 9, i * 9 + 9))
+            )
+        );
+    }
+
+    get(accessor: IndexSet | number): Value | undefined {
+        if (typeof accessor === 'number') {
+            return this.values.get(accessor);
+        }
+        return this.values.get(accessor.boardIndex);
+    }
+
+    getFromBoardIndex(boardIndex: number): Value | undefined {
+        return this.values.get(boardIndex);
+    }
+
+    set(accessor: IndexSet | number, value: Value): Board {
+        if (typeof accessor === 'number') {
+            return new Board(this.values.set(accessor, value));
+        }
+        return new Board(this.values.set(accessor.boardIndex, value));
+    }
+
+    get isSolved() {
+        return this.values.every((val) => val.value === val.answer);
     }
 }
 

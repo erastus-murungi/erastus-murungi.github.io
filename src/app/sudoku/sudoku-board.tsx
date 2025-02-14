@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { SudokuSquare, type SudokuSquareProps } from './sudoku-square';
-import { createIndexSet, getBoardIndex } from './utils';
+import { createIndexSet } from './utils';
 import type { Prettify, ReducerState, SudokuBoardRow, Value } from './types';
 
 const StyledBoardDiv = styled.div`
@@ -46,7 +46,6 @@ type BoardProps = Prettify<
         | 'hintIndex'
         | 'notesOn'
         | 'selectedIndexSet'
-        | 'values'
         | 'autoCheckEnabled'
     > &
         Pick<SudokuSquareProps, 'setSelectedIndexSet'> & {
@@ -54,13 +53,12 @@ type BoardProps = Prettify<
         }
 >;
 
-export const Board: React.FC<BoardProps> = ({
+export const SudokuBoard: React.FC<BoardProps> = ({
     board,
     conflictBoardIndices,
     hintIndex,
     notesOn,
     selectedIndexSet,
-    values,
     setSelectedIndexSet,
     onNoteClick,
     autoCheckEnabled,
@@ -70,12 +68,14 @@ export const Board: React.FC<BoardProps> = ({
     const buildRow = React.useCallback(
         (rowIndex: number) =>
             function SudokuRow(initialValue: Value, columnIndex: number) {
-                const boardIndex = getBoardIndex(rowIndex, columnIndex);
-                const value = values.get(boardIndex);
+                const indexSet = createIndexSet({ rowIndex, columnIndex });
+                const value = board.get(indexSet);
 
                 if (!value) {
                     return;
                 }
+
+                const boardIndex = indexSet.boardIndex;
 
                 const showNotes =
                     notesOn &&
@@ -91,7 +91,7 @@ export const Board: React.FC<BoardProps> = ({
                         key={`$square-${rowIndex}-${columnIndex}`}
                         value={value}
                         initialValue={initialValue}
-                        indexSet={createIndexSet({ rowIndex, columnIndex })}
+                        indexSet={indexSet}
                         selectedIndexSet={selectedIndexSet}
                         showNotes={showNotes}
                         setSelectedIndexSet={(values) =>
@@ -111,7 +111,7 @@ export const Board: React.FC<BoardProps> = ({
             notesOn,
             selectedIndexSet,
             selectedBoardIndex,
-            values,
+            board,
             setSelectedIndexSet,
             onNoteClick,
             autoCheckEnabled,
@@ -119,7 +119,7 @@ export const Board: React.FC<BoardProps> = ({
     );
     return (
         <StyledBoardDiv>
-            {board.map((rowValues: SudokuBoardRow, rowIndex: number) => {
+            {board.grid.map((rowValues: SudokuBoardRow, rowIndex: number) => {
                 return (
                     <StyledRowDiv className="inline-flex" key={rowIndex}>
                         {rowValues.map(buildRow(rowIndex))}
@@ -130,4 +130,4 @@ export const Board: React.FC<BoardProps> = ({
     );
 };
 
-Board.displayName = 'Board';
+SudokuBoard.displayName = 'Board';

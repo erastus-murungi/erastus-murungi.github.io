@@ -1,12 +1,12 @@
 import { List, Set } from 'immutable';
 import { toast } from 'sonner';
 import {
-    getBoard,
-    getBoardIndex,
     generateHint,
     HINT_COUNT,
     calculateScore,
     type IndexSet,
+    Board,
+    getBoardIndex,
 } from './utils';
 import type {
     ReducerState,
@@ -27,11 +27,11 @@ const getHintMessage = () => {
 };
 
 const validateBoardAfterEntry = ({
-    values,
+    board,
     selectedIndexSet,
     toCheck,
 }: {
-    values: ReducerState['values'];
+    board: ReducerState['board'];
     selectedIndexSet: ReducerState['selectedIndexSet'];
     toCheck: number;
 }) => {
@@ -41,13 +41,13 @@ const validateBoardAfterEntry = ({
     if (selectedRowIndex != undefined) {
         for (let offset = 0; offset < 9; offset++) {
             const boardIndex = selectedRowIndex * 9 + offset;
-            const boardValue = values.get(boardIndex);
+            const boardValue = board.get(boardIndex);
             if (boardValue?.value === toCheck) {
                 conflictBoardIndices.push(boardIndex);
             }
         }
         if (selectedColumnIndex != undefined) {
-            for (const [boardIndex, value] of values.entries()) {
+            for (const [boardIndex, value] of board.values.entries()) {
                 if (boardIndex % 9 === selectedColumnIndex) {
                     if (value.value === toCheck) {
                         conflictBoardIndices.push(boardIndex);
@@ -66,7 +66,7 @@ const validateBoardAfterEntry = ({
                         gridRowIndex + rowOffset,
                         gridColumnIndex + colOffset
                     );
-                    const boardValue = values.get(boardIndex);
+                    const boardValue = board.get(boardIndex);
                     if (boardValue?.value === toCheck) {
                         conflictBoardIndices.push(boardIndex);
                     }
@@ -113,8 +113,22 @@ type Action =
       }
     | {
           type: 'INIT_SODUKU';
-          values: List<Value>;
-          board: List<List<Value>>;
+          options:
+              | {
+                    difficulty: Difficulty;
+                    values: undefined;
+                    board: undefined;
+                }
+              | {
+                    values: List<Value>;
+                    difficulty: undefined;
+                    board: undefined;
+                }
+              | {
+                    board: Board;
+                    difficulty: undefined;
+                    values: undefined;
+                };
       }
     | {
           type: 'SET_INDICES';
@@ -147,13 +161,13 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             if (!state.notesOn) {
                 throw new Error('Notes are not enabled');
             }
-            const { note } = action;
-            const { boardIndex: selectedBoardIndex } =
-                state.selectedIndexSet || {};
-            if (selectedBoardIndex === undefined) {
+            const { selectedIndexSet } = state;
+            if (selectedIndexSet === undefined) {
                 return state;
             }
-            const selectedValue = state.values.get(selectedBoardIndex);
+            const { note } = action;
+
+            const selectedValue = state.board.get(selectedIndexSet);
             if (!selectedValue || selectedValue.isOriginal) {
                 return state;
             }
@@ -162,29 +176,27 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             return isSelected
                 ? {
                       ...state,
-                      values: state.values.set(selectedBoardIndex, {
+                      board: state.board.set(selectedIndexSet, {
                           ...selectedValue,
                           notes: selectedValue.notes.delete(note),
                       }),
                   }
                 : {
                       ...state,
-                      values: state.values.set(selectedBoardIndex, {
+                      board: state.board.set(selectedIndexSet, {
                           ...selectedValue,
                           notes: selectedValue.notes.add(note),
                       }),
                   };
         }
         case 'SET_VALUE': {
-            const { boardIndex: selectedBoardIndex } =
-                state.selectedIndexSet || {};
-            const { values } = state;
-            const { value } = action;
-            if (selectedBoardIndex === undefined) {
+            const { selectedIndexSet, board } = state;
+            if (selectedIndexSet === undefined) {
                 return state;
             }
+            const { value } = action;
 
-            const selectedValue = values.get(selectedBoardIndex);
+            const selectedValue = board.get(selectedIndexSet);
             if (!selectedValue || selectedValue.isOriginal) {
                 return state;
             }
@@ -194,7 +206,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                     ...state,
                     conflictBoardIndices: Set(),
                     hintIndex: undefined,
-                    values: state.values.set(selectedBoardIndex, {
+                    board: state.board.set(selectedIndexSet, {
                         ...selectedValue,
                         value: undefined,
                         hasError: false,
@@ -202,23 +214,30 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 };
             } else {
                 const conflictBoardIndices = validateBoardAfterEntry({
-                    selectedIndexSet: state.selectedIndexSet,
-                    values: state.values,
+                    selectedIndexSet: selectedIndexSet,
+                    board: state.board,
                     toCheck: value,
+                });
+                const board = state.board.set(selectedIndexSet, {
+                    ...selectedValue,
+                    value,
+                    answer: selectedValue.answer,
+                    hasError: conflictBoardIndices !== undefined,
                 });
                 return {
                     ...state,
                     hintIndex: undefined,
                     numMoves: state.numMoves + 1,
+                    isSolved: board.isSolved,
                     history: state.history.push({
-                        values,
+                        board,
                         selectedIndexSet: state.selectedIndexSet,
                         difficulty: state.difficulty,
                         conflictBoardIndices: state.conflictBoardIndices,
                         hintIndex: state.hintIndex,
                         notesOn: state.notesOn,
                     }),
-                    values: state.values.set(selectedBoardIndex, {
+                    board: state.board.set(selectedIndexSet, {
                         ...selectedValue,
                         value,
                         answer: selectedValue.answer,
@@ -234,14 +253,12 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             }
         }
         case 'DELETE_VALUE': {
-            const { boardIndex: selectedBoardIndex } =
-                state.selectedIndexSet || {};
-            const { values } = state;
-            if (selectedBoardIndex === undefined) {
+            const { board, selectedIndexSet } = state;
+            if (selectedIndexSet === undefined) {
                 return state;
             }
 
-            const selectedValue = values.get(selectedBoardIndex);
+            const selectedValue = board.get(selectedIndexSet);
             if (!selectedValue || selectedValue.isOriginal) {
                 return state;
             }
@@ -249,7 +266,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 ...state,
                 conflictBoardIndices: Set(),
                 hintIndex: undefined,
-                values: state.values.set(selectedBoardIndex, {
+                board: state.board.set(selectedIndexSet, {
                     ...selectedValue,
                     value: undefined,
                     hasError: false,
@@ -262,7 +279,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 return {
                     ...state,
                     hintIndex: undefined,
-                    values: lastState.values,
+                    board: lastState.board,
                     selectedIndexSet: lastState.selectedIndexSet,
                     difficulty: lastState.difficulty,
                     conflictBoardIndices: lastState.conflictBoardIndices,
@@ -274,15 +291,16 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         }
         case 'RESET_CURRENT_BOARD': {
             const { difficulty } = state;
+            const newValues = state.board.values.map((value) => ({
+                ...value,
+                ...(value.isOriginal
+                    ? { value: value.answer }
+                    : { value: undefined }),
+                errorMessage: undefined,
+            }));
             return {
                 ...state,
-                values: state.values.map((value) => ({
-                    ...value,
-                    ...(value.isOriginal
-                        ? { value: value.answer }
-                        : { value: undefined }),
-                    errorMessage: undefined,
-                })),
+                board: new Board(newValues),
                 selectedIndexSet: undefined,
                 hintIndex: undefined,
                 conflictBoardIndices: Set(),
@@ -299,13 +317,14 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             return { ...state, stopWatchAction };
         }
         case 'SUBMIT': {
+            const newValues = state.board.values.map((value) => ({
+                ...value,
+                value: value.answer,
+                errorMessage: undefined,
+            }));
             return {
                 ...state,
-                values: state.values.map((value) => ({
-                    ...value,
-                    value: value.answer,
-                    errorMessage: undefined,
-                })),
+                board: Board.createFromValues(newValues),
                 isSolved: true,
                 hintIndex: undefined,
                 stopWatchAction: 'pause',
@@ -327,10 +346,14 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             return { ...state, score };
         }
         case 'INIT_SODUKU': {
-            const { values, board } = action;
+            const { options } = action;
+            const board = options.difficulty
+                ? Board.createWithDifficulty(options.difficulty)
+                : options.values
+                  ? Board.createFromValues(options.values)
+                  : options.board;
             return {
                 ...state,
-                values,
                 board,
                 isSolved: false,
                 numMistakes: 0,
@@ -354,7 +377,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 });
                 return state;
             }
-            const hintIndex = generateHint(state.values);
+            const hintIndex = generateHint(state.board);
             if (hintIndex === undefined) {
                 toast.error('No more hints available', {
                     className: 'bold',
@@ -363,7 +386,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 });
                 return state;
             } else {
-                const hint = state.values.get(hintIndex);
+                const hint = state.board.get(hintIndex);
                 if (hint === undefined) {
                     toast.error('Internal Error: hintIndex out of bounds', {
                         description: 'No more hints available',
@@ -373,7 +396,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 } else {
                     return {
                         ...state,
-                        values: state.values.set(hintIndex, {
+                        board: state.board.set(hintIndex, {
                             ...hint,
                             hasError: false,
                             value: hint.answer,
@@ -390,11 +413,9 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         }
         case 'RESET': {
             const { difficulty } = action;
-            const { values, board } = getBoard(difficulty);
             return {
                 ...state,
-                values,
-                board,
+                board: Board.createWithDifficulty(difficulty),
                 selectedIndexSet: undefined,
                 difficulty,
                 conflictBoardIndices: Set(),
@@ -418,8 +439,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
 }
 
 export const INITIAL_STATE: ReducerState = {
-    values: List(),
-    board: List(),
+    board: Board.empty(),
     selectedIndexSet: undefined,
     difficulty: 'easy',
     conflictBoardIndices: Set(),

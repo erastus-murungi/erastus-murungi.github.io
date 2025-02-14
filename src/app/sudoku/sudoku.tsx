@@ -5,8 +5,8 @@ import { reenie_beanie } from '@/styles/fonts';
 import Header from '../header';
 import { ButtonBar, type ButtonValue } from './button-bar';
 import { useReward } from 'react-rewards';
-import { genBoardFromValues, generateHints, getBoard } from './utils';
-import { Board } from './sudoku-board';
+import { Board, generateHints } from './utils';
+import { SudokuBoard } from './sudoku-board';
 import { StopWatch } from './stopwatch';
 import { reducer, INITIAL_STATE } from './reducer';
 import { Switch } from '@/components/ui/switch';
@@ -122,24 +122,29 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     );
 
     React.useEffect(() => {
-        const { values, board } = getBoard(state.difficulty);
-        const hints = generateHints(40, values);
+        const board = Board.createWithDifficulty(state.difficulty);
+        const hints = generateHints(40, board);
         if (hints) {
-            let newValues = values;
+            let newValues = board.values;
             for (const hintIndex of hints) {
                 newValues = newValues.setIn(
                     [hintIndex, 'value'],
-                    values.get(hintIndex)?.answer
+                    newValues.get(hintIndex)?.answer
                 );
             }
-            const newBoard = genBoardFromValues(newValues);
             dispatch({
                 type: 'INIT_SODUKU',
-                values: newValues,
-                board: newBoard,
+                options: {
+                    values: newValues,
+                    board: undefined,
+                    difficulty: undefined,
+                },
             });
         } else {
-            dispatch({ type: 'INIT_SODUKU', values, board });
+            dispatch({
+                type: 'INIT_SODUKU',
+                options: { board, values: undefined, difficulty: undefined },
+            });
         }
     }, [state.difficulty]);
 
@@ -232,7 +237,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                         <div className="flex flex-col items-center justify-center">
                             <div className="inline-flex flex-row items-stretch justify-stretch" />
                             <SudokuStats {...state} />
-                            <Board
+                            <SudokuBoard
                                 notesOn={state.notesOn}
                                 autoCheckEnabled={state.autoCheckEnabled}
                                 hintIndex={state.hintIndex}
@@ -240,7 +245,6 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                                     state.conflictBoardIndices
                                 }
                                 board={state.board}
-                                values={state.values}
                                 selectedIndexSet={state.selectedIndexSet}
                                 setSelectedIndexSet={(indexSet) =>
                                     dispatch({
