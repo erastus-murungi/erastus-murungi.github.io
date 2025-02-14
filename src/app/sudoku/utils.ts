@@ -22,9 +22,36 @@ export const generateHint = (values: List<Value>) => {
     }
 };
 
+export const generateHints = (count: number, values: List<Value>) => {
+    // if the values are all filled, return
+    if (values.every((value) => value.value !== undefined)) {
+        return;
+    }
+    let numHints = Math.min(
+        count,
+        81 - values.count((value) => value.value !== undefined)
+    );
+    const hints: number[] = [];
+    while (numHints > 0) {
+        const index = Math.floor(Math.random() * 81);
+        if (!hints.includes(index) && values.get(index)?.value === undefined) {
+            hints.push(index);
+            numHints--;
+        }
+    }
+    return hints;
+};
+
+export const genBoardFromValues = (values: List<Value>) =>
+    List(
+        Array.from({ length: 9 }, (_, i) =>
+            List(values.slice(i * 9, i * 9 + 9))
+        )
+    );
+
 export function getBoard(difficulty: Difficulty) {
     const sudoku = getSudoku(difficulty);
-    const values = [...sudoku.puzzle].map((value, index) => ({
+    const valuesList = [...sudoku.puzzle].map((value, index) => ({
         value: value === '-' ? undefined : Number.parseInt(value, 10),
         hasError: false,
         isOriginal: value !== '-',
@@ -32,13 +59,10 @@ export function getBoard(difficulty: Difficulty) {
         isSelectedBoardIndex: false,
         notes: Set<number>(),
     }));
+    const values = List(valuesList);
     return {
-        values: List(values),
-        board: List(
-            Array.from({ length: 9 }, (_, i) =>
-                List(values.slice(i * 9, i * 9 + 9))
-            )
-        ),
+        values,
+        board: genBoardFromValues(values),
     };
 }
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import { SudokuCell } from './sudoku-cell';
 import type { Value } from './types';
 import type { IndexSet } from './utils';
 
@@ -15,6 +14,8 @@ export interface SudokuSquareProps {
     showNotes: boolean;
     isConflictSquare: boolean;
     isHint: boolean;
+    autoCheckEnabled: boolean;
+    isWrong: boolean;
 }
 
 const OuterContainer = styled.div`
@@ -128,6 +129,8 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
     onNoteClick,
     isConflictSquare,
     isHint,
+    isWrong,
+    autoCheckEnabled,
 }) => {
     const { columnIndex, rowIndex, boardIndex } = indexSet;
     const {
@@ -135,6 +138,10 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
         rowIndex: selectedRowIndex,
         boardIndex: selectedBoardIndex,
     } = selectedIndexSet || {};
+
+    const refinedValue = isWrong
+        ? undefined
+        : value.value || initialValue.value;
 
     return (
         <OuterContainer
@@ -152,11 +159,12 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
             }}
         >
             <SudokuCell
+                autoCheckEnabled={autoCheckEnabled}
                 answer={initialValue.answer}
                 notes={value.notes}
                 onNoteClick={(note) => onNoteClick(note)}
                 hasError={value.hasError}
-                value={value.value || initialValue.value}
+                value={refinedValue}
                 isSelectedBoardIndex={selectedBoardIndex === boardIndex}
                 isOriginal={value.isOriginal}
                 showNotes={showNotes}
@@ -166,3 +174,203 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
 };
 
 SudokuSquare.displayName = 'SudokuSquare';
+
+const CorrectBackground = css`
+    opacity: 0.8;
+    background-color: #e0f2e3;
+`;
+
+const WrongBackground = css`
+    opacity: 0.8;
+    background-color: #fb5951;
+`;
+
+const ValueValidationState = {
+    AUTOCHECK_CORRECT: 'autocheck-correct',
+    AUTOCHECK_WRONG: 'autocheck-wrong',
+    UNKWOWN: 'unknown',
+} as const;
+
+type ValueValidationState =
+    (typeof ValueValidationState)[keyof typeof ValueValidationState];
+
+function computeValueValidationState(
+    autoCheckEnabled: boolean,
+    isOriginal: boolean,
+    value: number,
+    answer: number
+) {
+    if (autoCheckEnabled && !isOriginal && value !== undefined) {
+        return value === answer
+            ? ValueValidationState.AUTOCHECK_CORRECT
+            : ValueValidationState.AUTOCHECK_WRONG;
+    }
+
+    return ValueValidationState.UNKWOWN;
+}
+
+function getBackgroundColorStyleForValueValidationState(
+    valueValidationState: ValueValidationState
+) {
+    switch (valueValidationState) {
+        case ValueValidationState.AUTOCHECK_CORRECT: {
+            return CorrectBackground;
+        }
+        case ValueValidationState.AUTOCHECK_WRONG: {
+            return WrongBackground;
+        }
+        default: {
+            return '';
+        }
+    }
+}
+
+function getColorStyleForValueValidationState(
+    isOriginal: boolean,
+    valueValidationState: ValueValidationState
+) {
+    if (isOriginal) {
+        return css`
+            color: 'inherit';
+        `;
+    }
+    switch (valueValidationState) {
+        case ValueValidationState.AUTOCHECK_CORRECT: {
+            return css`
+                color: 'inherit';
+            `;
+        }
+        case ValueValidationState.AUTOCHECK_WRONG: {
+            return css`
+                color: 'inherit';
+            `;
+        }
+        default: {
+            return css`
+                color: #488470;
+            `;
+        }
+    }
+}
+
+const SudokuCellWrapper = styled.div<{
+    valueValidationState: ValueValidationState;
+}>`
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    box-sizing: border-box;
+    ${({ valueValidationState }) =>
+        getBackgroundColorStyleForValueValidationState(valueValidationState)};
+`;
+
+const MainNumber = styled.div<{
+    isOriginal: boolean;
+    valueValidationState: ValueValidationState;
+}>`
+    z-index: 1;
+    ${({ isOriginal, valueValidationState }) =>
+        getColorStyleForValueValidationState(isOriginal, valueValidationState)};
+`;
+
+const NotesGrid = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    font-size: 14px;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    color: #888;
+
+    @media (max-width: 599px) {
+        font-size: 9px;
+    }
+`;
+
+const Note = styled.div<{ isSelected: boolean }>`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: ${({ isSelected }) => (isSelected ? 'black' : '#488470')};
+    background-color: #488470;
+    transition: color 0.25s ease;
+
+    &:hover {
+        color: ${({ isSelected }) => (isSelected ? 'black' : 'white')};
+        animation: ${({ isSelected }) =>
+            isSelected ? 'none' : 'fadeIn 0.5s linear'};
+    }
+
+    @keyframes fadeIn {
+        0% {
+            opacity: 0;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+`;
+
+interface SudokuCellProps extends Value {
+    showNotes: boolean;
+    onNoteClick: (note: number) => void;
+    autoCheckEnabled: boolean;
+}
+
+const SudokuCell: React.FC<SudokuCellProps> = ({
+    value,
+    answer,
+    isOriginal,
+    notes,
+    showNotes,
+    onNoteClick,
+    autoCheckEnabled,
+}) => {
+    const valueValidationState = value
+        ? computeValueValidationState(
+              autoCheckEnabled,
+              isOriginal,
+              value,
+              answer
+          )
+        : ValueValidationState.UNKWOWN;
+
+    return (
+        <SudokuCellWrapper valueValidationState={valueValidationState}>
+            {showNotes ? (
+                <NotesGrid>
+                    {Array.from({ length: 9 }, (_x, i) => i + 1).map((note) => {
+                        const isSelected = notes.includes(note);
+                        return (
+                            <Note
+                                className="flex items-center justify-center"
+                                isSelected={isSelected}
+                                key={`note_${note}`}
+                                onClick={() => onNoteClick(note)}
+                            >
+                                {note}
+                            </Note>
+                        );
+                    })}
+                </NotesGrid>
+            ) : (
+                <MainNumber
+                    isOriginal={isOriginal}
+                    valueValidationState={valueValidationState}
+                >
+                    {value}
+                </MainNumber>
+            )}
+        </SudokuCellWrapper>
+    );
+};
+
+SudokuCell.displayName = 'SudokuCell';

@@ -1,11 +1,6 @@
 import type { Metadata } from 'next';
-import { Open_Sans } from 'next/font/google';
 import '../globals.css';
-
-const primaryFont = Open_Sans({
-    weight: '600',
-    subsets: ['latin'],
-});
+import { primaryFont } from '@/styles/fonts';
 
 export const metadata: Metadata = {
     title: "Pepi Pepi's playground ❤️",

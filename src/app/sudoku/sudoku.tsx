@@ -5,10 +5,13 @@ import { reenie_beanie } from '@/styles/fonts';
 import Header from '../header';
 import { ButtonBar, type ButtonValue } from './button-bar';
 import { useReward } from 'react-rewards';
-import { getBoard } from './utils';
+import { genBoardFromValues, generateHints, getBoard } from './utils';
 import { Board } from './sudoku-board';
 import { StopWatch } from './stopwatch';
 import { reducer, INITIAL_STATE } from './reducer';
+import { Switch } from '@/components/ui/switch';
+import { SudokuStats } from './sudoku-stats';
+import { Label } from '@/components/ui/label';
 
 const SCORE_REFRESH_INTERVAL_MS = 10_000;
 
@@ -120,7 +123,24 @@ export const Sudoku: React.FC<SudokuProps> = () => {
 
     React.useEffect(() => {
         const { values, board } = getBoard(state.difficulty);
-        dispatch({ type: 'INIT_SODUKU', values, board });
+        const hints = generateHints(40, values);
+        if (hints) {
+            let newValues = values;
+            for (const hintIndex of hints) {
+                newValues = newValues.setIn(
+                    [hintIndex, 'value'],
+                    values.get(hintIndex)?.answer
+                );
+            }
+            const newBoard = genBoardFromValues(newValues);
+            dispatch({
+                type: 'INIT_SODUKU',
+                values: newValues,
+                board: newBoard,
+            });
+        } else {
+            dispatch({ type: 'INIT_SODUKU', values, board });
+        }
     }, [state.difficulty]);
 
     React.useEffect(() => {
@@ -131,21 +151,19 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     }, [onKeyDown]);
 
     React.useEffect(() => {
-        if (state.intervalStartTime) {
-            if (state.intervalId) {
-                clearInterval(state.intervalId);
-            }
-            if (state.stopWatchAction === 'start') {
-                const newIntervalId = setInterval(() => {
-                    dispatch({ type: 'CALCULATE_SCORE' });
-                }, SCORE_REFRESH_INTERVAL_MS);
-                dispatch({
-                    type: 'SET_INTERVAL_ID',
-                    intervalId: newIntervalId,
-                });
-            }
+        if (state.intervalId) {
+            clearInterval(state.intervalId);
         }
-    }, [state.intervalStartTime, state.stopWatchAction, state.intervalId]);
+        if (state.stopWatchAction === 'start') {
+            const newIntervalId = setInterval(() => {
+                dispatch({ type: 'CALCULATE_SCORE' });
+            }, SCORE_REFRESH_INTERVAL_MS);
+            dispatch({
+                type: 'SET_INTERVAL_ID',
+                intervalId: newIntervalId,
+            });
+        }
+    }, [state.stopWatchAction]);
 
     const handleButtonPress = React.useCallback(
         (value: ButtonValue) => {
@@ -169,6 +187,10 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                     }
                     case 'toggle-notes': {
                         dispatch({ type: 'TOGGLE_NOTES' });
+                        break;
+                    }
+                    case 'togge-auto-check': {
+                        dispatch({ type: 'TOGGLE_AUTO_CHECK' });
                         break;
                     }
                     default: {
@@ -209,8 +231,10 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                     <div className="inline-flex flex-col items-center justify-center min-[1120px]:flex-row">
                         <div className="flex flex-col items-center justify-center">
                             <div className="inline-flex flex-row items-stretch justify-stretch" />
+                            <SudokuStats {...state} />
                             <Board
                                 notesOn={state.notesOn}
+                                autoCheckEnabled={state.autoCheckEnabled}
                                 hintIndex={state.hintIndex}
                                 conflictBoardIndices={
                                     state.conflictBoardIndices
@@ -240,22 +264,20 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                             </span>
                         </div>
                         <div className="flex flex-col items-center justify-center">
-                            <div className="flex w-full flex-row items-center justify-between px-8">
-                                <div className="flex flex-row">
-                                    <p className="text-xs uppercase">
-                                        Mistakes:&nbsp;
-                                    </p>
-                                    <p className="text-xs text-gray-700">
-                                        {state.numMistakes}
-                                    </p>
-                                </div>
-                                <div className="flex flex-row">
-                                    <p className="text-xs uppercase">
-                                        Score:&nbsp;
-                                    </p>
-                                    <p className="text-xs text-gray-700">
-                                        {state.score}
-                                    </p>
+                            <div className="space-between flex w-full flex-row items-center space-x-4 px-8">
+                                <div className="flex items-center space-x-2">
+                                    <Switch
+                                        id="switch-toggle-auto-check"
+                                        checked={state.autoCheckEnabled}
+                                        onCheckedChange={() =>
+                                            handleButtonPress(
+                                                'togge-auto-check'
+                                            )
+                                        }
+                                    />
+                                    <Label htmlFor="switch-toggle-auto-check">
+                                        AutoCheck
+                                    </Label>
                                 </div>
                                 <StopWatch
                                     stopwatchAction={state.stopWatchAction}

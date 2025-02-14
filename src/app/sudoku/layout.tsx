@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { publicSans } from '@/styles/fonts';
 import '../globals.css';
+import { primaryFont } from '@/styles/fonts';
 
 export const metadata: Metadata = {
     title: "Pepi Pepi's playground ❤️",
@@ -14,6 +14,6 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <div className={`${publicSans.className} antialiased`}>{children}</div>
+        <div className={`${primaryFont.className} antialiased`}>{children}</div>
     );
 }

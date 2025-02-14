@@ -8,7 +8,7 @@ export type Maybe<T> = T | undefined;
 export type Prettify<T> = {
     [K in keyof T]: T[K];
 } & {};
-export type StopWatchAction = 'start' | 'pause' | 'reset' | 'idle';
+export type StopWatchAction = 'start' | 'pause' | 'reset';
 
 export interface Value {
     value?: number;
@@ -36,10 +36,11 @@ export interface ReducerState extends HistoryState {
     stopWatchAction: StopWatchAction;
     hintCount: number;
     isSolved: boolean;
+    numMoves: number;
     numMistakes: number;
     board: SudokuBoard;
     totalSeconds: number;
     score: string;
     intervalId?: NodeJS.Timeout;
-    intervalStartTime?: number;
+    autoCheckEnabled: boolean;
 }

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { PauseIcon, PlayIcon, ResetIcon } from '@radix-ui/react-icons';
+import { PauseIcon, PlayIcon } from '@radix-ui/react-icons';
 import { useStopwatch } from 'react-timer-hook';
 import { spaceMono } from '@/styles/fonts';
 import type { StopWatchAction } from './types';
@@ -39,7 +39,7 @@ export const StopWatch: React.FC<{
     }, [totalSeconds]);
 
     return (
-        <div className="inline-flex h-12 w-44 flex-row items-center justify-between space-x-2 rounded-2xl border-2 border-gray-50 bg-white px-2">
+        <div className="inline-flex h-12 w-44 flex-row items-center justify-between rounded-2xl border-2 border-gray-50 bg-white px-2">
             <div className="flex flex-row items-center justify-center">
                 <Button
                     className="m-2 h-8 w-8 rounded-full opacity-90 hover:opacity-100"
@@ -51,13 +51,6 @@ export const StopWatch: React.FC<{
                     }
                 >
                     {stopwatchAction === 'start' ? <PauseIcon /> : <PlayIcon />}
-                </Button>
-                <Button
-                    className="h-8 w-8 rounded-full opacity-90 hover:opacity-100"
-                    variant="outline"
-                    onClick={() => setStopwatchAction('reset')}
-                >
-                    <ResetIcon />
                 </Button>
             </div>
             <p className={`${spaceMono.className} text-base`}>

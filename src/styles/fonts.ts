@@ -2,9 +2,8 @@ import {
     Satisfy,
     Indie_Flower,
     Reenie_Beanie,
-    Corinthia,
+    Open_Sans,
     Space_Mono,
-    Public_Sans,
 } from 'next/font/google';
 
 const satisfy = Satisfy({
@@ -17,7 +16,7 @@ const indie_flower = Indie_Flower({
     subsets: ['latin'],
 });
 
-const publicSans = Public_Sans({
+const spaceMono = Space_Mono({
     weight: '400',
     subsets: ['latin'],
 });
@@ -27,21 +26,9 @@ const reenie_beanie = Reenie_Beanie({
     subsets: ['latin'],
 });
 
-const corinthia = Corinthia({
+const primaryFont = Open_Sans({
     weight: '400',
     subsets: ['latin'],
 });
 
-const spaceMono = Space_Mono({
-    weight: '700',
-    subsets: ['latin'],
-});
-
-export {
-    satisfy,
-    indie_flower,
-    reenie_beanie,
-    corinthia,
-    spaceMono,
-    publicSans,
-};
+export { satisfy, indie_flower, spaceMono, reenie_beanie, primaryFont };

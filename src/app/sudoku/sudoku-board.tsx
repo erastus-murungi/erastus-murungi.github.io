@@ -47,6 +47,7 @@ type BoardProps = Prettify<
         | 'notesOn'
         | 'selectedIndexSet'
         | 'values'
+        | 'autoCheckEnabled'
     > &
         Pick<SudokuSquareProps, 'setSelectedIndexSet'> & {
             onNoteClick: (note: number) => void;
@@ -62,6 +63,7 @@ export const Board: React.FC<BoardProps> = ({
     values,
     setSelectedIndexSet,
     onNoteClick,
+    autoCheckEnabled,
 }) => {
     const selectedBoardIndex = selectedIndexSet?.boardIndex;
 
@@ -80,6 +82,10 @@ export const Board: React.FC<BoardProps> = ({
                     (!value.notes.isEmpty() ||
                         selectedBoardIndex === boardIndex);
 
+                const isWrong =
+                    selectedIndexSet?.boardIndex === boardIndex &&
+                    !conflictBoardIndices.isEmpty();
+
                 return (
                     <SudokuSquare
                         key={`$square-${rowIndex}-${columnIndex}`}
@@ -94,6 +100,8 @@ export const Board: React.FC<BoardProps> = ({
                         onNoteClick={(note) => onNoteClick(note)}
                         isConflictSquare={conflictBoardIndices.has(boardIndex)}
                         isHint={hintIndex === boardIndex}
+                        isWrong={isWrong}
+                        autoCheckEnabled={autoCheckEnabled}
                     />
                 );
             },
@@ -106,6 +114,7 @@ export const Board: React.FC<BoardProps> = ({
             values,
             setSelectedIndexSet,
             onNoteClick,
+            autoCheckEnabled,
         ]
     );
     return (

@@ -16,6 +16,16 @@ import type {
     Value,
 } from './types';
 
+const HINT_MESSAGES = [
+    'No more hints available for Bebi Bebi 🐧. Nisuke nikuongezee 😉',
+    'Mapangale 🤣',
+];
+
+const getHintMessage = () => {
+    const randomIndex = Math.floor(Math.random() * HINT_MESSAGES.length);
+    return HINT_MESSAGES[randomIndex];
+};
+
 const validateBoardAfterEntry = ({
     values,
     selectedIndexSet,
@@ -123,6 +133,9 @@ type Action =
     | {
           type: 'SET_INTERVAL_ID';
           intervalId: NodeJS.Timeout;
+      }
+    | {
+          type: 'TOGGLE_AUTO_CHECK';
       };
 
 export function reducer(state: ReducerState, action: Action): ReducerState {
@@ -196,6 +209,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 return {
                     ...state,
                     hintIndex: undefined,
+                    numMoves: state.numMoves + 1,
                     history: state.history.push({
                         values,
                         selectedIndexSet: state.selectedIndexSet,
@@ -331,11 +345,11 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             };
         }
         case 'HINT': {
+            const description = getHintMessage();
             if (state.hintCount <= 0) {
                 toast.error('Bebi Bebi 🐧', {
                     className: 'bold',
-                    description:
-                        'No more hints available for Bebi Bebi 🐧. Nisuke nikuongezee 😉',
+                    description,
                     duration: 5000,
                 });
                 return state;
@@ -394,6 +408,9 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 score: '0',
             };
         }
+        case 'TOGGLE_AUTO_CHECK': {
+            return { ...state, autoCheckEnabled: !state.autoCheckEnabled };
+        }
         default: {
             throw new Error(`$unknown action type: ${JSON.stringify(action)}`);
         }
@@ -411,9 +428,10 @@ export const INITIAL_STATE: ReducerState = {
     history: List<HistoryState>(),
     hintCount: HINT_COUNT['easy'],
     isSolved: false,
-    stopWatchAction: 'idle',
+    stopWatchAction: 'start',
+    numMoves: 0,
     numMistakes: 0,
     totalSeconds: 0,
     score: '0',
-    intervalStartTime: Date.now(),
+    autoCheckEnabled: false,
 };

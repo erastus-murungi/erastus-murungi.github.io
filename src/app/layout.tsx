@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { publicSans } from '@/styles/fonts';
 import './globals.css';
+import { primaryFont } from '@/styles/fonts';
 
 export const metadata: Metadata = {
     title: "Pepi Pepi's playground ❤️",
@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${publicSans.className} antialiased`}>
+            <body className={`${primaryFont.className} antialiased`}>
                 <main>{children}</main>
             </body>
         </html>
