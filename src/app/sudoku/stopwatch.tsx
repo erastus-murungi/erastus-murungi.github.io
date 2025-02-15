@@ -16,6 +16,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
+    AlertDialogOverlay,
 } from '@/components/ui/alert-dialog';
 
 export const StopWatch: React.FC<{
@@ -71,6 +72,7 @@ export const StopWatch: React.FC<{
                         </Button>
                     </AlertDialogTrigger>
                     <AlertDialogPortal>
+                        <AlertDialogOverlay className="bg-white/30 backdrop-blur-sm" />
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>

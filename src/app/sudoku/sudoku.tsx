@@ -5,14 +5,14 @@ import { reenie_beanie } from '@/styles/fonts';
 import Header from '../header';
 import { ButtonBar, type ButtonValue } from './button-bar';
 import { useReward } from 'react-rewards';
-// import { Board, generateHints } from './utils';
+import { Board, generateHints } from './utils';
 import { SudokuBoard } from './sudoku-board';
 import { StopWatch } from './stopwatch';
 import { reducer, INITIAL_STATE } from './reducer';
 import { Switch } from '@/components/ui/switch';
 import { SudokuStats } from './sudoku-stats';
 import { Label } from '@/components/ui/label';
-// import { SudokuOverlay } from './sudoku-overlay';
+import { SudokuOverlay } from './sudoku-overlay';
 
 const SCORE_REFRESH_INTERVAL_MS = 10_000;
 
@@ -123,42 +123,42 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     );
 
     React.useEffect(() => {
-        // const board = Board.createWithDifficulty(state.difficulty);
-        // const hints = generateHints(40, board);
-        // if (hints) {
-        //     let newValues = board.values;
-        //     for (const hintIndex of hints) {
-        //         newValues = newValues.setIn(
-        //             [hintIndex, 'value'],
-        //             newValues.get(hintIndex)?.answer
-        //         );
-        //     }
-        //     dispatch({
-        //         type: 'INIT_SODUKU',
-        //         options: {
-        //             values: newValues,
-        //             board: undefined,
-        //             difficulty: undefined,
-        //         },
-        //     });
-        // } else {
-        //     dispatch({
-        //         type: 'INIT_SODUKU',
-        //         options: { board, values: undefined, difficulty: undefined },
-        //     });
-        // }
+        const board = Board.createWithDifficulty(state.difficulty);
+        const hints = generateHints(40, board);
+        if (hints) {
+            let newValues = board.values;
+            for (const hintIndex of hints) {
+                newValues = newValues.setIn(
+                    [hintIndex, 'value'],
+                    newValues.get(hintIndex)?.answer
+                );
+            }
+            dispatch({
+                type: 'INIT_SODUKU',
+                options: {
+                    values: newValues,
+                    board: undefined,
+                    difficulty: undefined,
+                },
+            });
+        } else {
+            dispatch({
+                type: 'INIT_SODUKU',
+                options: { board, values: undefined, difficulty: undefined },
+            });
+        }
         // dispatch({
         //     type: 'INIT_SODUKU',
         //     options: { board, values: undefined, difficulty: undefined },
         // });
-        dispatch({
-            type: 'INIT_SODUKU',
-            options: {
-                board: undefined,
-                values: undefined,
-                difficulty: state.difficulty,
-            },
-        });
+        // dispatch({
+        //     type: 'INIT_SODUKU',
+        //     options: {
+        //         board: undefined,
+        //         values: undefined,
+        //         difficulty: state.difficulty,
+        //     },
+        // });
     }, [state.difficulty]);
 
     React.useEffect(() => {
@@ -236,8 +236,11 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     });
 
     React.useEffect(() => {
-        if (state.isSolved) {
+        if (state.isSolved === true) {
             confettiReward();
+            setTimeout(() => {
+                dispatch({ type: 'TOGGLE_SHOW_OVERLAY' });
+            }, 5000);
         }
     }, [state.isSolved]);
 
@@ -249,18 +252,21 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                     <div className="inline-flex flex-col items-center justify-center min-[1120px]:flex-row">
                         <div className="flex flex-col items-center justify-center">
                             <div className="inline-flex flex-col items-stretch justify-stretch">
-                                {/* <SudokuOverlay
-                                    startNewGame={(difficulty) =>
-                                        dispatch({
-                                            type: 'INIT_SODUKU',
-                                            options: {
-                                                board: undefined,
-                                                values: undefined,
-                                                difficulty,
-                                            },
-                                        })
-                                    }
-                                /> */}
+                                {state.showOverlay && (
+                                    <SudokuOverlay
+                                        state={state}
+                                        onClick={(difficulty) =>
+                                            dispatch({
+                                                type: 'INIT_SODUKU',
+                                                options: {
+                                                    board: undefined,
+                                                    values: undefined,
+                                                    difficulty,
+                                                },
+                                            })
+                                        }
+                                    />
+                                )}
                                 <SudokuStats {...state} />
                                 <SudokuBoard
                                     notesOn={state.notesOn}

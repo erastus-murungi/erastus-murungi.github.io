@@ -33,6 +33,7 @@ import {
 import styled from '@emotion/styled';
 import type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 type ActionButton =
     | 'submit'
@@ -57,8 +58,10 @@ const StyledButtonBar = styled.div`
 `;
 
 export const StartButton: React.FC<{
-    onClick: (value: ButtonValue) => void;
-}> = ({ onClick }) => {
+    className?: string;
+    showWarning?: boolean;
+    onClick: (value: { type: 'change-difficulty'; to: Difficulty }) => void;
+}> = ({ className, onClick, showWarning = true }) => {
     const difficulties = React.useRef<readonly [string, Difficulty][]>([
         ['🥱', 'easy'],
         ['🤔', 'medium'],
@@ -71,19 +74,24 @@ export const StartButton: React.FC<{
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="secondary"
-                    className="mt-2 flex h-14 w-full items-center justify-center rounded-md hover:border-2 hover:border-black"
+                    className={cn(
+                        'mt-2 flex h-14 w-full items-center justify-center rounded-md hover:border-2 hover:border-black',
+                        className
+                    )}
                 >
                     New Game
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>
-                    <div className="text-center">
-                        <p className="text-xs">
-                            Current game progress will be lost
-                        </p>
-                    </div>
-                </DropdownMenuLabel>
+                {showWarning && (
+                    <DropdownMenuLabel>
+                        <div className="text-center">
+                            <p className="text-xs">
+                                Current game progress will be lost
+                            </p>
+                        </div>
+                    </DropdownMenuLabel>
+                )}
                 {difficulties.current.map(([secretText, difficulty], index) => (
                     <div
                         className="flex items-center space-x-1"
@@ -134,6 +142,29 @@ const NumberPad: React.FC<{
             </StyledButtonBar>
             <StartButton onClick={onClick} />
         </div>
+    );
+};
+
+export const PauseGameSudokuOverlay: React.FC<{ resumeGame: () => void }> = ({
+    resumeGame,
+}) => {
+    return (
+        <AlertDialog>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Submit Game</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This will delete all your progress.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => resumeGame()}>
+                        Resume Game
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     );
 };
 

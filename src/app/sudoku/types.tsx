@@ -41,4 +41,5 @@ export interface ReducerState extends HistoryState {
     score: string;
     intervalId?: NodeJS.Timeout;
     autoCheckEnabled: boolean;
+    showOverlay: boolean;
 }

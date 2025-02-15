@@ -150,6 +150,9 @@ type Action =
       }
     | {
           type: 'TOGGLE_AUTO_CHECK';
+      }
+    | {
+          type: 'TOGGLE_SHOW_OVERLAY';
       };
 
 export function reducer(state: ReducerState, action: Action): ReducerState {
@@ -354,6 +357,8 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                   : options.board;
             return {
                 ...state,
+                showOverlay: false,
+                autoCheckEnabled: false,
                 board,
                 isSolved: false,
                 numMistakes: 0,
@@ -432,6 +437,9 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         case 'TOGGLE_AUTO_CHECK': {
             return { ...state, autoCheckEnabled: !state.autoCheckEnabled };
         }
+        case 'TOGGLE_SHOW_OVERLAY': {
+            return { ...state, showOverlay: !state.showOverlay };
+        }
         default: {
             throw new Error(`$unknown action type: ${JSON.stringify(action)}`);
         }
@@ -454,4 +462,5 @@ export const INITIAL_STATE: ReducerState = {
     totalSeconds: 0,
     score: '0',
     autoCheckEnabled: false,
+    showOverlay: false,
 };
