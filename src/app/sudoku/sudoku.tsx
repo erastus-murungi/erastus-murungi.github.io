@@ -5,7 +5,7 @@ import { reenie_beanie } from '@/styles/fonts';
 import Header from '../header';
 import { ButtonBar, type ButtonValue } from './button-bar';
 import { useReward } from 'react-rewards';
-import { Board, generateHints } from './utils';
+// import { Board, generateHints } from './utils';
 import { SudokuBoard } from './sudoku-board';
 import { StopWatch } from './stopwatch';
 import { reducer, INITIAL_STATE } from './reducer';
@@ -123,42 +123,38 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     );
 
     React.useEffect(() => {
-        const board = Board.createWithDifficulty(state.difficulty);
-        const hints = generateHints(40, board);
-        if (hints) {
-            let newValues = board.values;
-            for (const hintIndex of hints) {
-                newValues = newValues.setIn(
-                    [hintIndex, 'value'],
-                    newValues.get(hintIndex)?.answer
-                );
-            }
-            dispatch({
-                type: 'INIT_SODUKU',
-                options: {
-                    values: newValues,
-                    board: undefined,
-                    difficulty: undefined,
-                },
-            });
-        } else {
-            dispatch({
-                type: 'INIT_SODUKU',
-                options: { board, values: undefined, difficulty: undefined },
-            });
-        }
-        // dispatch({
-        //     type: 'INIT_SODUKU',
-        //     options: { board, values: undefined, difficulty: undefined },
-        // });
-        // dispatch({
-        //     type: 'INIT_SODUKU',
-        //     options: {
-        //         board: undefined,
-        //         values: undefined,
-        //         difficulty: state.difficulty,
-        //     },
-        // });
+        // const board = Board.createWithDifficulty(state.difficulty);
+        // const hints = generateHints(40, board);
+        // if (hints) {
+        //     let newValues = board.values;
+        //     for (const hintIndex of hints) {
+        //         newValues = newValues.setIn(
+        //             [hintIndex, 'value'],
+        //             newValues.get(hintIndex)?.answer
+        //         );
+        //     }
+        //     dispatch({
+        //         type: 'INIT_SODUKU',
+        //         options: {
+        //             values: newValues,
+        //             board: undefined,
+        //             difficulty: undefined,
+        //         },
+        //     });
+        // } else {
+        //     dispatch({
+        //         type: 'INIT_SODUKU',
+        //         options: { board, values: undefined, difficulty: undefined },
+        //     });
+        // }
+        dispatch({
+            type: 'INIT_SODUKU',
+            options: {
+                board: undefined,
+                values: undefined,
+                difficulty: state.difficulty,
+            },
+        });
     }, [state.difficulty]);
 
     React.useEffect(() => {
