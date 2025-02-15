@@ -5,13 +5,14 @@ import { reenie_beanie } from '@/styles/fonts';
 import Header from '../header';
 import { ButtonBar, type ButtonValue } from './button-bar';
 import { useReward } from 'react-rewards';
-import { Board, generateHints } from './utils';
+// import { Board, generateHints } from './utils';
 import { SudokuBoard } from './sudoku-board';
 import { StopWatch } from './stopwatch';
 import { reducer, INITIAL_STATE } from './reducer';
 import { Switch } from '@/components/ui/switch';
 import { SudokuStats } from './sudoku-stats';
 import { Label } from '@/components/ui/label';
+// import { SudokuOverlay } from './sudoku-overlay';
 
 const SCORE_REFRESH_INTERVAL_MS = 10_000;
 
@@ -122,30 +123,42 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     );
 
     React.useEffect(() => {
-        const board = Board.createWithDifficulty(state.difficulty);
-        const hints = generateHints(40, board);
-        if (hints) {
-            let newValues = board.values;
-            for (const hintIndex of hints) {
-                newValues = newValues.setIn(
-                    [hintIndex, 'value'],
-                    newValues.get(hintIndex)?.answer
-                );
-            }
-            dispatch({
-                type: 'INIT_SODUKU',
-                options: {
-                    values: newValues,
-                    board: undefined,
-                    difficulty: undefined,
-                },
-            });
-        } else {
-            dispatch({
-                type: 'INIT_SODUKU',
-                options: { board, values: undefined, difficulty: undefined },
-            });
-        }
+        // const board = Board.createWithDifficulty(state.difficulty);
+        // const hints = generateHints(40, board);
+        // if (hints) {
+        //     let newValues = board.values;
+        //     for (const hintIndex of hints) {
+        //         newValues = newValues.setIn(
+        //             [hintIndex, 'value'],
+        //             newValues.get(hintIndex)?.answer
+        //         );
+        //     }
+        //     dispatch({
+        //         type: 'INIT_SODUKU',
+        //         options: {
+        //             values: newValues,
+        //             board: undefined,
+        //             difficulty: undefined,
+        //         },
+        //     });
+        // } else {
+        //     dispatch({
+        //         type: 'INIT_SODUKU',
+        //         options: { board, values: undefined, difficulty: undefined },
+        //     });
+        // }
+        // dispatch({
+        //     type: 'INIT_SODUKU',
+        //     options: { board, values: undefined, difficulty: undefined },
+        // });
+        dispatch({
+            type: 'INIT_SODUKU',
+            options: {
+                board: undefined,
+                values: undefined,
+                difficulty: state.difficulty,
+            },
+        });
     }, [state.difficulty]);
 
     React.useEffect(() => {
@@ -235,30 +248,43 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                 <div className="inline-flex flex-row items-center justify-center">
                     <div className="inline-flex flex-col items-center justify-center min-[1120px]:flex-row">
                         <div className="flex flex-col items-center justify-center">
-                            <div className="inline-flex flex-row items-stretch justify-stretch" />
-                            <SudokuStats {...state} />
-                            <SudokuBoard
-                                notesOn={state.notesOn}
-                                autoCheckEnabled={state.autoCheckEnabled}
-                                hintIndex={state.hintIndex}
-                                conflictBoardIndices={
-                                    state.conflictBoardIndices
-                                }
-                                board={state.board}
-                                selectedIndexSet={state.selectedIndexSet}
-                                setSelectedIndexSet={(indexSet) =>
-                                    dispatch({
-                                        type: 'SET_INDICES',
-                                        selectedIndexSet: indexSet,
-                                    })
-                                }
-                                onNoteClick={(note) =>
-                                    dispatch({
-                                        type: 'SET_NOTE',
-                                        note,
-                                    })
-                                }
-                            />
+                            <div className="inline-flex flex-col items-stretch justify-stretch">
+                                {/* <SudokuOverlay
+                                    startNewGame={(difficulty) =>
+                                        dispatch({
+                                            type: 'INIT_SODUKU',
+                                            options: {
+                                                board: undefined,
+                                                values: undefined,
+                                                difficulty,
+                                            },
+                                        })
+                                    }
+                                /> */}
+                                <SudokuStats {...state} />
+                                <SudokuBoard
+                                    notesOn={state.notesOn}
+                                    autoCheckEnabled={state.autoCheckEnabled}
+                                    hintIndex={state.hintIndex}
+                                    conflictBoardIndices={
+                                        state.conflictBoardIndices
+                                    }
+                                    board={state.board}
+                                    selectedIndexSet={state.selectedIndexSet}
+                                    setSelectedIndexSet={(indexSet) =>
+                                        dispatch({
+                                            type: 'SET_INDICES',
+                                            selectedIndexSet: indexSet,
+                                        })
+                                    }
+                                    onNoteClick={(note) =>
+                                        dispatch({
+                                            type: 'SET_NOTE',
+                                            note,
+                                        })
+                                    }
+                                />
+                            </div>
                             <span id="confettiReward" z-index={100} />
                             <span id="balloonsReward" z-index={101} />
                             <span

@@ -6,6 +6,17 @@ import { PauseIcon, PlayIcon } from '@radix-ui/react-icons';
 import { useStopwatch } from 'react-timer-hook';
 import { spaceMono } from '@/styles/fonts';
 import type { StopWatchAction } from './types';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogPortal,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export const StopWatch: React.FC<{
     stopwatchAction: StopWatchAction;
@@ -41,17 +52,44 @@ export const StopWatch: React.FC<{
     return (
         <div className="inline-flex h-12 w-44 flex-row items-center justify-between rounded-2xl border-2 border-gray-50 bg-white px-2">
             <div className="flex flex-row items-center justify-center">
-                <Button
-                    className="m-2 h-8 w-8 rounded-full opacity-90 hover:opacity-100"
-                    variant="outline"
-                    onClick={() =>
-                        stopwatchAction === 'start'
-                            ? setStopwatchAction('pause')
-                            : setStopwatchAction('start')
-                    }
-                >
-                    {stopwatchAction === 'start' ? <PauseIcon /> : <PlayIcon />}
-                </Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button
+                            className="m-2 h-8 w-8 rounded-full opacity-90 hover:opacity-100"
+                            variant="outline"
+                            onClick={() =>
+                                stopwatchAction === 'start'
+                                    ? setStopwatchAction('pause')
+                                    : setStopwatchAction('start')
+                            }
+                        >
+                            {stopwatchAction === 'start' ? (
+                                <PauseIcon />
+                            ) : (
+                                <PlayIcon />
+                            )}
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogPortal>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    Najua umeenda choo 💩 weakness!!
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Do you want to resume the game?
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogAction
+                                    onClick={() => setStopwatchAction('start')}
+                                >
+                                    Resume Game
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialogPortal>
+                </AlertDialog>
             </div>
             <p className={`${spaceMono.className} text-base`}>
                 {hours > 0 ? `${hours} : ` : ''}
