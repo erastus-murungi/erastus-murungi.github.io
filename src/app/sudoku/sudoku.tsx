@@ -3,7 +3,7 @@
 import React from 'react';
 import { reenie_beanie } from '@/styles/fonts';
 import Header from '../header';
-import { ButtonBar, type ButtonValue } from './button-bar';
+import { ButtonBar } from './button-bar';
 import { useReward } from 'react-rewards';
 // import { Board, generateHints } from './utils';
 import { SudokuBoard } from './sudoku-board';
@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { SudokuStats } from './sudoku-stats';
 import { Label } from '@/components/ui/label';
 import { SudokuOverlay } from './sudoku-overlay';
+import type { ButtonValue } from './types';
 
 const SCORE_REFRESH_INTERVAL_MS = 10_000;
 
@@ -168,7 +169,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
         if (state.intervalId) {
             clearInterval(state.intervalId);
         }
-        if (state.stopWatchAction === 'start') {
+        if (state.stopWatchAction === 'start' && !state.showOverlay) {
             const newIntervalId = setInterval(() => {
                 dispatch({ type: 'CALCULATE_SCORE' });
             }, SCORE_REFRESH_INTERVAL_MS);
@@ -313,6 +314,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                                 </div>
                                 <StopWatch
                                     stopwatchAction={state.stopWatchAction}
+                                    shouldReset={state.totalSeconds === 0}
                                     setStopwatchAction={(stopWatchAction) =>
                                         dispatch({
                                             type: 'SET_WATCH_ACTION',

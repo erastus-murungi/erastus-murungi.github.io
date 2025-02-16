@@ -8,16 +8,33 @@ export type Maybe<T> = T | undefined;
 export type Prettify<T> = {
     [K in keyof T]: T[K];
 } & {};
-export type StopWatchAction = 'start' | 'pause' | 'reset';
+export type StopWatchAction = 'start' | 'pause';
 
-export interface Value {
-    value?: number;
-    hasError: boolean;
-    isOriginal: boolean;
-    isSelectedBoardIndex: boolean;
-    answer: number;
-    notes: Set<number>;
-}
+export type ActionButton =
+    | 'submit'
+    | 'undo'
+    | 'hint'
+    | 'toggle-notes'
+    | 'reset'
+    | 'togge-auto-check'
+    | { type: 'change-difficulty'; to: Difficulty };
+
+export type ButtonValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | ActionButton;
+
+export type Value =
+    | {
+          isOriginal: true;
+          value: number;
+      }
+    | {
+          isOriginal: false;
+          value: {
+              current: number | undefined;
+              answer: number;
+          };
+          isSelectedBoardIndex: boolean;
+          notes: Set<number>;
+      };
 
 export type SudokuBoardRow = List<Value>;
 

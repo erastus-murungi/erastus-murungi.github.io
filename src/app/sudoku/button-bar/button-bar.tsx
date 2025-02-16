@@ -1,11 +1,4 @@
 import React from 'react';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import {
     CheckIcon,
@@ -31,20 +24,8 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import styled from '@emotion/styled';
-import type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-
-type ActionButton =
-    | 'submit'
-    | 'undo'
-    | 'hint'
-    | 'toggle-notes'
-    | 'reset'
-    | 'togge-auto-check'
-    | { type: 'change-difficulty'; to: Difficulty };
-
-export type ButtonValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | ActionButton;
+import { NewGameButton } from '../new-game-button';
+import type { ButtonValue } from '../types';
 
 const StyledButtonBar = styled.div`
     display: grid;
@@ -56,72 +37,6 @@ const StyledButtonBar = styled.div`
         gap: 5px;
     }
 `;
-
-export const StartButton: React.FC<{
-    className?: string;
-    showWarning?: boolean;
-    onClick: (value: { type: 'change-difficulty'; to: Difficulty }) => void;
-}> = ({ className, onClick, showWarning = true }) => {
-    const difficulties = React.useRef<readonly [string, Difficulty][]>([
-        ['🥱', 'easy'],
-        ['🤔', 'medium'],
-        ['😅', 'hard'],
-        ['🤯', 'expert'],
-    ]);
-
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button
-                    variant="secondary"
-                    className={cn(
-                        'mt-2 flex h-14 w-full items-center justify-center rounded-md hover:border-2 hover:border-black',
-                        className
-                    )}
-                >
-                    New Game
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-                {showWarning && (
-                    <DropdownMenuLabel>
-                        <div className="text-center">
-                            <p className="text-xs">
-                                Current game progress will be lost
-                            </p>
-                        </div>
-                    </DropdownMenuLabel>
-                )}
-                {difficulties.current.map(([secretText, difficulty], index) => (
-                    <div
-                        className="flex items-center space-x-1"
-                        key={`dropdown-menu-item-${difficulty}-${index}`}
-                        id={`dropdown-menu-item-${difficulty}-${index}`}
-                    >
-                        <DropdownMenuItem
-                            className="w-full"
-                            onSelect={() =>
-                                onClick({
-                                    type: 'change-difficulty',
-                                    to: difficulty,
-                                })
-                            }
-                        >
-                            <Label
-                                htmlFor={`dropdown-menu-item-${difficulty}-${index}`}
-                                className="text-sm"
-                            >
-                                {secretText} {difficulty.toLocaleUpperCase()}
-                            </Label>
-                        </DropdownMenuItem>
-                    </div>
-                ))}
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
-};
-
-StartButton.displayName = 'StartButton';
 
 const NumberPad: React.FC<{
     onClick: (value: ButtonValue) => void;
@@ -140,7 +55,7 @@ const NumberPad: React.FC<{
                     </Button>
                 ))}
             </StyledButtonBar>
-            <StartButton onClick={onClick} />
+            <NewGameButton onClick={onClick} />
         </div>
     );
 };
@@ -301,21 +216,25 @@ const ActionButtons: React.FC<{
 
 ActionButtons.displayName = 'ActionButtons';
 
-export const ButtonBar: React.FC<{
+export interface ButtonBarProps {
     onClick: (value: ButtonValue) => void;
     hintsRemaining: number;
     notesOn: boolean;
-}> = React.memo(({ onClick, hintsRemaining, notesOn }) => {
-    return (
-        <div className="flex flex-col items-center justify-center">
-            <ActionButtons
-                onClick={onClick}
-                hintsRemaining={hintsRemaining}
-                notesOn={notesOn}
-            />
-            <NumberPad onClick={onClick} />
-        </div>
-    );
-});
+}
+
+export const ButtonBar: React.FC<ButtonBarProps> = React.memo(
+    ({ onClick, hintsRemaining, notesOn }) => {
+        return (
+            <div className="flex flex-col items-center justify-center">
+                <ActionButtons
+                    onClick={onClick}
+                    hintsRemaining={hintsRemaining}
+                    notesOn={notesOn}
+                />
+                <NumberPad onClick={onClick} />
+            </div>
+        );
+    }
+);
 
 ButtonBar.displayName = 'ButtonBar';

@@ -1,8 +1,8 @@
 import type React from 'react';
-import { StartButton } from './button-bar';
 import { reenie_beanie } from '@/styles/fonts';
 import type { Difficulty, ReducerState } from './types';
 import { SudokuStats } from './sudoku-stats';
+import { NewGameButton } from './new-game-button/new-game-button';
 
 interface SudokuOverlayProps {
     onClick: (difficulty: Difficulty) => void;
@@ -21,7 +21,7 @@ export const SudokuOverlay: React.FC<SudokuOverlayProps> = ({
             </span>
             <SudokuStats {...state} />
             <div className="space-between flex w-full flex-row items-center justify-center space-y-4">
-                <StartButton
+                <NewGameButton
                     className="w-40"
                     onClick={({ to }) => onClick(to)}
                     showWarning={false}

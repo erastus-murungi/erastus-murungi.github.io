@@ -8,7 +8,6 @@ export interface SudokuSquareProps {
     selectedIndexSet?: IndexSet;
     indexSet: IndexSet;
     value: Value;
-    initialValue: Value;
     setSelectedIndexSet: (indexSet: IndexSet) => void;
     onNoteClick: (note: number) => void;
     showNotes: boolean;
@@ -123,7 +122,6 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
     selectedIndexSet,
     indexSet,
     value,
-    initialValue,
     setSelectedIndexSet,
     showNotes,
     onNoteClick,
@@ -138,10 +136,6 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
         rowIndex: selectedRowIndex,
         boardIndex: selectedBoardIndex,
     } = selectedIndexSet || {};
-
-    const refinedValue = isWrong
-        ? undefined
-        : value.value || initialValue.value;
 
     return (
         <OuterContainer
@@ -159,15 +153,11 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
             }}
         >
             <SudokuCell
+                value={value}
                 autoCheckEnabled={autoCheckEnabled}
-                answer={initialValue.answer}
-                notes={value.notes}
                 onNoteClick={(note) => onNoteClick(note)}
-                hasError={value.hasError}
-                value={refinedValue}
-                isSelectedBoardIndex={selectedBoardIndex === boardIndex}
-                isOriginal={value.isOriginal}
                 showNotes={showNotes}
+                isWrong={isWrong}
             />
         </OuterContainer>
     );
@@ -194,14 +184,13 @@ const ValueValidationState = {
 type ValueValidationState =
     (typeof ValueValidationState)[keyof typeof ValueValidationState];
 
-function computeValueValidationState(
-    autoCheckEnabled: boolean,
-    isOriginal: boolean,
-    value: number,
-    answer: number
-) {
-    if (autoCheckEnabled && !isOriginal && value !== undefined) {
-        return value === answer
+function computeValueValidationState(autoCheckEnabled: boolean, value: Value) {
+    if (
+        autoCheckEnabled &&
+        !value.isOriginal &&
+        value.value.current !== undefined
+    ) {
+        return value.value.current === value.value.answer
             ? ValueValidationState.AUTOCHECK_CORRECT
             : ValueValidationState.AUTOCHECK_WRONG;
     }
@@ -226,14 +215,8 @@ function getBackgroundColorStyleForValueValidationState(
 }
 
 function getColorStyleForValueValidationState(
-    isOriginal: boolean,
     valueValidationState: ValueValidationState
 ) {
-    if (isOriginal) {
-        return css`
-            color: 'inherit';
-        `;
-    }
     switch (valueValidationState) {
         case ValueValidationState.AUTOCHECK_CORRECT: {
             return css`
@@ -268,13 +251,17 @@ const SudokuCellWrapper = styled.div<{
         getBackgroundColorStyleForValueValidationState(valueValidationState)};
 `;
 
-const MainNumber = styled.div<{
-    isOriginal: boolean;
+const CurrentEntry = styled.div<{
     valueValidationState: ValueValidationState;
 }>`
     z-index: 1;
-    ${({ isOriginal, valueValidationState }) =>
-        getColorStyleForValueValidationState(isOriginal, valueValidationState)};
+    ${({ valueValidationState }) =>
+        getColorStyleForValueValidationState(valueValidationState)};
+`;
+
+const OriginalNumber = styled.div`
+    z-index: 1;
+    color: 'inherit';
 `;
 
 const NotesGrid = styled.div`
@@ -319,28 +306,23 @@ const Note = styled.div<{ isSelected: boolean }>`
     }
 `;
 
-interface SudokuCellProps extends Value {
+type SudokuCellProps = {
+    value: Value;
     showNotes: boolean;
     onNoteClick: (note: number) => void;
     autoCheckEnabled: boolean;
-}
+    isWrong?: boolean;
+};
 
 const SudokuCell: React.FC<SudokuCellProps> = ({
     value,
-    answer,
-    isOriginal,
-    notes,
     showNotes,
     onNoteClick,
     autoCheckEnabled,
+    isWrong = false,
 }) => {
     const valueValidationState = value
-        ? computeValueValidationState(
-              autoCheckEnabled,
-              isOriginal,
-              value,
-              answer
-          )
+        ? computeValueValidationState(autoCheckEnabled, value)
         : ValueValidationState.UNKWOWN;
 
     return (
@@ -348,7 +330,8 @@ const SudokuCell: React.FC<SudokuCellProps> = ({
             {showNotes ? (
                 <NotesGrid>
                     {Array.from({ length: 9 }, (_x, i) => i + 1).map((note) => {
-                        const isSelected = notes.includes(note);
+                        const isSelected =
+                            !value.isOriginal && value.notes.includes(note);
                         return (
                             <Note
                                 className="flex items-center justify-center"
@@ -362,12 +345,17 @@ const SudokuCell: React.FC<SudokuCellProps> = ({
                     })}
                 </NotesGrid>
             ) : (
-                <MainNumber
-                    isOriginal={isOriginal}
-                    valueValidationState={valueValidationState}
-                >
-                    {value}
-                </MainNumber>
+                <>
+                    {value.isOriginal ? (
+                        <OriginalNumber>{value.value}</OriginalNumber>
+                    ) : (
+                        <CurrentEntry
+                            valueValidationState={valueValidationState}
+                        >
+                            {isWrong ? undefined : value.value.current}
+                        </CurrentEntry>
+                    )}
+                </>
             )}
         </SudokuCellWrapper>
     );

@@ -134,14 +134,22 @@ export class Board {
 
     public static createWithDifficulty(difficulty: Difficulty) {
         const sudoku = getSudoku(difficulty);
-        const valuesList = [...sudoku.puzzle].map((value, index) => ({
-            value: value === '-' ? undefined : Number.parseInt(value, 10),
-            hasError: false,
-            isOriginal: value !== '-',
-            answer: Number.parseInt(sudoku.solution[index], 10),
-            isSelectedBoardIndex: false,
-            notes: Set<number>(),
-        }));
+        const valuesList = [...sudoku.puzzle].map((value, index) =>
+            value === '-'
+                ? ({
+                      isOriginal: false as const,
+                      value: {
+                          current: undefined,
+                          answer: Number.parseInt(sudoku.solution[index], 10),
+                      },
+                      isSelectedBoardIndex: false,
+                      notes: Set<number>(),
+                  } as const)
+                : {
+                      isOriginal: true as const,
+                      value: Number.parseInt(value, 10),
+                  }
+        );
         return new Board(List(valuesList));
     }
 
@@ -153,10 +161,34 @@ export class Board {
         return new Board(List());
     }
 
-    get grid(): List<List<Value>> {
-        return List(
-            Array.from({ length: 9 }, (_, i) =>
-                List(this.values.slice(i * 9, i * 9 + 9))
+    public reset() {
+        return new Board(
+            this.values.map((value) =>
+                value.isOriginal
+                    ? value
+                    : {
+                          ...value,
+                          value: {
+                              current: undefined,
+                              answer: value.value.answer,
+                          },
+                      }
+            )
+        );
+    }
+
+    public setAllAnswers() {
+        return new Board(
+            this.values.map((value) =>
+                value.isOriginal
+                    ? value
+                    : {
+                          ...value,
+                          value: {
+                              current: undefined,
+                              answer: value.value.answer,
+                          },
+                      }
             )
         );
     }
@@ -166,6 +198,20 @@ export class Board {
             return this.values.get(accessor);
         }
         return this.values.get(accessor.boardIndex);
+    }
+
+    getHint(accessor: IndexSet | number) {
+        const value =
+            typeof accessor === 'number'
+                ? this.values.get(accessor)
+                : this.values.get(accessor.boardIndex);
+        if (value?.isOriginal) {
+            throw new Error('Cannot get hint for original value');
+        }
+        if (value?.value !== undefined) {
+            throw new Error('Value already set');
+        }
+        return value;
     }
 
     getFromBoardIndex(boardIndex: number): Value | undefined {
@@ -179,8 +225,40 @@ export class Board {
         return new Board(this.values.set(accessor.boardIndex, value));
     }
 
+    setCurrentValue(accessor: IndexSet | number, current: number): Board {
+        const value = this.get(accessor);
+        if (value === undefined || value.isOriginal) {
+            return this;
+        }
+        return this.set(accessor, {
+            ...value,
+            value: { ...value.value, current },
+        });
+    }
+
+    clearCurrentValue(accessor: IndexSet | number): Board {
+        const value = this.get(accessor);
+        if (value === undefined || value.isOriginal) {
+            return this;
+        }
+        return this.set(accessor, {
+            ...value,
+            value: { ...value.value, current: undefined },
+        });
+    }
+
     get isSolved() {
-        return this.values.every((val) => val.value === val.answer);
+        return this.values.every(
+            (val) => val.isOriginal || val.value.current === val.value.answer
+        );
+    }
+
+    get grid(): List<List<Value>> {
+        return List(
+            Array.from({ length: 9 }, (_, i) =>
+                List(this.values.slice(i * 9, i * 9 + 9))
+            )
+        );
     }
 }
 

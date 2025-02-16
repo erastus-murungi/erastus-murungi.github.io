@@ -204,16 +204,12 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 return state;
             }
 
-            if (selectedValue.value === value) {
+            if (selectedValue.value.current === value) {
                 return {
                     ...state,
                     conflictBoardIndices: Set(),
                     hintIndex: undefined,
-                    board: state.board.set(selectedIndexSet, {
-                        ...selectedValue,
-                        value: undefined,
-                        hasError: false,
-                    }),
+                    board: board.clearCurrentValue(selectedIndexSet),
                 };
             } else {
                 const conflictBoardIndices = validateBoardAfterEntry({
@@ -221,12 +217,10 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                     board: state.board,
                     toCheck: value,
                 });
-                const board = state.board.set(selectedIndexSet, {
-                    ...selectedValue,
-                    value,
-                    answer: selectedValue.answer,
-                    hasError: conflictBoardIndices !== undefined,
-                });
+                const board = state.board.setCurrentValue(
+                    selectedIndexSet,
+                    value
+                );
                 return {
                     ...state,
                     hintIndex: undefined,
@@ -240,12 +234,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                         hintIndex: state.hintIndex,
                         notesOn: state.notesOn,
                     }),
-                    board: state.board.set(selectedIndexSet, {
-                        ...selectedValue,
-                        value,
-                        answer: selectedValue.answer,
-                        hasError: conflictBoardIndices !== undefined,
-                    }),
+                    board,
                     ...(conflictBoardIndices && conflictBoardIndices.size > 0
                         ? {
                               conflictBoardIndices,
@@ -269,11 +258,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 ...state,
                 conflictBoardIndices: Set(),
                 hintIndex: undefined,
-                board: state.board.set(selectedIndexSet, {
-                    ...selectedValue,
-                    value: undefined,
-                    hasError: false,
-                }),
+                board: board.clearCurrentValue(selectedIndexSet),
             };
         }
         case 'UNDO': {
@@ -292,42 +277,14 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             }
             return state;
         }
-        case 'RESET_CURRENT_BOARD': {
-            const { difficulty } = state;
-            const newValues = state.board.values.map((value) => ({
-                ...value,
-                ...(value.isOriginal
-                    ? { value: value.answer }
-                    : { value: undefined }),
-                errorMessage: undefined,
-            }));
-            return {
-                ...state,
-                board: new Board(newValues),
-                selectedIndexSet: undefined,
-                hintIndex: undefined,
-                conflictBoardIndices: Set(),
-                stopWatchAction: 'reset',
-                notesOn: false,
-                hintCount: HINT_COUNT[difficulty],
-                isSolved: false,
-                numMistakes: 0,
-                score: '0',
-            };
-        }
         case 'SET_WATCH_ACTION': {
             const { stopWatchAction } = action;
             return { ...state, stopWatchAction };
         }
         case 'SUBMIT': {
-            const newValues = state.board.values.map((value) => ({
-                ...value,
-                value: value.answer,
-                errorMessage: undefined,
-            }));
             return {
                 ...state,
-                board: Board.createFromValues(newValues),
+                board: state.board.setAllAnswers(),
                 isSolved: true,
                 hintIndex: undefined,
                 stopWatchAction: 'pause',
@@ -373,8 +330,10 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             };
         }
         case 'HINT': {
+            const { board, hintCount } = state;
             const description = getHintMessage();
-            if (state.hintCount <= 0) {
+
+            if (hintCount <= 0) {
                 toast.error('Bebi Bebi 🐧', {
                     className: 'bold',
                     description,
@@ -382,7 +341,9 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 });
                 return state;
             }
-            const hintIndex = generateHint(state.board);
+
+            const hintIndex = generateHint(board);
+
             if (hintIndex === undefined) {
                 toast.error('No more hints available', {
                     className: 'bold',
@@ -391,7 +352,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 });
                 return state;
             } else {
-                const hint = state.board.get(hintIndex);
+                const hint = state.board.getHint(hintIndex);
                 if (hint === undefined) {
                     toast.error('Internal Error: hintIndex out of bounds', {
                         description: 'No more hints available',
@@ -401,11 +362,10 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 } else {
                     return {
                         ...state,
-                        board: state.board.set(hintIndex, {
-                            ...hint,
-                            hasError: false,
-                            value: hint.answer,
-                        }),
+                        board: board.setCurrentValue(
+                            hintIndex,
+                            hint.value.answer
+                        ),
                         hintIndex,
                         hintCount: state.hintCount - 1,
                     };
@@ -419,19 +379,18 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         case 'RESET': {
             const { difficulty } = action;
             return {
-                ...state,
-                board: Board.createWithDifficulty(difficulty),
-                selectedIndexSet: undefined,
-                difficulty,
-                conflictBoardIndices: Set(),
-                hintIndex: undefined,
-                notesOn: false,
-                history: List(),
-                stopWatchAction: 'reset',
+                ...INITIAL_STATE,
                 hintCount: HINT_COUNT[difficulty],
-                isSolved: false,
-                numMistakes: 0,
-                score: '0',
+                stopWatchAction: 'start',
+            };
+        }
+        case 'RESET_CURRENT_BOARD': {
+            const { difficulty, board } = state;
+            return {
+                ...INITIAL_STATE,
+                board: board.reset(),
+                hintCount: HINT_COUNT[difficulty],
+                stopWatchAction: 'start',
             };
         }
         case 'TOGGLE_AUTO_CHECK': {

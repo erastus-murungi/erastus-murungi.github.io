@@ -79,7 +79,7 @@ export const SudokuBoard: React.FC<BoardProps> = ({
 
                 const showNotes =
                     notesOn &&
-                    (!value.notes.isEmpty() ||
+                    ((value.isOriginal === false && !value.notes.isEmpty()) ||
                         selectedBoardIndex === boardIndex);
 
                 const isWrong =
