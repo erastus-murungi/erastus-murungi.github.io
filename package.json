@@ -10,7 +10,11 @@
     "lint": "next lint",
     "test": "vitest",
     "format:check:all": "prettier --check ./src",
-    "format:write:all": "prettier --write ./src"
+    "format:write:all": "prettier --write ./src",
+    "playwright:headless": "playwright test",
+    "playwright:ui": "playwright test --ui",
+    "playwright:headed": "playwright test --headed"
+
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -54,6 +58,7 @@
   "devDependencies": {
     "@eslint/js": "^9.20.0",
     "@next/eslint-plugin-next": "^15.1.6",
+    "@playwright/test": "^1.50.1",
     "@tailwindcss/postcss": "^4.0.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
