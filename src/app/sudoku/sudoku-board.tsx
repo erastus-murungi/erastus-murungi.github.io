@@ -67,7 +67,7 @@ export const SudokuBoard: React.FC<BoardProps> = ({
 
     const buildRow = React.useCallback(
         (rowIndex: number) =>
-            function SudokuRow(initialValue: Value, columnIndex: number) {
+            function SudokuRow(_initialValue: Value, columnIndex: number) {
                 const indexSet = createIndexSet({ rowIndex, columnIndex });
                 const value = board.get(indexSet);
 
@@ -90,7 +90,6 @@ export const SudokuBoard: React.FC<BoardProps> = ({
                     <SudokuSquare
                         key={`$square-${rowIndex}-${columnIndex}`}
                         value={value}
-                        initialValue={initialValue}
                         indexSet={indexSet}
                         selectedIndexSet={selectedIndexSet}
                         showNotes={showNotes}
