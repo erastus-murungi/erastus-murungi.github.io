@@ -12,7 +12,7 @@ import { reducer, INITIAL_STATE } from './reducer';
 import { Switch } from '@/components/ui/switch';
 import { SudokuStats } from './sudoku-stats';
 import { Label } from '@/components/ui/label';
-import { SudokuOverlay } from './sudoku-overlay';
+import { SudokuGamePausedOverlay, SudokuOverlay } from './sudoku-overlay';
 import type { ButtonValue } from './types';
 
 const SCORE_REFRESH_INTERVAL_MS = 10_000;
@@ -262,28 +262,44 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                                     />
                                 )}
                                 <SudokuStats {...state} />
-                                <SudokuBoard
-                                    notesOn={state.notesOn}
-                                    autoCheckEnabled={state.autoCheckEnabled}
-                                    hintIndex={state.hintIndex}
-                                    conflictBoardIndices={
-                                        state.conflictBoardIndices
-                                    }
-                                    board={state.board}
-                                    selectedIndexSet={state.selectedIndexSet}
-                                    setSelectedIndexSet={(indexSet) =>
-                                        dispatch({
-                                            type: 'SET_INDICES',
-                                            selectedIndexSet: indexSet,
-                                        })
-                                    }
-                                    onNoteClick={(note) =>
-                                        dispatch({
-                                            type: 'SET_NOTE',
-                                            note,
-                                        })
-                                    }
-                                />
+                                <div className="relative flex">
+                                    {state.stopWatchAction === 'pause' && (
+                                        <SudokuGamePausedOverlay
+                                            onClick={() =>
+                                                dispatch({
+                                                    type: 'SET_WATCH_ACTION',
+                                                    stopWatchAction: 'start',
+                                                })
+                                            }
+                                        />
+                                    )}
+                                    <SudokuBoard
+                                        notesOn={state.notesOn}
+                                        autoCheckEnabled={
+                                            state.autoCheckEnabled
+                                        }
+                                        hintIndex={state.hintIndex}
+                                        conflictBoardIndices={
+                                            state.conflictBoardIndices
+                                        }
+                                        board={state.board}
+                                        selectedIndexSet={
+                                            state.selectedIndexSet
+                                        }
+                                        setSelectedIndexSet={(indexSet) =>
+                                            dispatch({
+                                                type: 'SET_INDICES',
+                                                selectedIndexSet: indexSet,
+                                            })
+                                        }
+                                        onNoteClick={(note) =>
+                                            dispatch({
+                                                type: 'SET_NOTE',
+                                                note,
+                                            })
+                                        }
+                                    />
+                                </div>
                             </div>
                             <span id="confettiReward" z-index={100} />
                             <span id="balloonsReward" z-index={101} />
