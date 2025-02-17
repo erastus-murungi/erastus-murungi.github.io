@@ -44,11 +44,8 @@ type HandledKeyPress = (typeof ALLOWED_KEYS)[number];
 export const Sudoku: React.FC<SudokuProps> = () => {
     const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
 
-    const setTotalSeconds = React.useCallback(
-        (totalSeconds: number) =>
-            dispatch({ type: 'UPDATE_TIME', totalSeconds }),
-        []
-    );
+    const totalSeconds = React.useRef(0);
+    const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
     const onKeyDown = React.useCallback(
         (event: globalThis.KeyboardEvent) => {
@@ -165,17 +162,16 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     }, [onKeyDown]);
 
     React.useEffect(() => {
-        if (state.intervalId) {
-            clearInterval(state.intervalId);
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
         }
         if (state.stopWatchAction === 'start' && !state.showOverlay) {
-            const newIntervalId = setInterval(() => {
-                dispatch({ type: 'CALCULATE_SCORE' });
+            intervalRef.current = setInterval(() => {
+                dispatch({
+                    type: 'CALCULATE_SCORE',
+                    totalSeconds: totalSeconds.current,
+                });
             }, SCORE_REFRESH_INTERVAL_MS);
-            dispatch({
-                type: 'SET_INTERVAL_ID',
-                intervalId: newIntervalId,
-            });
         }
     }, [state.stopWatchAction]);
 
@@ -189,6 +185,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                     }
                     case 'reset': {
                         dispatch({ type: 'RESET_CURRENT_BOARD' });
+                        totalSeconds.current = 0;
                         break;
                     }
                     case 'undo': {
@@ -218,6 +215,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                     dispatch({ type: 'SET_VALUE', value });
                 }
             } else if (value.type === 'change-difficulty') {
+                totalSeconds.current = 0;
                 dispatch({ type: 'RESET', difficulty: value.to });
             }
         },
@@ -319,7 +317,9 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                                             stopWatchAction,
                                         })
                                     }
-                                    setTotalSeconds={setTotalSeconds}
+                                    setTotalSeconds={(seconds) => {
+                                        totalSeconds.current = seconds;
+                                    }}
                                 />
                             </div>
 

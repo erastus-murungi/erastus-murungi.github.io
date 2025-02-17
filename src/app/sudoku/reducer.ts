@@ -4,9 +4,9 @@ import {
     generateHint,
     HINT_COUNT,
     calculateScore,
-    type IndexSet,
     Board,
     getBoardIndex,
+    type IndexSet,
 } from './utils';
 import type {
     ReducerState,
@@ -136,17 +136,10 @@ type Action =
       }
     | {
           type: 'CALCULATE_SCORE';
-      }
-    | {
-          type: 'HINT';
-      }
-    | {
-          type: 'UPDATE_TIME';
           totalSeconds: number;
       }
     | {
-          type: 'SET_INTERVAL_ID';
-          intervalId: NodeJS.Timeout;
+          type: 'HINT';
       }
     | {
           type: 'TOGGLE_AUTO_CHECK';
@@ -297,11 +290,9 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 hintIndex: undefined,
             };
         }
-        case 'UPDATE_TIME': {
-            return { ...state, totalSeconds: action.totalSeconds };
-        }
         case 'CALCULATE_SCORE': {
-            const score = calculateScore(state);
+            const { totalSeconds } = action;
+            const score = calculateScore(state, totalSeconds);
             return { ...state, score };
         }
         case 'INIT_SODUKU': {
@@ -371,10 +362,6 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 }
             }
         }
-        case 'SET_INTERVAL_ID': {
-            const { intervalId } = action;
-            return { ...state, intervalId };
-        }
         case 'RESET': {
             const { difficulty } = action;
             return {
@@ -417,7 +404,6 @@ export const INITIAL_STATE: ReducerState = {
     stopWatchAction: 'start',
     numMoves: 0,
     numMistakes: 0,
-    totalSeconds: 0,
     score: '0',
     autoCheckEnabled: false,
     showOverlay: false,

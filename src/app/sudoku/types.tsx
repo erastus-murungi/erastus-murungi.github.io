@@ -54,9 +54,7 @@ export interface ReducerState extends HistoryState {
     isSolved: boolean;
     numMoves: number;
     numMistakes: number;
-    totalSeconds: number;
     score: string;
-    intervalId?: NodeJS.Timeout;
     autoCheckEnabled: boolean;
     showOverlay: boolean;
 }

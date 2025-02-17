@@ -86,9 +86,10 @@ const MUTLIPLIERS = {
  */
 export const calculateScore = (
     reducerState: ReducerState,
+    totalSeconds: number,
     multipliers: typeof MUTLIPLIERS = MUTLIPLIERS
 ): string => {
-    const { totalSeconds, difficulty, hintCount } = reducerState;
+    const { difficulty, hintCount } = reducerState;
     const { hintMultiplier, timePenaltyExponent, basePointsMap } = multipliers;
     const basePoints = basePointsMap[difficulty];
     const hintsPenalty = hintMultiplier * hintCount;
