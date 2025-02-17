@@ -33,6 +33,7 @@ export const NewGameButton: React.FC<NewGameButtonProps> = ({
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button
+                    data-testid="new-game-button"
                     variant="secondary"
                     className={cn(
                         'mt-2 flex h-14 w-full items-center justify-center rounded-md hover:border-2 hover:border-black',
