@@ -380,7 +380,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             return {
                 ...INITIAL_STATE,
                 hintCount: HINT_COUNT[difficulty],
-                stopWatchAction: 'start',
+                stopWatchAction: 'reset',
             };
         }
         case 'RESET_CURRENT_BOARD': {
@@ -389,7 +389,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 ...INITIAL_STATE,
                 board: board.reset(),
                 hintCount: HINT_COUNT[difficulty],
-                stopWatchAction: 'start',
+                stopWatchAction: 'reset',
             };
         }
         case 'TOGGLE_AUTO_CHECK': {

@@ -24,19 +24,29 @@ export const generateHint = (board: Board) => {
 
 export const generateHints = (count: number, board: Board) => {
     // if the values are all filled, return
-    if (board.values.every((value) => value.value !== undefined)) {
+    if (
+        board.values.every(
+            (value) => value.isOriginal || value.value.current !== undefined
+        )
+    ) {
         return;
     }
     let numHints = Math.min(
         count,
-        81 - board.values.count((value) => value.value !== undefined)
+        81 -
+            board.values.count(
+                (value) => value.isOriginal || value.value.current !== undefined
+            )
     );
     const hints: number[] = [];
     while (numHints > 0) {
         const index = Math.floor(Math.random() * 81);
+        const value = board.values.get(index);
         if (
             !hints.includes(index) &&
-            board.values.get(index)?.value === undefined
+            value &&
+            !value.isOriginal &&
+            value?.value.current === undefined
         ) {
             hints.push(index);
             numHints--;

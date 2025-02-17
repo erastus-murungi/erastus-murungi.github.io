@@ -8,7 +8,7 @@ export type Maybe<T> = T | undefined;
 export type Prettify<T> = {
     [K in keyof T]: T[K];
 } & {};
-export type StopWatchAction = 'start' | 'pause';
+export type StopWatchAction = 'start' | 'pause' | 'reset';
 
 export type ActionButton =
     | 'submit'

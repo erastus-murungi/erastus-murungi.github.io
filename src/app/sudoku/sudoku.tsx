@@ -124,21 +124,20 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     );
 
     React.useEffect(() => {
-        // const board = Board.createWithDifficulty(state.difficulty);
+        // let board = Board.createWithDifficulty(state.difficulty);
         // const hints = generateHints(40, board);
         // if (hints) {
-        //     let newValues = board.values;
         //     for (const hintIndex of hints) {
-        //         newValues = newValues.setIn(
-        //             [hintIndex, 'value'],
-        //             newValues.get(hintIndex)?.answer
-        //         );
+        //         const hint = board.getFromBoardIndex(hintIndex);
+        //         if (hint) {
+        //             board = board.set(hintIndex, hint);
+        //         }
         //     }
         //     dispatch({
         //         type: 'INIT_SODUKU',
         //         options: {
-        //             values: newValues,
-        //             board: undefined,
+        //             values: undefined,
+        //             board,
         //             difficulty: undefined,
         //         },
         //     });
@@ -314,7 +313,6 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                                 </div>
                                 <StopWatch
                                     stopwatchAction={state.stopWatchAction}
-                                    shouldReset={state.totalSeconds === 0}
                                     setStopwatchAction={(stopWatchAction) =>
                                         dispatch({
                                             type: 'SET_WATCH_ACTION',
