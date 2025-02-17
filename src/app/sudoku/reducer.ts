@@ -1,7 +1,6 @@
 import { List, Set } from 'immutable';
 import { toast } from 'sonner';
 import {
-    generateHint,
     HINT_COUNT,
     calculateScore,
     Board,
@@ -13,7 +12,7 @@ import type {
     HistoryState,
     StopWatchAction,
     Difficulty,
-    Value,
+    Cell,
 } from './types';
 
 const HINT_MESSAGES = [
@@ -47,9 +46,9 @@ const validateBoardAfterEntry = ({
             }
         }
         if (selectedColumnIndex !== undefined) {
-            for (const [boardIndex, value] of board.values.entries()) {
+            for (const [boardIndex, cell] of board.cells.entries()) {
                 if (boardIndex % 9 === selectedColumnIndex) {
-                    if (value.value === toCheck) {
+                    if (cell.value === toCheck) {
                         conflictBoardIndices.push(boardIndex);
                     } else {
                         continue;
@@ -120,7 +119,7 @@ type Action =
                     board: undefined;
                 }
               | {
-                    values: List<Value>;
+                    values: List<Cell>;
                     difficulty: undefined;
                     board: undefined;
                 }
@@ -154,36 +153,19 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
 
     switch (action.type) {
         case 'SET_NOTE': {
-            if (!state.notesOn) {
+            const { selectedIndexSet, notesOn } = state;
+
+            if (!notesOn) {
                 throw new Error('Notes are not enabled');
             }
-            const { selectedIndexSet } = state;
             if (selectedIndexSet === undefined) {
                 return state;
             }
             const { note } = action;
-
-            const selectedValue = state.board.get(selectedIndexSet);
-            if (!selectedValue || selectedValue.isOriginal) {
-                return state;
-            }
-            const isSelected = selectedValue.notes.has(note);
-
-            return isSelected
-                ? {
-                      ...state,
-                      board: state.board.set(selectedIndexSet, {
-                          ...selectedValue,
-                          notes: selectedValue.notes.delete(note),
-                      }),
-                  }
-                : {
-                      ...state,
-                      board: state.board.set(selectedIndexSet, {
-                          ...selectedValue,
-                          notes: selectedValue.notes.add(note),
-                      }),
-                  };
+            return {
+                ...state,
+                board: state.board.toggleNoteValue(selectedIndexSet, note),
+            };
         }
         case 'SET_VALUE': {
             const { selectedIndexSet, board } = state;
@@ -332,7 +314,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 return state;
             }
 
-            const hintIndex = generateHint(board);
+            const { hintIndex, updatedBoard } = board.generateHint();
 
             if (hintIndex === undefined) {
                 toast.error('No more hints available', {
@@ -342,24 +324,12 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 });
                 return state;
             } else {
-                const hint = state.board.getHint(hintIndex);
-                if (hint === undefined) {
-                    toast.error('Internal Error: hintIndex out of bounds', {
-                        description: 'No more hints available',
-                        duration: 5000,
-                    });
-                    return state;
-                } else {
-                    return {
-                        ...state,
-                        board: board.setCurrentValue(
-                            hintIndex,
-                            hint.value.answer
-                        ),
-                        hintIndex,
-                        hintCount: state.hintCount - 1,
-                    };
-                }
+                return {
+                    ...state,
+                    board: updatedBoard,
+                    hintIndex,
+                    hintCount: state.hintCount - 1,
+                };
             }
         }
         case 'RESET': {

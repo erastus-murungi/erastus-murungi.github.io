@@ -5,7 +5,7 @@ import { reenie_beanie } from '@/styles/fonts';
 import Header from '../header';
 import { ButtonBar } from './button-bar';
 import { useReward } from 'react-rewards';
-// import { Board, generateHints } from './utils';
+import { Board } from './utils';
 import { SudokuBoard } from './sudoku-board';
 import { StopWatch } from './stopwatch';
 import { reducer, INITIAL_STATE } from './reducer';
@@ -121,37 +121,25 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     );
 
     React.useEffect(() => {
-        // let board = Board.createWithDifficulty(state.difficulty);
-        // const hints = generateHints(40, board);
-        // if (hints) {
-        //     for (const hintIndex of hints) {
-        //         const hint = board.getFromBoardIndex(hintIndex);
-        //         if (hint) {
-        //             board = board.set(hintIndex, hint);
-        //         }
-        //     }
-        //     dispatch({
-        //         type: 'INIT_SODUKU',
-        //         options: {
-        //             values: undefined,
-        //             board,
-        //             difficulty: undefined,
-        //         },
-        //     });
-        // } else {
-        //     dispatch({
-        //         type: 'INIT_SODUKU',
-        //         options: { board, values: undefined, difficulty: undefined },
-        //     });
-        // }
+        const board = Board.createWithDifficulty(
+            state.difficulty
+        ).generateHints(40);
         dispatch({
             type: 'INIT_SODUKU',
             options: {
-                board: undefined,
+                board,
                 values: undefined,
-                difficulty: state.difficulty,
+                difficulty: undefined,
             },
         });
+        // dispatch({
+        //     type: 'INIT_SODUKU',
+        //     options: {
+        //         board: undefined,
+        //         values: undefined,
+        //         difficulty: state.difficulty,
+        //     },
+        // });
     }, [state.difficulty]);
 
     React.useEffect(() => {
@@ -173,7 +161,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                 });
             }, SCORE_REFRESH_INTERVAL_MS);
         }
-    }, [state.stopWatchAction]);
+    }, [state.stopWatchAction, state.showOverlay]);
 
     const handleButtonPress = React.useCallback(
         (value: ButtonValue) => {
@@ -236,6 +224,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                 dispatch({ type: 'TOGGLE_SHOW_OVERLAY' });
             }, 5000);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.isSolved]);
 
     return (
@@ -251,12 +240,8 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                                         state={state}
                                         onClick={(difficulty) =>
                                             dispatch({
-                                                type: 'INIT_SODUKU',
-                                                options: {
-                                                    board: undefined,
-                                                    values: undefined,
-                                                    difficulty,
-                                                },
+                                                type: 'RESET',
+                                                difficulty,
                                             })
                                         }
                                     />

@@ -8,8 +8,27 @@ export type Maybe<T> = T | undefined;
 export type Prettify<T> = {
     [K in keyof T]: T[K];
 } & {};
-export type StopWatchAction = 'start' | 'pause' | 'reset';
 
+export type ExtractFromUnion<T, U> = T extends T
+    ? U extends Partial<T>
+        ? T
+        : never
+    : never;
+
+/**
+ * The action that the stopwatch should take
+ */
+export type StopWatchAction =
+    /** The stopwatch should start */
+    | 'start'
+    /** The stopwatch should pause */
+    | 'pause'
+    /** The stopwatch should reset */
+    | 'reset';
+
+/**
+ * The type of the action that can be taken on a button
+ */
 export type ActionButton =
     | 'submit'
     | 'undo'
@@ -21,7 +40,12 @@ export type ActionButton =
 
 export type ButtonValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | ActionButton;
 
-export type Value =
+/**
+ * The value of a square on the board
+ * - If `isOriginal` is true, then the value is the original value of the board
+ * - If `isOriginal` is false, then the value is the current value of the board
+ */
+export type Cell =
     | {
           isOriginal: true;
           value: number;
@@ -36,10 +60,19 @@ export type Value =
           notes: Set<number>;
       };
 
-export type SudokuBoardRow = List<Value>;
+export type SudokuBoardRow = List<Cell>;
 
+/**
+ * The state of the history
+ */
 export interface HistoryState {
+    /**
+     * The board at the current state
+     */
     board: Board;
+    /**
+     * The selected index set
+     */
     selectedIndexSet?: IndexSet;
     conflictBoardIndices: Set<number>;
     difficulty: Difficulty;

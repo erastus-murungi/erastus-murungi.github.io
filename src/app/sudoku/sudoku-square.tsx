@@ -1,13 +1,13 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import type { Value } from './types';
+import type { Cell } from './types';
 import type { IndexSet } from './utils';
 
 export interface SudokuSquareProps {
     selectedIndexSet?: IndexSet;
     indexSet: IndexSet;
-    value: Value;
+    value: Cell;
     setSelectedIndexSet: (indexSet: IndexSet) => void;
     onNoteClick: (note: number) => void;
     showNotes: boolean;
@@ -184,7 +184,7 @@ const ValueValidationState = {
 type ValueValidationState =
     (typeof ValueValidationState)[keyof typeof ValueValidationState];
 
-function computeValueValidationState(autoCheckEnabled: boolean, value: Value) {
+function computeValueValidationState(autoCheckEnabled: boolean, value: Cell) {
     if (
         autoCheckEnabled &&
         !value.isOriginal &&
@@ -307,7 +307,7 @@ const Note = styled.div<{ isSelected: boolean }>`
 `;
 
 type SudokuCellProps = {
-    value: Value;
+    value: Cell;
     showNotes: boolean;
     onNoteClick: (note: number) => void;
     autoCheckEnabled: boolean;

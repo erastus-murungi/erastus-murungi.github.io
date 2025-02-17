@@ -1,6 +1,6 @@
 import { List, Set } from 'immutable';
 import { getSudoku } from 'sudoku-gen';
-import type { Difficulty, Value, ReducerState } from './types';
+import type { Difficulty, Cell, ReducerState, ExtractFromUnion } from './types';
 
 export const HINT_COUNT: Record<Difficulty, number> = {
     easy: 0,
@@ -8,67 +8,6 @@ export const HINT_COUNT: Record<Difficulty, number> = {
     hard: 2,
     expert: 3,
 };
-
-export const generateHint = (board: Board) => {
-    if (
-        board.values.every(
-            (value) => value.isOriginal || value.value.current !== undefined
-        )
-    ) {
-        return;
-    }
-    while (true) {
-        const index = Math.floor(Math.random() * 81);
-        const value = board.values.get(index);
-        if (
-            value &&
-            value.isOriginal === false &&
-            value.value.current === undefined
-        ) {
-            return index;
-        }
-    }
-};
-
-export const generateHints = (count: number, board: Board) => {
-    // if the values are all filled, return
-    if (
-        board.values.every(
-            (value) => value.isOriginal || value.value.current !== undefined
-        )
-    ) {
-        return;
-    }
-    let numHints = Math.min(
-        count,
-        81 -
-            board.values.count(
-                (value) => value.isOriginal || value.value.current !== undefined
-            )
-    );
-    const hints: number[] = [];
-    while (numHints > 0) {
-        const index = Math.floor(Math.random() * 81);
-        const value = board.values.get(index);
-        if (
-            !hints.includes(index) &&
-            value &&
-            !value.isOriginal &&
-            value?.value.current === undefined
-        ) {
-            hints.push(index);
-            numHints--;
-        }
-    }
-    return hints;
-};
-
-export const genBoardFromValues = (values: List<Value>) =>
-    List(
-        Array.from({ length: 9 }, (_, i) =>
-            List(values.slice(i * 9, i * 9 + 9))
-        )
-    );
 
 export const getBoardIndex = (rowIndex: number, index: number) =>
     rowIndex * 9 + index;
@@ -145,35 +84,42 @@ export class IndexSet {
 }
 
 export class Board {
-    readonly values: List<Value>;
+    readonly cells: List<Cell>;
+    static readonly MAX_ITERS = 5_000_000;
 
-    constructor(values: List<Value>) {
-        this.values = values;
+    constructor(cells: List<Cell>) {
+        this.cells = cells;
     }
 
     public static createWithDifficulty(difficulty: Difficulty) {
         const sudoku = getSudoku(difficulty);
-        const valuesList = [...sudoku.puzzle].map((value, index) =>
-            value === '-'
-                ? ({
-                      isOriginal: false as const,
-                      value: {
-                          current: undefined,
-                          answer: Number.parseInt(sudoku.solution[index], 10),
-                      },
-                      isSelectedBoardIndex: false,
-                      notes: Set<number>(),
-                  } as const)
-                : {
-                      isOriginal: true as const,
-                      value: Number.parseInt(value, 10),
-                  }
+        return new Board(
+            List(
+                [...sudoku.puzzle].map((value, index) =>
+                    value === '-'
+                        ? ({
+                              isOriginal: false as const,
+                              value: {
+                                  current: undefined,
+                                  answer: Number.parseInt(
+                                      sudoku.solution[index],
+                                      10
+                                  ),
+                              },
+                              isSelectedBoardIndex: false,
+                              notes: Set<number>(),
+                          } as const)
+                        : {
+                              isOriginal: true as const,
+                              value: Number.parseInt(value, 10),
+                          }
+                )
+            )
         );
-        return new Board(List(valuesList));
     }
 
-    public static createFromValues(values: List<Value>) {
-        return new Board(values);
+    public static createFromValues(cells: List<Cell>) {
+        return new Board(cells);
     }
 
     public static empty() {
@@ -182,14 +128,14 @@ export class Board {
 
     public reset() {
         return new Board(
-            this.values.map((value) =>
-                value.isOriginal
-                    ? value
+            this.cells.map((cell) =>
+                cell.isOriginal
+                    ? cell
                     : {
-                          ...value,
+                          ...cell,
                           value: {
                               current: undefined,
-                              answer: value.value.answer,
+                              answer: cell.value.answer,
                           },
                       }
             )
@@ -198,54 +144,36 @@ export class Board {
 
     public setAllAnswers() {
         return new Board(
-            this.values.map((value) =>
-                value.isOriginal
-                    ? value
+            this.cells.map((cell) =>
+                cell.isOriginal
+                    ? cell
                     : {
-                          ...value,
+                          ...cell,
                           value: {
-                              current: value.value.answer,
-                              answer: value.value.answer,
+                              current: cell.value.answer,
+                              answer: cell.value.answer,
                           },
                       }
             )
         );
     }
 
-    get(accessor: IndexSet | number): Value | undefined {
+    get(accessor: IndexSet | number): Cell | undefined {
         if (typeof accessor === 'number') {
-            return this.values.get(accessor);
+            return this.cells.get(accessor);
         }
-        return this.values.get(accessor.boardIndex);
+        return this.cells.get(accessor.boardIndex);
     }
 
-    getHint(accessor: IndexSet | number) {
-        const value =
-            typeof accessor === 'number'
-                ? this.values.get(accessor)
-                : this.values.get(accessor.boardIndex);
-        if (!value) {
-            throw new Error('Internal error: Value not found');
-        }
-        if (value.isOriginal) {
-            throw new Error('Cannot get hint for original value');
-        }
-
-        if (value.value.current !== undefined) {
-            throw new Error('Value already set');
-        }
-        return value;
+    getFromBoardIndex(boardIndex: number): Cell | undefined {
+        return this.cells.get(boardIndex);
     }
 
-    getFromBoardIndex(boardIndex: number): Value | undefined {
-        return this.values.get(boardIndex);
-    }
-
-    set(accessor: IndexSet | number, value: Value): Board {
+    set(accessor: IndexSet | number, value: Cell): Board {
         if (typeof accessor === 'number') {
-            return new Board(this.values.set(accessor, value));
+            return new Board(this.cells.set(accessor, value));
         }
-        return new Board(this.values.set(accessor.boardIndex, value));
+        return new Board(this.cells.set(accessor.boardIndex, value));
     }
 
     setCurrentValue(accessor: IndexSet | number, current: number): Board {
@@ -270,16 +198,100 @@ export class Board {
         });
     }
 
-    get isSolved() {
-        return this.values.every(
-            (val) => val.isOriginal || val.value.current === val.value.answer
+    toggleNoteValue(accessor: IndexSet | number, note: number): Board {
+        const cell = this.get(accessor);
+        if (cell === undefined || cell.isOriginal) {
+            return this;
+        }
+        return this.set(accessor, {
+            ...cell,
+            notes: cell.notes.has(note)
+                ? cell.notes.delete(note)
+                : cell.notes.add(note),
+        });
+    }
+
+    private isUnfilledCell(
+        cell: Cell | undefined
+    ): cell is ExtractFromUnion<Cell, { isOriginal: false }> {
+        return !!(
+            cell &&
+            cell.isOriginal === false &&
+            cell.value.current === undefined
         );
     }
 
-    get grid(): List<List<Value>> {
+    private getHintIndex() {
+        const hintIndex = Math.floor(Math.random() * 81);
+        const cell = this.cells.get(hintIndex);
+        if (this.isUnfilledCell(cell)) {
+            return { hintIndex, value: cell.value.answer };
+        }
+    }
+
+    generateHint() {
+        if (this.isSolved) {
+            return { hintIndex: undefined, updatedBoard: this };
+        }
+
+        let numIters = 0;
+        while (numIters < Board.MAX_ITERS) {
+            const { hintIndex, value } = this.getHintIndex() || {};
+            if (hintIndex && value) {
+                return {
+                    hintIndex,
+                    updatedBoard: this.setCurrentValue(hintIndex, value),
+                };
+            }
+            numIters++;
+        }
+        return { hintIndex: undefined, updatedBoard: this };
+    }
+
+    generateHints(count: number) {
+        let numHints = Math.min(
+            count,
+            81 -
+                this.cells.count(
+                    (cell) =>
+                        cell.isOriginal || cell.value.current !== undefined
+                )
+        );
+        let numIters = 0;
+        const hints: { value: number; hintIndex: number }[] = [];
+        while (numHints > 0 && numIters < Board.MAX_ITERS) {
+            const result = this.getHintIndex();
+            if (
+                result &&
+                !hints.some(({ hintIndex }) => hintIndex === result.hintIndex)
+            ) {
+                hints.push(result);
+                numHints--;
+                numIters++;
+            }
+        }
+
+        // We need to update the board with the hints
+        // eslint-disable-next-line unicorn/no-array-reduce
+        const updatedCells = hints.reduce(
+            (acc, { value, hintIndex }) =>
+                acc.setIn([hintIndex, 'value', 'current'], value),
+            this.cells
+        );
+        return new Board(updatedCells);
+    }
+
+    get isSolved() {
+        return this.cells.every(
+            (cell) =>
+                cell.isOriginal || cell.value.current === cell.value.answer
+        );
+    }
+
+    get grid(): List<List<Cell>> {
         return List(
             Array.from({ length: 9 }, (_, i) =>
-                List(this.values.slice(i * 9, i * 9 + 9))
+                List(this.cells.slice(i * 9, i * 9 + 9))
             )
         );
     }

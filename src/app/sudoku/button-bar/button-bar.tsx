@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/tooltip';
 import styled from '@emotion/styled';
 import { NewGameButton } from '../new-game-button';
-import type { ButtonValue } from '../types';
+import type { ActionButton, ButtonValue } from '../types';
 
 const StyledButtonBar = styled.div`
     display: grid;
@@ -84,7 +84,7 @@ export const PauseGameSudokuOverlay: React.FC<{ resumeGame: () => void }> = ({
 };
 
 const ActionButtons: React.FC<{
-    onClick: (value: ButtonValue) => void;
+    onClick: (value: ActionButton) => void;
     hintsRemaining: number;
     notesOn: boolean;
 }> = React.memo(({ onClick, hintsRemaining = 0, notesOn }) => {
