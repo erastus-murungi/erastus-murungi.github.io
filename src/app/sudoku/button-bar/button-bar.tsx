@@ -162,6 +162,8 @@ const ActionButtons: React.FC<{
                         <div
                             className="relative inline-block text-center"
                             onClick={() => onClick('hint')}
+                            tabIndex={-1}
+                            onKeyDown={() => onClick('hint')}
                             role="button"
                         >
                             <Button
@@ -188,6 +190,8 @@ const ActionButtons: React.FC<{
                         <div
                             className="relative inline-block text-center"
                             onClick={() => onClick('toggle-notes')}
+                            tabIndex={0}
+                            onKeyDown={() => onClick('toggle-notes')}
                             role="button"
                         >
                             <Button

@@ -38,7 +38,7 @@ const validateBoardAfterEntry = ({
     const { rowIndex: selectedRowIndex, columnIndex: selectedColumnIndex } =
         selectedIndexSet || {};
     const conflictBoardIndices: number[] = [];
-    if (selectedRowIndex != undefined) {
+    if (selectedRowIndex !== undefined) {
         for (let offset = 0; offset < 9; offset++) {
             const boardIndex = selectedRowIndex * 9 + offset;
             const boardValue = board.get(boardIndex);
@@ -46,7 +46,7 @@ const validateBoardAfterEntry = ({
                 conflictBoardIndices.push(boardIndex);
             }
         }
-        if (selectedColumnIndex != undefined) {
+        if (selectedColumnIndex !== undefined) {
             for (const [boardIndex, value] of board.values.entries()) {
                 if (boardIndex % 9 === selectedColumnIndex) {
                     if (value.value === toCheck) {
@@ -211,38 +211,37 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                     hintIndex: undefined,
                     board: board.clearCurrentValue(selectedIndexSet),
                 };
-            } else {
-                const conflictBoardIndices = validateBoardAfterEntry({
-                    selectedIndexSet: selectedIndexSet,
-                    board: state.board,
-                    toCheck: value,
-                });
-                const board = state.board.setCurrentValue(
-                    selectedIndexSet,
-                    value
-                );
-                return {
-                    ...state,
-                    hintIndex: undefined,
-                    numMoves: state.numMoves + 1,
-                    isSolved: board.isSolved,
-                    history: state.history.push({
-                        board,
-                        selectedIndexSet: state.selectedIndexSet,
-                        difficulty: state.difficulty,
-                        conflictBoardIndices: state.conflictBoardIndices,
-                        hintIndex: state.hintIndex,
-                        notesOn: state.notesOn,
-                    }),
-                    board,
-                    ...(conflictBoardIndices && conflictBoardIndices.size > 0
-                        ? {
-                              conflictBoardIndices,
-                              numMistakes: state.numMistakes + 1,
-                          }
-                        : {}),
-                };
             }
+            const conflictBoardIndices = validateBoardAfterEntry({
+                selectedIndexSet: selectedIndexSet,
+                board: state.board,
+                toCheck: value,
+            });
+            const newBoard = state.board.setCurrentValue(
+                selectedIndexSet,
+                value
+            );
+            return {
+                ...state,
+                hintIndex: undefined,
+                numMoves: state.numMoves + 1,
+                isSolved: newBoard.isSolved,
+                history: state.history.push({
+                    board,
+                    selectedIndexSet: state.selectedIndexSet,
+                    difficulty: state.difficulty,
+                    conflictBoardIndices: state.conflictBoardIndices,
+                    hintIndex: state.hintIndex,
+                    notesOn: state.notesOn,
+                }),
+                board: newBoard,
+                ...(conflictBoardIndices && conflictBoardIndices.size > 0
+                    ? {
+                          conflictBoardIndices,
+                          numMistakes: state.numMistakes + 1,
+                      }
+                    : {}),
+            };
         }
         case 'DELETE_VALUE': {
             const { board, selectedIndexSet } = state;

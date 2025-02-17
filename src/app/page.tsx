@@ -29,6 +29,7 @@ function WelcomeAudio() {
     return (
         <div className="inline-flex flex-row items-center justify-center">
             <audio controls className="mb-8">
+                <track kind="captions" />
                 <source src={getImageUrl('pingu.m4a')} type="audio/x-m4a" />
                 Your browser does not support the audio element.
             </audio>

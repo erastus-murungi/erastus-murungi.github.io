@@ -15,7 +15,6 @@
     "playwright:headless": "playwright test",
     "playwright:ui": "playwright test --ui",
     "playwright:headed": "playwright test --headed"
-
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -39,6 +38,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "embla-carousel-react": "^8.5.2",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
     "immutable": "^5.0.3",
     "lucide-react": "^0.475.0",
     "next": "^15.1.6",

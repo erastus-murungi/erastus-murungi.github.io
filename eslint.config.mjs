@@ -1,5 +1,6 @@
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 import globals from 'globals';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,12 +21,14 @@ export default [
         'plugin:react/recommended',
         'next/core-web-vitals',
         'plugin:@typescript-eslint/strict',
-        'plugin:unicorn/recommended'
+        'plugin:unicorn/recommended',
+        'plugin:jsx-a11y/recommended'
     ),
     {
         plugins: {
             react,
             reactHooks,
+            jsxA11y,
         },
 
         languageOptions: {
@@ -47,10 +50,11 @@ export default [
             'no-await-in-loop': 'error',
             'no-console': 'error',
             'react/no-direct-mutation-state': 'error',
-            // "react-hooks/exhaustive-deps": "off",
+            'react-hooks/exhaustive-deps': 'warn',
             '@next/next/no-img-element': 'off',
             'unicorn/prevent-abbreviations': 'off',
             'unicorn/no-nested-ternary': 'off',
+            eqeqeq: 'error',
             curly: ['error', 'all'],
         },
     },
