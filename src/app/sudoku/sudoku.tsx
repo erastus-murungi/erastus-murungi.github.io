@@ -5,7 +5,6 @@ import { reenie_beanie } from '@/styles/fonts';
 import Header from '../header';
 import { ButtonBar } from './button-bar';
 import { useReward } from 'react-rewards';
-import { Board } from './utils';
 import { SudokuBoard } from './sudoku-board';
 import { StopWatch } from './stopwatch';
 import { reducer, INITIAL_STATE } from './reducer';
@@ -121,25 +120,14 @@ export const Sudoku: React.FC<SudokuProps> = () => {
     );
 
     React.useEffect(() => {
-        const board = Board.createWithDifficulty(
-            state.difficulty
-        ).generateHints(40);
         dispatch({
             type: 'INIT_SODUKU',
             options: {
-                board,
+                board: undefined,
                 values: undefined,
-                difficulty: undefined,
+                difficulty: state.difficulty,
             },
         });
-        // dispatch({
-        //     type: 'INIT_SODUKU',
-        //     options: {
-        //         board: undefined,
-        //         values: undefined,
-        //         difficulty: state.difficulty,
-        //     },
-        // });
     }, [state.difficulty]);
 
     React.useEffect(() => {

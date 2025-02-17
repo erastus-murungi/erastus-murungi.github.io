@@ -281,6 +281,62 @@ export class Board {
         return new Board(updatedCells);
     }
 
+    private validateEntry(selectedIndexSet: IndexSet, toCheck: number) {
+        const { rowIndex: selectedRowIndex, columnIndex: selectedColumnIndex } =
+            selectedIndexSet || {};
+        const conflictBoardIndices: number[] = [];
+        if (selectedRowIndex !== undefined) {
+            for (let offset = 0; offset < 9; offset++) {
+                const boardIndex = selectedRowIndex * 9 + offset;
+                const boardValue = this.get(boardIndex);
+                if (boardValue?.value === toCheck) {
+                    conflictBoardIndices.push(boardIndex);
+                }
+            }
+            if (selectedColumnIndex !== undefined) {
+                for (const [boardIndex, cell] of this.cells.entries()) {
+                    if (boardIndex % 9 === selectedColumnIndex) {
+                        if (cell.value === toCheck) {
+                            conflictBoardIndices.push(boardIndex);
+                        } else {
+                            continue;
+                        }
+                    }
+                }
+
+                const gridRowIndex = selectedRowIndex - (selectedRowIndex % 3);
+                const gridColumnIndex =
+                    selectedColumnIndex - (selectedColumnIndex % 3);
+                for (let colOffset = 0; colOffset < 3; colOffset++) {
+                    for (let rowOffset = 0; rowOffset < 3; rowOffset++) {
+                        const boardIndex = getBoardIndex(
+                            gridRowIndex + rowOffset,
+                            gridColumnIndex + colOffset
+                        );
+                        const boardValue = this.get(boardIndex);
+                        if (boardValue?.value === toCheck) {
+                            conflictBoardIndices.push(boardIndex);
+                        }
+                    }
+                }
+            }
+        }
+        return conflictBoardIndices.length > 0
+            ? Set(conflictBoardIndices)
+            : undefined;
+    }
+
+    public setAndValidate(indexSet: IndexSet, value: number) {
+        const conflictBoardIndices = this.validateEntry(indexSet, value);
+        if (conflictBoardIndices) {
+            return { updatedBoard: this, conflictBoardIndices };
+        }
+        return {
+            updatedBoard: this.setCurrentValue(indexSet, value),
+            conflictBoardIndices: undefined,
+        };
+    }
+
     get isSolved() {
         return this.cells.every(
             (cell) =>

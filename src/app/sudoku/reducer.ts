@@ -1,12 +1,6 @@
 import { List, Set } from 'immutable';
 import { toast } from 'sonner';
-import {
-    HINT_COUNT,
-    calculateScore,
-    Board,
-    getBoardIndex,
-    type IndexSet,
-} from './utils';
+import { HINT_COUNT, calculateScore, Board, type IndexSet } from './utils';
 import type {
     ReducerState,
     HistoryState,
@@ -23,59 +17,6 @@ const HINT_MESSAGES = [
 const getHintMessage = () => {
     const randomIndex = Math.floor(Math.random() * HINT_MESSAGES.length);
     return HINT_MESSAGES[randomIndex];
-};
-
-const validateBoardAfterEntry = ({
-    board,
-    selectedIndexSet,
-    toCheck,
-}: {
-    board: ReducerState['board'];
-    selectedIndexSet: ReducerState['selectedIndexSet'];
-    toCheck: number;
-}) => {
-    const { rowIndex: selectedRowIndex, columnIndex: selectedColumnIndex } =
-        selectedIndexSet || {};
-    const conflictBoardIndices: number[] = [];
-    if (selectedRowIndex !== undefined) {
-        for (let offset = 0; offset < 9; offset++) {
-            const boardIndex = selectedRowIndex * 9 + offset;
-            const boardValue = board.get(boardIndex);
-            if (boardValue?.value === toCheck) {
-                conflictBoardIndices.push(boardIndex);
-            }
-        }
-        if (selectedColumnIndex !== undefined) {
-            for (const [boardIndex, cell] of board.cells.entries()) {
-                if (boardIndex % 9 === selectedColumnIndex) {
-                    if (cell.value === toCheck) {
-                        conflictBoardIndices.push(boardIndex);
-                    } else {
-                        continue;
-                    }
-                }
-            }
-
-            const gridRowIndex = selectedRowIndex - (selectedRowIndex % 3);
-            const gridColumnIndex =
-                selectedColumnIndex - (selectedColumnIndex % 3);
-            for (let colOffset = 0; colOffset < 3; colOffset++) {
-                for (let rowOffset = 0; rowOffset < 3; rowOffset++) {
-                    const boardIndex = getBoardIndex(
-                        gridRowIndex + rowOffset,
-                        gridColumnIndex + colOffset
-                    );
-                    const boardValue = board.get(boardIndex);
-                    if (boardValue?.value === toCheck) {
-                        conflictBoardIndices.push(boardIndex);
-                    }
-                }
-            }
-        }
-    }
-    return conflictBoardIndices.length > 0
-        ? Set(conflictBoardIndices)
-        : undefined;
 };
 
 type Action =
@@ -187,20 +128,14 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                     board: board.clearCurrentValue(selectedIndexSet),
                 };
             }
-            const conflictBoardIndices = validateBoardAfterEntry({
-                selectedIndexSet: selectedIndexSet,
-                board: state.board,
-                toCheck: value,
-            });
-            const newBoard = state.board.setCurrentValue(
-                selectedIndexSet,
-                value
-            );
+            const { conflictBoardIndices, updatedBoard } =
+                state.board.setAndValidate(selectedIndexSet, value);
+
             return {
                 ...state,
                 hintIndex: undefined,
                 numMoves: state.numMoves + 1,
-                isSolved: newBoard.isSolved,
+                isSolved: updatedBoard.isSolved,
                 history: state.history.push({
                     board,
                     selectedIndexSet: state.selectedIndexSet,
@@ -209,7 +144,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                     hintIndex: state.hintIndex,
                     notesOn: state.notesOn,
                 }),
-                board: newBoard,
+                board: updatedBoard,
                 ...(conflictBoardIndices && conflictBoardIndices.size > 0
                     ? {
                           conflictBoardIndices,
