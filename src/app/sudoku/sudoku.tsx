@@ -263,16 +263,18 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                                 )}
                                 <SudokuStats {...state} />
                                 <div className="relative flex">
-                                    {state.stopWatchAction === 'pause' && (
-                                        <SudokuGamePausedOverlay
-                                            onClick={() =>
-                                                dispatch({
-                                                    type: 'SET_WATCH_ACTION',
-                                                    stopWatchAction: 'start',
-                                                })
-                                            }
-                                        />
-                                    )}
+                                    {state.stopWatchAction === 'pause' &&
+                                        !state.isSolved && (
+                                            <SudokuGamePausedOverlay
+                                                onClick={() =>
+                                                    dispatch({
+                                                        type: 'SET_WATCH_ACTION',
+                                                        stopWatchAction:
+                                                            'start',
+                                                    })
+                                                }
+                                            />
+                                        )}
                                     <SudokuBoard
                                         notesOn={state.notesOn}
                                         autoCheckEnabled={
