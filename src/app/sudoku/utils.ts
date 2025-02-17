@@ -10,13 +10,21 @@ export const HINT_COUNT: Record<Difficulty, number> = {
 };
 
 export const generateHint = (board: Board) => {
-    // if the values are all filled, return
-    if (board.values.every((value) => value.value !== undefined)) {
+    if (
+        board.values.every(
+            (value) => value.isOriginal || value.value.current !== undefined
+        )
+    ) {
         return;
     }
     while (true) {
         const index = Math.floor(Math.random() * 81);
-        if (board.values.get(index)?.value === undefined) {
+        const value = board.values.get(index);
+        if (
+            value &&
+            value.isOriginal === false &&
+            value.value.current === undefined
+        ) {
             return index;
         }
     }
@@ -196,7 +204,7 @@ export class Board {
                     : {
                           ...value,
                           value: {
-                              current: undefined,
+                              current: value.value.answer,
                               answer: value.value.answer,
                           },
                       }
@@ -216,10 +224,14 @@ export class Board {
             typeof accessor === 'number'
                 ? this.values.get(accessor)
                 : this.values.get(accessor.boardIndex);
-        if (value?.isOriginal) {
+        if (!value) {
+            throw new Error('Internal error: Value not found');
+        }
+        if (value.isOriginal) {
             throw new Error('Cannot get hint for original value');
         }
-        if (value?.value !== undefined) {
+
+        if (value.value.current !== undefined) {
             throw new Error('Value already set');
         }
         return value;

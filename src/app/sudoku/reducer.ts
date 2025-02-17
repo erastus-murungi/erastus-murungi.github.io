@@ -366,6 +366,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             const { difficulty } = action;
             return {
                 ...INITIAL_STATE,
+                board: Board.createWithDifficulty(difficulty),
                 hintCount: HINT_COUNT[difficulty],
                 stopWatchAction: 'reset',
             };
