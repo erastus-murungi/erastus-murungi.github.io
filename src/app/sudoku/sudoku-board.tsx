@@ -69,9 +69,9 @@ export const SudokuBoard: React.FC<BoardProps> = ({
         (rowIndex: number) =>
             function SudokuRow(_initialValue: Cell, columnIndex: number) {
                 const indexSet = createIndexSet({ rowIndex, columnIndex });
-                const value = board.get(indexSet);
+                const cell = board.get(indexSet);
 
-                if (!value) {
+                if (!cell) {
                     return;
                 }
 
@@ -79,8 +79,7 @@ export const SudokuBoard: React.FC<BoardProps> = ({
 
                 const showNotes =
                     notesEnabled &&
-                    ((value.isOriginal === false && !value.notes.isEmpty()) ||
-                        selectedBoardIndex === boardIndex);
+                    (cell.hasNotes() || selectedBoardIndex === boardIndex);
 
                 const isWrong =
                     selectedIndices?.boardIndex === boardIndex &&
@@ -89,7 +88,7 @@ export const SudokuBoard: React.FC<BoardProps> = ({
                 return (
                     <SudokuSquare
                         key={`$square-${rowIndex}-${columnIndex}`}
-                        value={value}
+                        cell={cell}
                         indexSet={indexSet}
                         selectedIndices={selectedIndices}
                         showNotes={showNotes}

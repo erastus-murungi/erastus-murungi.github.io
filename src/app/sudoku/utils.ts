@@ -1,13 +1,6 @@
 import { List, Set } from 'immutable';
 import { getSudoku } from 'sudoku-gen';
-import type {
-    Difficulty,
-    Cell,
-    ReducerState,
-    ExtractFromUnion,
-    HistoryState,
-    SudokuHistory,
-} from './types';
+import type { Difficulty, ReducerState, HistoryState } from './types';
 
 export const HINT_COUNT: Record<Difficulty, number> = {
     easy: 0,
@@ -55,6 +48,132 @@ export const calculateScore = (
         Math.pow(Math.E, 1 - timePenaltyExponent * totalSeconds)
     ).toFixed(0);
 };
+
+export class Cell {
+    private constructor(
+        private readonly _value:
+            | number
+            | { current: number | undefined; answer: number },
+        private notes?: Set<number>
+    ) {}
+
+    get isOriginal() {
+        return typeof this._value === 'number';
+    }
+
+    public static createOriginal(value: number) {
+        return new Cell(value);
+    }
+
+    public static createEditable(answer: number) {
+        return new Cell({ current: undefined, answer }, Set());
+    }
+
+    public setCurrentValue(current: number) {
+        return typeof this._value === 'number'
+            ? this
+            : new Cell({ current, answer: this._value.answer }, this.notes);
+    }
+
+    public clearCurrentValue() {
+        return typeof this._value === 'number'
+            ? this
+            : new Cell(
+                  { current: undefined, answer: this._value.answer },
+                  this.notes
+              );
+    }
+
+    get isUnfilled() {
+        return (
+            typeof this._value !== 'number' && this._value.current === undefined
+        );
+    }
+
+    get isUserSolved() {
+        return (
+            typeof this._value !== 'number' &&
+            this._value.current === this._value.answer
+        );
+    }
+
+    get isSolved() {
+        return (
+            typeof this._value === 'number' ||
+            (typeof this._value !== 'number' &&
+                this._value.current === this._value.answer)
+        );
+    }
+
+    public setToAnswer() {
+        return typeof this._value === 'number'
+            ? this
+            : new Cell(
+                  {
+                      current: this._value.answer,
+                      answer: this._value.answer,
+                  },
+                  this.notes
+              );
+    }
+
+    get value() {
+        return typeof this._value === 'number'
+            ? this._value
+            : this._value.current;
+    }
+
+    get editableAnswer() {
+        return typeof this._value === 'number' ? undefined : this._value.answer;
+    }
+
+    get answer() {
+        return typeof this._value === 'number'
+            ? this._value
+            : this._value.answer;
+    }
+
+    public hasNoteValue(note: number) {
+        return this.notes?.has(note) ?? false;
+    }
+
+    public setNoteValue(note: number) {
+        if (this.isOriginal) {
+            return this;
+        }
+        if (this.notes?.isEmpty()) {
+            throw new Error('Internal Error: Notes are empty');
+        }
+        return new Cell(this._value, this.notes?.add(note));
+    }
+
+    public clearNoteValue(note: number) {
+        if (this.isOriginal) {
+            return this;
+        }
+        if (this.notes?.isEmpty()) {
+            throw new Error('Internal Error: Notes are empty');
+        }
+        return new Cell(this._value, this.notes?.delete(note));
+    }
+
+    public toggleNoteValue(note: number) {
+        if (this.isOriginal) {
+            return this;
+        }
+        return this.hasNoteValue(note)
+            ? this.clearNoteValue(note)
+            : this.setNoteValue(note);
+    }
+
+    public hasNotes() {
+        return !this.lackNotes();
+    }
+
+    public lackNotes() {
+        return this.notes?.isEmpty() ?? true;
+    }
+}
 
 export class IndexSet {
     constructor(
@@ -105,22 +224,10 @@ export class Board {
             List(
                 [...sudoku.puzzle].map((value, index) =>
                     value === '-'
-                        ? ({
-                              isOriginal: false as const,
-                              value: {
-                                  current: undefined,
-                                  answer: Number.parseInt(
-                                      sudoku.solution[index],
-                                      10
-                                  ),
-                              },
-                              isSelectedBoardIndex: false,
-                              notes: Set<number>(),
-                          } as const)
-                        : {
-                              isOriginal: true as const,
-                              value: Number.parseInt(value, 10),
-                          }
+                        ? Cell.createEditable(
+                              Number.parseInt(sudoku.solution[index], 10)
+                          )
+                        : Cell.createOriginal(Number.parseInt(value, 10))
                 )
             )
         );
@@ -135,35 +242,11 @@ export class Board {
     }
 
     public reset() {
-        return new Board(
-            this.cells.map((cell) =>
-                cell.isOriginal
-                    ? cell
-                    : {
-                          ...cell,
-                          value: {
-                              current: undefined,
-                              answer: cell.value.answer,
-                          },
-                      }
-            )
-        );
+        return new Board(this.cells.map((cell) => cell.clearCurrentValue()));
     }
 
     public setAllAnswers() {
-        return new Board(
-            this.cells.map((cell) =>
-                cell.isOriginal
-                    ? cell
-                    : {
-                          ...cell,
-                          value: {
-                              current: cell.value.answer,
-                              answer: cell.value.answer,
-                          },
-                      }
-            )
-        );
+        return new Board(this.cells.map((cell) => cell.setToAnswer()));
     }
 
     get(accessor: IndexSet | number): Cell | undefined {
@@ -185,25 +268,19 @@ export class Board {
     }
 
     setCurrentValue(accessor: IndexSet | number, current: number): Board {
-        const value = this.get(accessor);
-        if (value === undefined || value.isOriginal) {
+        const cell = this.get(accessor);
+        if (cell === undefined || cell.isOriginal) {
             return this;
         }
-        return this.set(accessor, {
-            ...value,
-            value: { ...value.value, current },
-        });
+        return this.set(accessor, cell.setCurrentValue(current));
     }
 
     clearCurrentValue(accessor: IndexSet | number): Board {
-        const value = this.get(accessor);
-        if (value === undefined || value.isOriginal) {
+        const cell = this.get(accessor);
+        if (cell === undefined || cell.isOriginal) {
             return this;
         }
-        return this.set(accessor, {
-            ...value,
-            value: { ...value.value, current: undefined },
-        });
+        return this.set(accessor, cell.clearCurrentValue());
     }
 
     toggleNoteValue(accessor: IndexSet | number, note: number): Board {
@@ -211,29 +288,14 @@ export class Board {
         if (cell === undefined || cell.isOriginal) {
             return this;
         }
-        return this.set(accessor, {
-            ...cell,
-            notes: cell.notes.has(note)
-                ? cell.notes.delete(note)
-                : cell.notes.add(note),
-        });
-    }
-
-    private isUnfilledCell(
-        cell: Cell | undefined
-    ): cell is ExtractFromUnion<Cell, { isOriginal: false }> {
-        return !!(
-            cell &&
-            cell.isOriginal === false &&
-            cell.value.current === undefined
-        );
+        return this.set(accessor, cell.toggleNoteValue(note));
     }
 
     private getHintIndex() {
         const hintIndex = Math.floor(Math.random() * 81);
         const cell = this.cells.get(hintIndex);
-        if (this.isUnfilledCell(cell)) {
-            return { hintIndex, value: cell.value.answer };
+        if (cell?.editableAnswer) {
+            return { hintIndex, value: cell.editableAnswer };
         }
     }
 
@@ -259,11 +321,7 @@ export class Board {
     generateHints(count: number) {
         let numHints = Math.min(
             count,
-            81 -
-                this.cells.count(
-                    (cell) =>
-                        cell.isOriginal || cell.value.current !== undefined
-                )
+            81 - this.cells.count((cell) => cell.isUnfilled)
         );
         let numIters = 0;
         const hints: { value: number; hintIndex: number }[] = [];
@@ -346,10 +404,7 @@ export class Board {
     }
 
     get isSolved() {
-        return this.cells.every(
-            (cell) =>
-                cell.isOriginal || cell.value.current === cell.value.answer
-        );
+        return this.cells.every((cell) => cell.isSolved);
     }
 
     get grid(): List<List<Cell>> {
@@ -369,9 +424,7 @@ export const createIndexSet = ({
     rowIndex: number;
 }) => new IndexSet(columnIndex, rowIndex);
 
-export class SudokuHistoryImpl
-    implements Iterable<HistoryState>, SudokuHistory
-{
+export class SudokuHistory implements Iterable<HistoryState> {
     private history: List<HistoryState> = List();
     private currentIndex = -1;
 
@@ -433,4 +486,4 @@ export class SudokuHistoryImpl
     }
 }
 
-export const createHistory = (): SudokuHistory => new SudokuHistoryImpl();
+export const createHistory = () => new SudokuHistory();

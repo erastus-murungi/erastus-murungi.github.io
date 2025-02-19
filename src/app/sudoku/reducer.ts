@@ -148,27 +148,27 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             };
         }
         case 'SET_VALUE': {
-            const { selectedIndices: selectedIndexSet, board } = state;
-            if (selectedIndexSet === undefined) {
+            const { selectedIndices, board } = state;
+            if (selectedIndices === undefined) {
                 return state;
             }
             const { value } = action;
 
-            const selectedValue = board.get(selectedIndexSet);
-            if (!selectedValue || selectedValue.isOriginal) {
+            const selectedCell = board.get(selectedIndices);
+            if (!selectedCell || selectedCell.isOriginal) {
                 return state;
             }
 
-            if (selectedValue.value.current === value) {
+            if (selectedCell.value === value) {
                 return {
                     ...state,
                     conflictingIndices: Set(),
                     hintIndex: undefined,
-                    board: board.clearCurrentValue(selectedIndexSet),
+                    board: board.clearCurrentValue(selectedIndices),
                 };
             }
             const { conflictBoardIndices, updatedBoard } =
-                state.board.setAndValidate(selectedIndexSet, value);
+                state.board.setAndValidate(selectedIndices, value);
 
             return {
                 ...state,

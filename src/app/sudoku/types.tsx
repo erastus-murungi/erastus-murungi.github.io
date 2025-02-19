@@ -1,6 +1,8 @@
 import type { List, Set } from 'immutable';
 import type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
-import type { Board, IndexSet } from './utils';
+import type { Board, IndexSet, Cell, SudokuHistory } from './utils';
+
+export type { Cell, IndexSet, Board, SudokuHistory } from './utils';
 
 export type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
 
@@ -44,26 +46,6 @@ export type ButtonAction =
 type ButtonNumericValue = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export type ButtonInputValue = ButtonNumericValue | ButtonAction;
-
-/**
- * The value of a square on the board
- * - If `isOriginal` is true, then the value is the original value of the board
- * - If `isOriginal` is false, then the value is the current value of the board
- */
-export type Cell =
-    | {
-          isOriginal: true;
-          value: number;
-      }
-    | {
-          isOriginal: false;
-          value: {
-              current: number | undefined;
-              answer: number;
-          };
-          isSelectedBoardIndex: boolean;
-          notes: Set<number>;
-      };
 
 export type SudokuBoardRow = List<Cell>;
 
@@ -109,16 +91,4 @@ export interface RefState {
     elapsedSeconds: number;
     history: SudokuHistory;
     intervalRef: Maybe<NodeJS.Timeout>;
-}
-
-export interface SudokuHistory {
-    get current(): HistoryState | undefined;
-    get length(): number;
-    push(state: HistoryState): void;
-    undo(): HistoryState | undefined;
-    redo(): HistoryState | undefined;
-    get canUndo(): boolean;
-    get canRedo(): boolean;
-    get last(): HistoryState | undefined;
-    [Symbol.iterator](): IterableIterator<HistoryState>;
 }
