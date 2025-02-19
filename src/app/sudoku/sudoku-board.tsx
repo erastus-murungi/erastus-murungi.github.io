@@ -50,7 +50,7 @@ type BoardProps = Prettify<
         | 'conflictingIndices'
         | 'hintIndex'
         | 'notesEnabled'
-        | 'selectedIndexSet'
+        | 'selectedIndex'
         | 'autoCheckEnabled'
     > &
         Pick<SudokuSquareProps, 'setSelectedIndexSet'> & {
@@ -63,7 +63,7 @@ export const SudokuBoard: React.FC<BoardProps> = ({
     conflictingIndices,
     hintIndex,
     notesEnabled,
-    selectedIndexSet,
+    selectedIndex,
     setSelectedIndexSet,
     onNoteClick,
     autoCheckEnabled,
@@ -82,18 +82,17 @@ export const SudokuBoard: React.FC<BoardProps> = ({
 
                 const showNotes =
                     notesEnabled &&
-                    (cell.hasNotes() || selectedIndexSet === indexSet);
+                    (cell.hasNotes() || selectedIndex === indexSet);
 
                 const isWrong =
-                    selectedIndexSet === indexSet &&
-                    !conflictingIndices.isEmpty();
+                    selectedIndex === indexSet && !conflictingIndices.isEmpty();
 
                 return (
                     <SudokuSquare
                         key={`$square-${rowIndex}-${columnIndex}`}
                         cell={cell}
                         indexSet={indexSet}
-                        selectedIndices={selectedIndexSet}
+                        selectedIndices={selectedIndex}
                         showNotes={showNotes}
                         setSelectedIndexSet={(values) =>
                             setSelectedIndexSet(values)
@@ -110,7 +109,7 @@ export const SudokuBoard: React.FC<BoardProps> = ({
             conflictingIndices,
             hintIndex,
             notesEnabled,
-            selectedIndexSet,
+            selectedIndex,
             board,
             setSelectedIndexSet,
             onNoteClick,

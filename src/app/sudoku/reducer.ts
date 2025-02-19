@@ -1,7 +1,7 @@
 import { List, Set } from 'immutable';
 import { toast } from 'sonner';
 
-import { calculateScore, createHistory, HINT_COUNT } from './utils';
+import { calculateScore, HINT_COUNT } from './utils';
 
 import type {
     ReducerState,
@@ -18,6 +18,7 @@ import {
     createBoardFromDifficulty,
     createEmptyBoard,
 } from './models/sudoku-board';
+import { createHistory } from './models/sudoku-history';
 
 const HINT_MESSAGES = [
     'No more hints available for Bebi Bebi 🐧. Nisuke nikuongezee 😉',
@@ -110,7 +111,7 @@ export function updateRefs(
         case 'TO_STATE': {
             refState.current.history.push({
                 board: state.board,
-                selectedIndexSet: state.selectedIndexSet,
+                selectedIndex: state.selectedIndex,
                 conflictingIndices: state.conflictingIndices,
                 hintIndex: state.hintIndex,
                 notesEnabled: state.notesEnabled,
@@ -135,10 +136,8 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
 
     switch (action.type) {
         case 'SET_NOTE': {
-            const {
-                selectedIndexSet: selectedIndexSet,
-                notesEnabled: notesOn,
-            } = state;
+            const { selectedIndex: selectedIndexSet, notesEnabled: notesOn } =
+                state;
 
             if (!notesOn) {
                 throw new Error('Notes are not enabled');
@@ -153,7 +152,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             };
         }
         case 'SET_VALUE': {
-            const { selectedIndexSet, board } = state;
+            const { selectedIndex: selectedIndexSet, board } = state;
             if (selectedIndexSet === undefined) {
                 return state;
             }
@@ -190,7 +189,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             };
         }
         case 'DELETE_VALUE': {
-            const { board, selectedIndexSet: selectedIndexSet } = state;
+            const { board, selectedIndex: selectedIndexSet } = state;
             if (selectedIndexSet === undefined) {
                 return state;
             }
@@ -260,7 +259,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             return {
                 ...state,
                 hintIndex: undefined,
-                selectedIndexSet: selectedIndexSet,
+                selectedIndex: selectedIndexSet,
             };
         }
         case 'HINT': {
@@ -327,7 +326,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
 
 export const INITIAL_STATE: ReducerState = {
     board: createEmptyBoard(),
-    selectedIndexSet: undefined,
+    selectedIndex: undefined,
     gameDifficulty: 'easy',
     conflictingIndices: Set(),
     hintIndex: undefined,

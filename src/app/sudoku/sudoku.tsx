@@ -13,7 +13,7 @@ import { SudokuStats } from './sudoku-stats';
 import { Label } from '@/components/ui/label';
 import { SudokuGamePausedOverlay, SudokuOverlay } from './sudoku-overlay';
 import { RefState, type ButtonInputValue } from './types';
-import { createHistory } from './utils';
+import { createHistory } from './models/sudoku-history';
 
 const SCORE_REFRESH_INTERVAL_MS = 10_000;
 
@@ -64,7 +64,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                         break;
                     }
                     case 'ArrowUp': {
-                        const selectedIndexSet = state.selectedIndexSet?.up;
+                        const selectedIndexSet = state.selectedIndex?.up;
                         if (selectedIndexSet) {
                             dispatch({
                                 type: 'SET_INDICES',
@@ -74,7 +74,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                         break;
                     }
                     case 'ArrowDown': {
-                        const selectedIndexSet = state.selectedIndexSet?.down;
+                        const selectedIndexSet = state.selectedIndex?.down;
                         if (selectedIndexSet) {
                             dispatch({
                                 type: 'SET_INDICES',
@@ -84,7 +84,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                         break;
                     }
                     case 'ArrowLeft': {
-                        const selectedIndexSet = state.selectedIndexSet?.left;
+                        const selectedIndexSet = state.selectedIndex?.left;
                         if (selectedIndexSet) {
                             dispatch({
                                 type: 'SET_INDICES',
@@ -94,7 +94,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                         break;
                     }
                     case 'ArrowRight': {
-                        const selectedIndexSet = state.selectedIndexSet?.right;
+                        const selectedIndexSet = state.selectedIndex?.right;
                         if (selectedIndexSet) {
                             dispatch({
                                 type: 'SET_INDICES',
@@ -293,9 +293,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                                             state.conflictingIndices
                                         }
                                         board={state.board}
-                                        selectedIndexSet={
-                                            state.selectedIndexSet
-                                        }
+                                        selectedIndex={state.selectedIndex}
                                         setSelectedIndexSet={(indexSet) =>
                                             dispatch({
                                                 type: 'SET_INDICES',

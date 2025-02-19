@@ -1,15 +1,12 @@
-import type { List, Set } from 'immutable';
+import type { List } from 'immutable';
 import type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
-import type { SudokuHistory } from './utils';
-import type { SudokuIndex } from './models/sudoku-index';
+import type { SudokuHistory, HistoryState } from './models/sudoku-history';
 import type { SudokuCell } from './models/sudoku-cell';
-import type { Board } from './models/sudoku-board';
 
 export type { SudokuIndex } from './models/sudoku-index';
 export type { SudokuCell } from './models/sudoku-cell';
 export type { Board } from './models/sudoku-board';
-
-export type { SudokuHistory } from './utils';
+export type { SudokuHistory, HistoryState } from './models/sudoku-history';
 
 export type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
 
@@ -46,32 +43,6 @@ type ButtonNumericValue = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 export type ButtonInputValue = ButtonNumericValue | ButtonAction;
 
 export type SudokuBoardRow = List<SudokuCell>;
-
-/**
- * The state of the history
- */
-export interface HistoryState {
-    /**
-     * The board at the current state
-     */
-    board: Board;
-    /**
-     * The selected index set, if any
-     */
-    selectedIndexSet?: SudokuIndex;
-    /**
-     * The indices of the board that are in conflict
-     */
-    conflictingIndices: Set<number>;
-    /**
-     * The index of the hint, if any
-     */
-    hintIndex?: number;
-    /**
-     * Whether notes are enabled
-     */
-    notesEnabled: boolean;
-}
 
 export interface ReducerState extends HistoryState {
     stopwatchCommand: StopwatchCommand;
