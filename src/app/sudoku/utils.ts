@@ -1,6 +1,13 @@
 import { List, Set } from 'immutable';
 import { getSudoku } from 'sudoku-gen';
-import type { Difficulty, Cell, ReducerState, ExtractFromUnion } from './types';
+import type {
+    Difficulty,
+    Cell,
+    ReducerState,
+    ExtractFromUnion,
+    HistoryState,
+    SudokuHistory,
+} from './types';
 
 export const HINT_COUNT: Record<Difficulty, number> = {
     easy: 0,
@@ -36,7 +43,8 @@ export const calculateScore = (
     totalSeconds: number,
     multipliers: typeof MUTLIPLIERS = MUTLIPLIERS
 ): string => {
-    const { difficulty, hintCount } = reducerState;
+    const { gameDifficulty: difficulty, hintUsageCount: hintCount } =
+        reducerState;
     const { hintMultiplier, timePenaltyExponent, basePointsMap } = multipliers;
     const basePoints = basePointsMap[difficulty];
     const hintsPenalty = hintMultiplier * hintCount;
@@ -360,3 +368,69 @@ export const createIndexSet = ({
     columnIndex: number;
     rowIndex: number;
 }) => new IndexSet(columnIndex, rowIndex);
+
+export class SudokuHistoryImpl
+    implements Iterable<HistoryState>, SudokuHistory
+{
+    private history: List<HistoryState> = List();
+    private currentIndex = -1;
+
+    get current() {
+        return this.history.get(this.currentIndex);
+    }
+
+    get length() {
+        return this.history.size;
+    }
+
+    get isAtEnd() {
+        return this.currentIndex === this.history.size - 1;
+    }
+
+    get isAtStart() {
+        return this.currentIndex === 0;
+    }
+
+    get canUndo() {
+        return this.currentIndex >= 0;
+    }
+
+    get canRedo() {
+        return this.currentIndex <= this.history.size - 1;
+    }
+
+    get last() {
+        return this.history.last();
+    }
+
+    get first() {
+        return this.history.first();
+    }
+
+    push(state: HistoryState) {
+        this.history = this.history.push(state);
+        this.currentIndex = this.history.size - 1;
+    }
+
+    undo() {
+        if (this.canUndo) {
+            const state = this.history.get(this.currentIndex);
+            this.currentIndex--;
+            return state;
+        }
+    }
+
+    redo() {
+        if (this.canRedo) {
+            const state = this.history.get(this.currentIndex);
+            this.currentIndex++;
+            return state;
+        }
+    }
+
+    [Symbol.iterator]() {
+        return this.history[Symbol.iterator]();
+    }
+}
+
+export const createHistory = (): SudokuHistory => new SudokuHistoryImpl();

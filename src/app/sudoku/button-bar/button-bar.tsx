@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/tooltip';
 import styled from '@emotion/styled';
 import { NewGameButton } from '../new-game-button';
-import type { ActionButton, ButtonValue } from '../types';
+import type { ButtonAction, ButtonInputValue } from '../types';
 
 const StyledButtonBar = styled.div`
     display: grid;
@@ -39,7 +39,7 @@ const StyledButtonBar = styled.div`
 `;
 
 const NumberPad: React.FC<{
-    onClick: (value: ButtonValue) => void;
+    onClick: (value: ButtonInputValue) => void;
 }> = ({ onClick }) => {
     return (
         <div>
@@ -49,7 +49,7 @@ const NumberPad: React.FC<{
                         key={`numberpad-key-${value + 1}`}
                         className="hover h-12 w-10 text-3xl hover:scale-110 hover:border-2 hover:border-black hover:shadow-lg sm:h-16 sm:w-16"
                         variant="secondary"
-                        onClick={() => onClick((value + 1) as ButtonValue)}
+                        onClick={() => onClick((value + 1) as ButtonInputValue)}
                     >
                         {value + 1}
                     </Button>
@@ -84,7 +84,7 @@ export const PauseGameSudokuOverlay: React.FC<{ resumeGame: () => void }> = ({
 };
 
 const ActionButtons: React.FC<{
-    onClick: (value: ActionButton) => void;
+    onClick: (value: ButtonAction) => void;
     hintsRemaining: number;
     notesOn: boolean;
 }> = React.memo(({ onClick, hintsRemaining = 0, notesOn }) => {
@@ -221,7 +221,7 @@ const ActionButtons: React.FC<{
 ActionButtons.displayName = 'ActionButtons';
 
 export interface ButtonBarProps {
-    onClick: (value: ButtonValue) => void;
+    onClick: (value: ButtonInputValue) => void;
     hintsRemaining: number;
     notesOn: boolean;
 }

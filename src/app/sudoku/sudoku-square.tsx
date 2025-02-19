@@ -5,7 +5,7 @@ import type { Cell } from './types';
 import type { IndexSet } from './utils';
 
 export interface SudokuSquareProps {
-    selectedIndexSet?: IndexSet;
+    selectedIndices?: IndexSet;
     indexSet: IndexSet;
     value: Cell;
     setSelectedIndexSet: (indexSet: IndexSet) => void;
@@ -119,7 +119,7 @@ const OuterContainer = styled.div`
 `;
 
 export const SudokuSquare: React.FC<SudokuSquareProps> = ({
-    selectedIndexSet,
+    selectedIndices,
     indexSet,
     value,
     setSelectedIndexSet,
@@ -135,7 +135,7 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
         columnIndex: selectedColumnIndex,
         rowIndex: selectedRowIndex,
         boardIndex: selectedBoardIndex,
-    } = selectedIndexSet || {};
+    } = selectedIndices || {};
 
     return (
         <OuterContainer
@@ -153,7 +153,7 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
             }}
         >
             <SudokuCell
-                value={value}
+                cell={value}
                 autoCheckEnabled={autoCheckEnabled}
                 onNoteClick={(note) => onNoteClick(note)}
                 showNotes={showNotes}
@@ -307,7 +307,7 @@ const Note = styled.div<{ isSelected: boolean }>`
 `;
 
 type SudokuCellProps = {
-    value: Cell;
+    cell: Cell;
     showNotes: boolean;
     onNoteClick: (note: number) => void;
     autoCheckEnabled: boolean;
@@ -315,14 +315,14 @@ type SudokuCellProps = {
 };
 
 const SudokuCell: React.FC<SudokuCellProps> = ({
-    value,
+    cell,
     showNotes,
     onNoteClick,
     autoCheckEnabled,
     isWrong = false,
 }) => {
-    const valueValidationState = value
-        ? computeValueValidationState(autoCheckEnabled, value)
+    const valueValidationState = cell
+        ? computeValueValidationState(autoCheckEnabled, cell)
         : ValueValidationState.UNKWOWN;
 
     return (
@@ -331,7 +331,7 @@ const SudokuCell: React.FC<SudokuCellProps> = ({
                 <NotesGrid>
                     {Array.from({ length: 9 }, (_x, i) => i + 1).map((note) => {
                         const isSelected =
-                            !value.isOriginal && value.notes.includes(note);
+                            !cell.isOriginal && cell.notes.includes(note);
                         return (
                             <Note
                                 className="flex items-center justify-center"
@@ -346,13 +346,13 @@ const SudokuCell: React.FC<SudokuCellProps> = ({
                 </NotesGrid>
             ) : (
                 <>
-                    {value.isOriginal ? (
-                        <OriginalNumber>{value.value}</OriginalNumber>
+                    {cell.isOriginal ? (
+                        <OriginalNumber>{cell.value}</OriginalNumber>
                     ) : (
                         <CurrentEntry
                             valueValidationState={valueValidationState}
                         >
-                            {isWrong ? undefined : value.value.current}
+                            {isWrong ? undefined : cell.value.current}
                         </CurrentEntry>
                     )}
                 </>

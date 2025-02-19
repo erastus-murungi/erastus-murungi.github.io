@@ -9,6 +9,9 @@ export type Prettify<T> = {
     [K in keyof T]: T[K];
 } & {};
 
+/**
+ * Extract one part of a discriminated union
+ */
 export type ExtractFromUnion<T, U> = T extends T
     ? U extends Partial<T>
         ? T
@@ -18,7 +21,7 @@ export type ExtractFromUnion<T, U> = T extends T
 /**
  * The action that the stopwatch should take
  */
-export type StopWatchAction =
+export type StopwatchCommand =
     /** The stopwatch should start */
     | 'start'
     /** The stopwatch should pause */
@@ -29,7 +32,7 @@ export type StopWatchAction =
 /**
  * The type of the action that can be taken on a button
  */
-export type ActionButton =
+export type ButtonAction =
     | 'submit'
     | 'undo'
     | 'hint'
@@ -38,7 +41,9 @@ export type ActionButton =
     | 'togge-auto-check'
     | { type: 'change-difficulty'; to: Difficulty };
 
-export type ButtonValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | ActionButton;
+type ButtonNumericValue = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
+export type ButtonInputValue = ButtonNumericValue | ButtonAction;
 
 /**
  * The value of a square on the board
@@ -71,23 +76,49 @@ export interface HistoryState {
      */
     board: Board;
     /**
-     * The selected index set
+     * The selected index set, if any
      */
-    selectedIndexSet?: IndexSet;
-    conflictBoardIndices: Set<number>;
-    difficulty: Difficulty;
+    selectedIndices?: IndexSet;
+    /**
+     * The indices of the board that are in conflict
+     */
+    conflictingIndices: Set<number>;
+    /**
+     * The index of the hint, if any
+     */
     hintIndex?: number;
-    notesOn: boolean;
+    /**
+     * Whether notes are enabled
+     */
+    notesEnabled: boolean;
 }
 
 export interface ReducerState extends HistoryState {
-    history: List<HistoryState>;
-    stopWatchAction: StopWatchAction;
-    hintCount: number;
-    isSolved: boolean;
-    numMoves: number;
-    numMistakes: number;
-    score: string;
+    stopwatchCommand: StopwatchCommand;
+    hintUsageCount: number;
+    isSudokuSolved: boolean;
+    moveCount: number;
+    mistakeCount: number;
+    playerScore: string;
     autoCheckEnabled: boolean;
-    showOverlay: boolean;
+    overlayVisible: boolean;
+    gameDifficulty: Difficulty;
+}
+
+export interface RefState {
+    elapsedSeconds: number;
+    history: SudokuHistory;
+    intervalRef: Maybe<NodeJS.Timeout>;
+}
+
+export interface SudokuHistory {
+    get current(): HistoryState | undefined;
+    get length(): number;
+    push(state: HistoryState): void;
+    undo(): HistoryState | undefined;
+    redo(): HistoryState | undefined;
+    get canUndo(): boolean;
+    get canRedo(): boolean;
+    get last(): HistoryState | undefined;
+    [Symbol.iterator](): IterableIterator<HistoryState>;
 }

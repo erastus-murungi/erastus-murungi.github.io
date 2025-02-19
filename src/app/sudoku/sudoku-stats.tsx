@@ -19,7 +19,11 @@ const SudokuStat: React.FC<{ label: string; value: number | string }> = ({
 );
 
 export const SudokuStats: React.FC<ReducerState> = (state: ReducerState) => {
-    const { numMoves, numMistakes, score } = state;
+    const {
+        moveCount: numMoves,
+        mistakeCount: numMistakes,
+        playerScore: score,
+    } = state;
     return (
         <div className="space-between bg-accent mb-2 flex h-8 w-full flex-row items-center justify-center rounded-sm border-4 p-1">
             <SudokuStat label="# Moves" value={numMoves} />

@@ -42,10 +42,10 @@ type BoardProps = Prettify<
     Pick<
         ReducerState,
         | 'board'
-        | 'conflictBoardIndices'
+        | 'conflictingIndices'
         | 'hintIndex'
-        | 'notesOn'
-        | 'selectedIndexSet'
+        | 'notesEnabled'
+        | 'selectedIndices'
         | 'autoCheckEnabled'
     > &
         Pick<SudokuSquareProps, 'setSelectedIndexSet'> & {
@@ -55,15 +55,15 @@ type BoardProps = Prettify<
 
 export const SudokuBoard: React.FC<BoardProps> = ({
     board,
-    conflictBoardIndices,
+    conflictingIndices,
     hintIndex,
-    notesOn,
-    selectedIndexSet,
+    notesEnabled,
+    selectedIndices,
     setSelectedIndexSet,
     onNoteClick,
     autoCheckEnabled,
 }) => {
-    const selectedBoardIndex = selectedIndexSet?.boardIndex;
+    const selectedBoardIndex = selectedIndices?.boardIndex;
 
     const buildRow = React.useCallback(
         (rowIndex: number) =>
@@ -78,26 +78,26 @@ export const SudokuBoard: React.FC<BoardProps> = ({
                 const boardIndex = indexSet.boardIndex;
 
                 const showNotes =
-                    notesOn &&
+                    notesEnabled &&
                     ((value.isOriginal === false && !value.notes.isEmpty()) ||
                         selectedBoardIndex === boardIndex);
 
                 const isWrong =
-                    selectedIndexSet?.boardIndex === boardIndex &&
-                    !conflictBoardIndices.isEmpty();
+                    selectedIndices?.boardIndex === boardIndex &&
+                    !conflictingIndices.isEmpty();
 
                 return (
                     <SudokuSquare
                         key={`$square-${rowIndex}-${columnIndex}`}
                         value={value}
                         indexSet={indexSet}
-                        selectedIndexSet={selectedIndexSet}
+                        selectedIndices={selectedIndices}
                         showNotes={showNotes}
                         setSelectedIndexSet={(values) =>
                             setSelectedIndexSet(values)
                         }
                         onNoteClick={(note) => onNoteClick(note)}
-                        isConflictSquare={conflictBoardIndices.has(boardIndex)}
+                        isConflictSquare={conflictingIndices.has(boardIndex)}
                         isHint={hintIndex === boardIndex}
                         isWrong={isWrong}
                         autoCheckEnabled={autoCheckEnabled}
@@ -105,10 +105,10 @@ export const SudokuBoard: React.FC<BoardProps> = ({
                 );
             },
         [
-            conflictBoardIndices,
+            conflictingIndices,
             hintIndex,
-            notesOn,
-            selectedIndexSet,
+            notesEnabled,
+            selectedIndices,
             selectedBoardIndex,
             board,
             setSelectedIndexSet,

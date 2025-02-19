@@ -1,12 +1,19 @@
 import { List, Set } from 'immutable';
 import { toast } from 'sonner';
-import { HINT_COUNT, calculateScore, Board, type IndexSet } from './utils';
+import {
+    HINT_COUNT,
+    calculateScore,
+    Board,
+    type IndexSet,
+    createHistory,
+} from './utils';
 import type {
     ReducerState,
-    HistoryState,
-    StopWatchAction,
+    StopwatchCommand,
     Difficulty,
     Cell,
+    RefState,
+    HistoryState,
 } from './types';
 
 const HINT_MESSAGES = [
@@ -35,7 +42,8 @@ type Action =
           type: 'DELETE_VALUE';
       }
     | {
-          type: 'UNDO';
+          type: 'TO_STATE';
+          historyState: HistoryState;
       }
     | {
           type: 'RESET_CURRENT_BOARD';
@@ -46,7 +54,7 @@ type Action =
       }
     | {
           type: 'SET_WATCH_ACTION';
-          stopWatchAction: StopWatchAction;
+          stopWatchAction: StopwatchCommand;
       }
     | {
           type: 'TOGGLE_NOTES';
@@ -88,13 +96,44 @@ type Action =
           type: 'TOGGLE_SHOW_OVERLAY';
       };
 
+export function updateRefs(
+    action: Action,
+    refState: React.RefObject<RefState>,
+    state: ReducerState
+): void {
+    switch (action.type) {
+        case 'SET_VALUE':
+        case 'DELETE_VALUE':
+        case 'TO_STATE': {
+            refState.current.history.push({
+                board: state.board,
+                selectedIndices: state.selectedIndices,
+                conflictingIndices: state.conflictingIndices,
+                hintIndex: state.hintIndex,
+                notesEnabled: state.notesEnabled,
+            });
+            break;
+        }
+        case 'RESET':
+        case 'RESET_CURRENT_BOARD': {
+            refState.current = {
+                elapsedSeconds: 0,
+                history: createHistory(),
+                intervalRef: undefined,
+            };
+            break;
+        }
+    }
+}
+
 export function reducer(state: ReducerState, action: Action): ReducerState {
     // eslint-disable-next-line no-console
-    console.log('Action', action.type);
+    console.log('Action', action);
 
     switch (action.type) {
         case 'SET_NOTE': {
-            const { selectedIndexSet, notesOn } = state;
+            const { selectedIndices: selectedIndexSet, notesEnabled: notesOn } =
+                state;
 
             if (!notesOn) {
                 throw new Error('Notes are not enabled');
@@ -109,7 +148,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             };
         }
         case 'SET_VALUE': {
-            const { selectedIndexSet, board } = state;
+            const { selectedIndices: selectedIndexSet, board } = state;
             if (selectedIndexSet === undefined) {
                 return state;
             }
@@ -123,7 +162,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             if (selectedValue.value.current === value) {
                 return {
                     ...state,
-                    conflictBoardIndices: Set(),
+                    conflictingIndices: Set(),
                     hintIndex: undefined,
                     board: board.clearCurrentValue(selectedIndexSet),
                 };
@@ -134,27 +173,19 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             return {
                 ...state,
                 hintIndex: undefined,
-                numMoves: state.numMoves + 1,
-                isSolved: updatedBoard.isSolved,
-                history: state.history.push({
-                    board,
-                    selectedIndexSet: state.selectedIndexSet,
-                    difficulty: state.difficulty,
-                    conflictBoardIndices: state.conflictBoardIndices,
-                    hintIndex: state.hintIndex,
-                    notesOn: state.notesOn,
-                }),
+                moveCount: state.moveCount + 1,
+                isSudokuSolved: updatedBoard.isSolved,
                 board: updatedBoard,
                 ...(conflictBoardIndices && conflictBoardIndices.size > 0
                     ? {
-                          conflictBoardIndices,
-                          numMistakes: state.numMistakes + 1,
+                          conflictingIndices: conflictBoardIndices,
+                          mistakeCount: state.mistakeCount + 1,
                       }
                     : {}),
             };
         }
         case 'DELETE_VALUE': {
-            const { board, selectedIndexSet } = state;
+            const { board, selectedIndices: selectedIndexSet } = state;
             if (selectedIndexSet === undefined) {
                 return state;
             }
@@ -165,52 +196,43 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             }
             return {
                 ...state,
-                conflictBoardIndices: Set(),
+                conflictingIndices: Set(),
                 hintIndex: undefined,
                 board: board.clearCurrentValue(selectedIndexSet),
             };
         }
-        case 'UNDO': {
-            const lastState = state.history.last();
-            if (lastState) {
-                return {
-                    ...state,
-                    hintIndex: undefined,
-                    board: lastState.board,
-                    selectedIndexSet: lastState.selectedIndexSet,
-                    difficulty: lastState.difficulty,
-                    conflictBoardIndices: lastState.conflictBoardIndices,
-                    notesOn: lastState.notesOn,
-                    history: state.history.pop(),
-                };
-            }
-            return state;
+        case 'TO_STATE': {
+            const { historyState } = action;
+            return {
+                ...state,
+                ...historyState,
+            };
         }
         case 'SET_WATCH_ACTION': {
             const { stopWatchAction } = action;
-            return { ...state, stopWatchAction };
+            return { ...state, stopwatchCommand: stopWatchAction };
         }
         case 'SUBMIT': {
             return {
                 ...state,
                 board: state.board.setAllAnswers(),
-                isSolved: true,
+                isSudokuSolved: true,
                 hintIndex: undefined,
-                stopWatchAction: 'pause',
-                conflictBoardIndices: Set(),
+                stopwatchCommand: 'pause',
+                conflictingIndices: Set(),
             };
         }
         case 'TOGGLE_NOTES': {
             return {
                 ...state,
-                notesOn: !state.notesOn,
+                notesEnabled: !state.notesEnabled,
                 hintIndex: undefined,
             };
         }
         case 'CALCULATE_SCORE': {
             const { totalSeconds } = action;
             const score = calculateScore(state, totalSeconds);
-            return { ...state, score };
+            return { ...state, playerScore: score };
         }
         case 'INIT_SODUKU': {
             const { options } = action;
@@ -221,11 +243,11 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                   : options.board;
             return {
                 ...state,
-                showOverlay: false,
+                overlayVisible: false,
                 autoCheckEnabled: false,
                 board,
-                isSolved: false,
-                numMistakes: 0,
+                isSudokuSolved: false,
+                mistakeCount: 0,
             };
         }
         case 'SET_INDICES': {
@@ -233,11 +255,11 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             return {
                 ...state,
                 hintIndex: undefined,
-                selectedIndexSet,
+                selectedIndices: selectedIndexSet,
             };
         }
         case 'HINT': {
-            const { board, hintCount } = state;
+            const { board, hintUsageCount: hintCount } = state;
             const description = getHintMessage();
 
             if (hintCount <= 0) {
@@ -263,7 +285,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                     ...state,
                     board: updatedBoard,
                     hintIndex,
-                    hintCount: state.hintCount - 1,
+                    hintUsageCount: state.hintUsageCount - 1,
                 };
             }
         }
@@ -272,24 +294,24 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             return {
                 ...INITIAL_STATE,
                 board: Board.createWithDifficulty(difficulty),
-                hintCount: HINT_COUNT[difficulty],
-                stopWatchAction: 'reset',
+                hintUsageCount: HINT_COUNT[difficulty],
+                stopwatchCommand: 'reset',
             };
         }
         case 'RESET_CURRENT_BOARD': {
-            const { difficulty, board } = state;
+            const { gameDifficulty: difficulty, board } = state;
             return {
                 ...INITIAL_STATE,
                 board: board.reset(),
-                hintCount: HINT_COUNT[difficulty],
-                stopWatchAction: 'reset',
+                hintUsageCount: HINT_COUNT[difficulty],
+                stopwatchCommand: 'reset',
             };
         }
         case 'TOGGLE_AUTO_CHECK': {
             return { ...state, autoCheckEnabled: !state.autoCheckEnabled };
         }
         case 'TOGGLE_SHOW_OVERLAY': {
-            return { ...state, showOverlay: !state.showOverlay };
+            return { ...state, overlayVisible: !state.overlayVisible };
         }
         default: {
             throw new Error(`$unknown action type: ${JSON.stringify(action)}`);
@@ -299,18 +321,17 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
 
 export const INITIAL_STATE: ReducerState = {
     board: Board.empty(),
-    selectedIndexSet: undefined,
-    difficulty: 'easy',
-    conflictBoardIndices: Set(),
+    selectedIndices: undefined,
+    gameDifficulty: 'easy',
+    conflictingIndices: Set(),
     hintIndex: undefined,
-    notesOn: false,
-    history: List<HistoryState>(),
-    hintCount: HINT_COUNT['easy'],
-    isSolved: false,
-    stopWatchAction: 'start',
-    numMoves: 0,
-    numMistakes: 0,
-    score: '0',
+    notesEnabled: false,
+    hintUsageCount: HINT_COUNT['easy'],
+    isSudokuSolved: false,
+    stopwatchCommand: 'start',
+    moveCount: 0,
+    mistakeCount: 0,
+    playerScore: '0',
     autoCheckEnabled: false,
-    showOverlay: false,
+    overlayVisible: false,
 };
