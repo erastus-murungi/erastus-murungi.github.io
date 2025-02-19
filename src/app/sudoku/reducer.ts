@@ -1,17 +1,23 @@
 import { List, Set } from 'immutable';
 import { toast } from 'sonner';
 
-import { Board, calculateScore, createHistory, HINT_COUNT } from './utils';
+import { calculateScore, createHistory, HINT_COUNT } from './utils';
 
 import type {
     ReducerState,
     StopwatchCommand,
     Difficulty,
-    Cell,
     RefState,
     HistoryState,
-    IndexSet,
+    SudokuCell,
+    SudokuIndex,
+    Board,
 } from './types';
+import {
+    createBoardFromCells,
+    createBoardFromDifficulty,
+    createEmptyBoard,
+} from './models/sudoku-board';
 
 const HINT_MESSAGES = [
     'No more hints available for Bebi Bebi 🐧. Nisuke nikuongezee 😉',
@@ -61,23 +67,23 @@ type Action =
           options:
               | {
                     difficulty: Difficulty;
-                    values: undefined;
+                    cells: undefined;
                     board: undefined;
                 }
               | {
-                    values: List<Cell>;
+                    cells: List<SudokuCell>;
                     difficulty: undefined;
                     board: undefined;
                 }
               | {
                     board: Board;
                     difficulty: undefined;
-                    values: undefined;
+                    cells: undefined;
                 };
       }
     | {
           type: 'SET_INDICES';
-          selectedIndexSet: IndexSet;
+          selectedIndexSet: SudokuIndex;
       }
     | {
           type: 'CALCULATE_SCORE';
@@ -143,7 +149,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             const { note } = action;
             return {
                 ...state,
-                board: state.board.toggleNoteValue(selectedIndexSet, note),
+                board: state.board.toggleCellNote(selectedIndexSet, note),
             };
         }
         case 'SET_VALUE': {
@@ -153,7 +159,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             }
             const { value } = action;
 
-            const selectedCell = board.get(selectedIndexSet);
+            const selectedCell = board.getCellAt(selectedIndexSet);
             if (!selectedCell || selectedCell.isFixed) {
                 return state;
             }
@@ -163,17 +169,17 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                     ...state,
                     conflictingIndices: Set(),
                     hintIndex: undefined,
-                    board: board.clearCurrentValue(selectedIndexSet),
+                    board: board.removeCellValue(selectedIndexSet),
                 };
             }
             const { conflictingIndices, updatedBoard } =
-                state.board.setAndValidate(selectedIndexSet, value);
+                state.board.checkForConflictsAndSet(selectedIndexSet, value);
 
             return {
                 ...state,
                 hintIndex: undefined,
                 moveCount: state.moveCount + 1,
-                isSudokuSolved: updatedBoard.isSolved,
+                isSudokuSolved: updatedBoard.isCompleted,
                 board: updatedBoard,
                 ...(conflictingIndices && conflictingIndices.size > 0
                     ? {
@@ -189,7 +195,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 return state;
             }
 
-            const selectedValue = board.get(selectedIndexSet);
+            const selectedValue = board.getCellAt(selectedIndexSet);
             if (!selectedValue || selectedValue.isFixed) {
                 return state;
             }
@@ -197,7 +203,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 ...state,
                 conflictingIndices: Set(),
                 hintIndex: undefined,
-                board: board.clearCurrentValue(selectedIndexSet),
+                board: board.removeCellValue(selectedIndexSet),
             };
         }
         case 'TO_STATE': {
@@ -214,7 +220,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         case 'SUBMIT': {
             return {
                 ...state,
-                board: state.board.setAllAnswers(),
+                board: state.board.revealAllAnswers(),
                 isSudokuSolved: true,
                 hintIndex: undefined,
                 stopwatchCommand: 'pause',
@@ -236,9 +242,9 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         case 'INIT_SODUKU': {
             const { options } = action;
             const board = options.difficulty
-                ? Board.createWithDifficulty(options.difficulty)
-                : options.values
-                  ? Board.createFromValues(options.values)
+                ? createBoardFromDifficulty(options.difficulty)
+                : options.cells
+                  ? createBoardFromCells(options.cells)
                   : options.board;
             return {
                 ...state,
@@ -270,7 +276,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 return state;
             }
 
-            const { hintIndex, updatedBoard } = board.generateHint();
+            const { hintIndex, updatedBoard } = board.provideHint();
 
             if (hintIndex === undefined) {
                 toast.error('No more hints available', {
@@ -292,17 +298,18 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             const { difficulty } = action;
             return {
                 ...INITIAL_STATE,
-                board: Board.createWithDifficulty(difficulty),
+                board: createBoardFromDifficulty(difficulty),
+                gameDifficulty: difficulty,
                 hintUsageCount: HINT_COUNT[difficulty],
                 stopwatchCommand: 'reset',
             };
         }
         case 'RESET_CURRENT_BOARD': {
-            const { gameDifficulty: difficulty, board } = state;
+            const { gameDifficulty, board } = state;
             return {
                 ...INITIAL_STATE,
                 board: board.reset(),
-                hintUsageCount: HINT_COUNT[difficulty],
+                hintUsageCount: HINT_COUNT[gameDifficulty],
                 stopwatchCommand: 'reset',
             };
         }
@@ -319,7 +326,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
 }
 
 export const INITIAL_STATE: ReducerState = {
-    board: Board.empty(),
+    board: createEmptyBoard(),
     selectedIndexSet: undefined,
     gameDifficulty: 'easy',
     conflictingIndices: Set(),

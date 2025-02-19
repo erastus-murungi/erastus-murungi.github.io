@@ -133,7 +133,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
             type: 'INIT_SODUKU',
             options: {
                 board: undefined,
-                values: undefined,
+                cells: undefined,
                 difficulty: state.gameDifficulty,
             },
         });
@@ -142,7 +142,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                 type: 'INIT_SODUKU',
                 options: {
                     board: undefined,
-                    values: undefined,
+                    cells: undefined,
                     difficulty: state.gameDifficulty,
                 },
             },

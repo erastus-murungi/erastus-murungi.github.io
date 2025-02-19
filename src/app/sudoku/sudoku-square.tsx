@@ -1,13 +1,13 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import type { Cell, IndexSet } from './types';
+import type { SudokuCell as Cell, SudokuIndex } from './types';
 
 export interface SudokuSquareProps {
-    selectedIndices?: IndexSet;
-    indexSet: IndexSet;
+    selectedIndices?: SudokuIndex;
+    indexSet: SudokuIndex;
     cell: Cell;
-    setSelectedIndexSet: (indexSet: IndexSet) => void;
+    setSelectedIndexSet: (indexSet: SudokuIndex) => void;
     onNoteClick: (note: number) => void;
     showNotes: boolean;
     isConflictSquare: boolean;

@@ -2,7 +2,12 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { SudokuSquare, type SudokuSquareProps } from './sudoku-square';
 import { createSudokuIndex } from './models/sudoku-index';
-import type { Prettify, ReducerState, SudokuBoardRow, Cell } from './types';
+import type {
+    Prettify,
+    ReducerState,
+    SudokuBoardRow,
+    SudokuCell as Cell,
+} from './types';
 
 const StyledBoardDiv = styled.div`
     position: relative;
@@ -67,7 +72,7 @@ export const SudokuBoard: React.FC<BoardProps> = ({
         (rowIndex: number) =>
             function SudokuRow(_initialValue: Cell, columnIndex: number) {
                 const indexSet = createSudokuIndex({ rowIndex, columnIndex });
-                const cell = board.get(indexSet);
+                const cell = board.getCellAt(indexSet);
 
                 if (!cell) {
                     return;

@@ -1,13 +1,15 @@
 import type { List, Set } from 'immutable';
 import type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
-import type { Board, SudokuHistory } from './utils';
+import type { SudokuHistory } from './utils';
 import type { SudokuIndex } from './models/sudoku-index';
 import type { SudokuCell } from './models/sudoku-cell';
+import type { Board } from './models/sudoku-board';
 
-export type { SudokuIndex as IndexSet } from './models/sudoku-index';
-export type { SudokuCell as Cell } from './models/sudoku-cell';
+export type { SudokuIndex } from './models/sudoku-index';
+export type { SudokuCell } from './models/sudoku-cell';
+export type { Board } from './models/sudoku-board';
 
-export type { Board, SudokuHistory } from './utils';
+export type { SudokuHistory } from './utils';
 
 export type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
 
@@ -15,15 +17,6 @@ export type Maybe<T> = T | undefined;
 export type Prettify<T> = {
     [K in keyof T]: T[K];
 } & {};
-
-/**
- * Extract one part of a discriminated union
- */
-export type ExtractFromUnion<T, U> = T extends T
-    ? U extends Partial<T>
-        ? T
-        : never
-    : never;
 
 /**
  * The action that the stopwatch should take

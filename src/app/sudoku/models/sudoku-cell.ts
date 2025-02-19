@@ -66,6 +66,22 @@ export class SudokuCell {
     }
 
     /**
+     * Resets the current value of the cell to the answer.
+     *
+     * @returns A new SudokuCell instance with the current value reset to the answer.
+     * @note Unlike {Board.removeValue} This does not throw an error if the cell is fixed.
+     */
+    public resetValue() {
+        if (typeof this.content === 'number') {
+            return this;
+        }
+        return new SudokuCell(
+            { current: undefined, answer: this.content.answer },
+            this.notes
+        );
+    }
+
+    /**
      * Checks if the cell is blank (i.e., has no current value).
      * @returns True if the cell is blank, otherwise false.
      */
