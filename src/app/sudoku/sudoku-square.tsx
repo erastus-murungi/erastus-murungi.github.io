@@ -1,8 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
-import type { Cell } from './types';
-import type { IndexSet } from './utils';
+import type { Cell, IndexSet } from './types';
 
 export interface SudokuSquareProps {
     selectedIndices?: IndexSet;

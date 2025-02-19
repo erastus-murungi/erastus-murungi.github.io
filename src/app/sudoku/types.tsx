@@ -1,8 +1,11 @@
 import type { List, Set } from 'immutable';
 import type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
-import type { Board, IndexSet, Cell, SudokuHistory } from './utils';
+import type { Board, Cell, SudokuHistory } from './utils';
+import type { IndexSet } from './utils/index-set';
 
-export type { Cell, IndexSet, Board, SudokuHistory } from './utils';
+export type { IndexSet } from './utils/index-set';
+
+export type { Cell, Board, SudokuHistory } from './utils';
 
 export type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
 
@@ -60,7 +63,7 @@ export interface HistoryState {
     /**
      * The selected index set, if any
      */
-    selectedIndices?: IndexSet;
+    selectedIndexSet?: IndexSet;
     /**
      * The indices of the board that are in conflict
      */

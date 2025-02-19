@@ -64,7 +64,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                         break;
                     }
                     case 'ArrowUp': {
-                        const selectedIndexSet = state.selectedIndices?.up;
+                        const selectedIndexSet = state.selectedIndexSet?.up;
                         if (selectedIndexSet) {
                             dispatch({
                                 type: 'SET_INDICES',
@@ -74,7 +74,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                         break;
                     }
                     case 'ArrowDown': {
-                        const selectedIndexSet = state.selectedIndices?.down;
+                        const selectedIndexSet = state.selectedIndexSet?.down;
                         if (selectedIndexSet) {
                             dispatch({
                                 type: 'SET_INDICES',
@@ -84,7 +84,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                         break;
                     }
                     case 'ArrowLeft': {
-                        const selectedIndexSet = state.selectedIndices?.left;
+                        const selectedIndexSet = state.selectedIndexSet?.left;
                         if (selectedIndexSet) {
                             dispatch({
                                 type: 'SET_INDICES',
@@ -94,7 +94,7 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                         break;
                     }
                     case 'ArrowRight': {
-                        const selectedIndexSet = state.selectedIndices?.right;
+                        const selectedIndexSet = state.selectedIndexSet?.right;
                         if (selectedIndexSet) {
                             dispatch({
                                 type: 'SET_INDICES',
@@ -293,7 +293,9 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                                             state.conflictingIndices
                                         }
                                         board={state.board}
-                                        selectedIndices={state.selectedIndices}
+                                        selectedIndexSet={
+                                            state.selectedIndexSet
+                                        }
                                         setSelectedIndexSet={(indexSet) =>
                                             dispatch({
                                                 type: 'SET_INDICES',

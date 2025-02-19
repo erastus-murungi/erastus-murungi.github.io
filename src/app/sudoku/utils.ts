@@ -1,6 +1,7 @@
 import { List, Set } from 'immutable';
 import { getSudoku } from 'sudoku-gen';
-import type { Difficulty, ReducerState, HistoryState } from './types';
+import type { Difficulty, ReducerState, HistoryState, IndexSet } from './types';
+import { createIndexSet } from './utils/index-set';
 
 export const HINT_COUNT: Record<Difficulty, number> = {
     easy: 0,
@@ -8,9 +9,6 @@ export const HINT_COUNT: Record<Difficulty, number> = {
     hard: 2,
     expert: 3,
 };
-
-export const getBoardIndex = (rowIndex: number, index: number) =>
-    rowIndex * 9 + index;
 
 const MUTLIPLIERS = {
     basePointsMap: {
@@ -172,41 +170,6 @@ export class Cell {
 
     public lackNotes() {
         return this.notes?.isEmpty() ?? true;
-    }
-}
-
-export class IndexSet {
-    constructor(
-        public readonly columnIndex: number,
-        public readonly rowIndex: number
-    ) {}
-
-    get boardIndex() {
-        return this.rowIndex * 9 + this.columnIndex;
-    }
-
-    get left(): IndexSet | undefined {
-        return this.columnIndex > 0
-            ? new IndexSet(this.columnIndex - 1, this.rowIndex)
-            : undefined;
-    }
-
-    get right(): IndexSet | undefined {
-        return this.columnIndex < 8
-            ? new IndexSet(this.columnIndex + 1, this.rowIndex)
-            : undefined;
-    }
-
-    get up(): IndexSet | undefined {
-        return this.rowIndex > 0
-            ? new IndexSet(this.columnIndex, this.rowIndex - 1)
-            : undefined;
-    }
-
-    get down(): IndexSet | undefined {
-        return this.rowIndex < 8
-            ? new IndexSet(this.columnIndex, this.rowIndex + 1)
-            : undefined;
     }
 }
 
@@ -375,13 +338,13 @@ export class Board {
                     selectedColumnIndex - (selectedColumnIndex % 3);
                 for (let colOffset = 0; colOffset < 3; colOffset++) {
                     for (let rowOffset = 0; rowOffset < 3; rowOffset++) {
-                        const boardIndex = getBoardIndex(
-                            gridRowIndex + rowOffset,
-                            gridColumnIndex + colOffset
-                        );
-                        const boardValue = this.get(boardIndex);
+                        const indexSet = createIndexSet({
+                            rowIndex: gridRowIndex + rowOffset,
+                            columnIndex: gridColumnIndex + colOffset,
+                        });
+                        const boardValue = this.get(indexSet);
                         if (boardValue?.value === toCheck) {
-                            conflictBoardIndices.push(boardIndex);
+                            conflictBoardIndices.push(indexSet.boardIndex);
                         }
                     }
                 }
@@ -393,13 +356,13 @@ export class Board {
     }
 
     public setAndValidate(indexSet: IndexSet, value: number) {
-        const conflictBoardIndices = this.validateEntry(indexSet, value);
-        if (conflictBoardIndices) {
-            return { updatedBoard: this, conflictBoardIndices };
+        const conflictingIndices = this.validateEntry(indexSet, value);
+        if (conflictingIndices) {
+            return { updatedBoard: this, conflictingIndices };
         }
         return {
             updatedBoard: this.setCurrentValue(indexSet, value),
-            conflictBoardIndices: undefined,
+            conflictingIndices: undefined,
         };
     }
 
@@ -415,14 +378,6 @@ export class Board {
         );
     }
 }
-
-export const createIndexSet = ({
-    columnIndex,
-    rowIndex,
-}: {
-    columnIndex: number;
-    rowIndex: number;
-}) => new IndexSet(columnIndex, rowIndex);
 
 export class SudokuHistory implements Iterable<HistoryState> {
     private history: List<HistoryState> = List();

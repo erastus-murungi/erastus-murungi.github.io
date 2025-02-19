@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest",
+    "test": "vitest --reporter=verbose",
     "format:check:all": "prettier --check ./src",
     "format:write:all": "prettier --write ./src",
     "playwright:headless": "playwright test",
