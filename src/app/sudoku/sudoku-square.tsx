@@ -185,7 +185,7 @@ type ValueValidationState =
 
 function computeValueValidationState(autoCheckEnabled: boolean, cell: Cell) {
     if (autoCheckEnabled) {
-        return cell.isUserSolved
+        return cell.isCorrectlyFilledByUser
             ? ValueValidationState.AUTOCHECK_CORRECT
             : ValueValidationState.AUTOCHECK_WRONG;
     }
@@ -325,7 +325,7 @@ const SudokuCell: React.FC<SudokuCellProps> = ({
             {showNotes ? (
                 <NotesGrid>
                     {Array.from({ length: 9 }, (_x, i) => i + 1).map((note) => {
-                        const isSelected = cell.hasNoteValue(note);
+                        const isSelected = cell.containsNote(note);
                         return (
                             <Note
                                 className="flex items-center justify-center"
@@ -340,7 +340,7 @@ const SudokuCell: React.FC<SudokuCellProps> = ({
                 </NotesGrid>
             ) : (
                 <>
-                    {cell.isOriginal ? (
+                    {cell.isFixed ? (
                         <OriginalNumber>{cell.value}</OriginalNumber>
                     ) : (
                         <CurrentEntry

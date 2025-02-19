@@ -1,11 +1,13 @@
 import type { List, Set } from 'immutable';
 import type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
-import type { Board, Cell, SudokuHistory } from './utils';
-import type { IndexSet } from './utils/index-set';
+import type { Board, SudokuHistory } from './utils';
+import type { SudokuIndex } from './models/sudoku-index';
+import type { SudokuCell } from './models/sudoku-cell';
 
-export type { IndexSet } from './utils/index-set';
+export type { SudokuIndex as IndexSet } from './models/sudoku-index';
+export type { SudokuCell as Cell } from './models/sudoku-cell';
 
-export type { Cell, Board, SudokuHistory } from './utils';
+export type { Board, SudokuHistory } from './utils';
 
 export type { Difficulty } from 'sudoku-gen/dist/types/difficulty.type';
 
@@ -50,7 +52,7 @@ type ButtonNumericValue = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export type ButtonInputValue = ButtonNumericValue | ButtonAction;
 
-export type SudokuBoardRow = List<Cell>;
+export type SudokuBoardRow = List<SudokuCell>;
 
 /**
  * The state of the history
@@ -63,7 +65,7 @@ export interface HistoryState {
     /**
      * The selected index set, if any
      */
-    selectedIndexSet?: IndexSet;
+    selectedIndexSet?: SudokuIndex;
     /**
      * The indices of the board that are in conflict
      */

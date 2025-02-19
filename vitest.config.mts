@@ -9,5 +9,8 @@ export default defineConfig({
         environment: 'jsdom',
         include: ['src/**/*.test.{ts,tsx}'],
         exclude: ['**/node_modules/**', 'tests/**'],
+        coverage: {
+            provider: 'v8',
+        },
     },
 });

@@ -1,7 +1,16 @@
 import { List, Set } from 'immutable';
 import { getSudoku } from 'sudoku-gen';
-import type { Difficulty, ReducerState, HistoryState, IndexSet } from './types';
-import { createIndexSet } from './utils/index-set';
+
+import { createUserEditableCell, createFixedCell } from './models/sudoku-cell';
+import { createSudokuIndex } from './models/sudoku-index';
+
+import type {
+    Difficulty,
+    ReducerState,
+    HistoryState,
+    IndexSet,
+    Cell,
+} from './types';
 
 export const HINT_COUNT: Record<Difficulty, number> = {
     easy: 0,
@@ -47,132 +56,6 @@ export const calculateScore = (
     ).toFixed(0);
 };
 
-export class Cell {
-    private constructor(
-        private readonly _value:
-            | number
-            | { current: number | undefined; answer: number },
-        private notes?: Set<number>
-    ) {}
-
-    get isOriginal() {
-        return typeof this._value === 'number';
-    }
-
-    public static createOriginal(value: number) {
-        return new Cell(value);
-    }
-
-    public static createEditable(answer: number) {
-        return new Cell({ current: undefined, answer }, Set());
-    }
-
-    public setCurrentValue(current: number) {
-        return typeof this._value === 'number'
-            ? this
-            : new Cell({ current, answer: this._value.answer }, this.notes);
-    }
-
-    public clearCurrentValue() {
-        return typeof this._value === 'number'
-            ? this
-            : new Cell(
-                  { current: undefined, answer: this._value.answer },
-                  this.notes
-              );
-    }
-
-    get isUnfilled() {
-        return (
-            typeof this._value !== 'number' && this._value.current === undefined
-        );
-    }
-
-    get isUserSolved() {
-        return (
-            typeof this._value !== 'number' &&
-            this._value.current === this._value.answer
-        );
-    }
-
-    get isSolved() {
-        return (
-            typeof this._value === 'number' ||
-            (typeof this._value !== 'number' &&
-                this._value.current === this._value.answer)
-        );
-    }
-
-    public setToAnswer() {
-        return typeof this._value === 'number'
-            ? this
-            : new Cell(
-                  {
-                      current: this._value.answer,
-                      answer: this._value.answer,
-                  },
-                  this.notes
-              );
-    }
-
-    get value() {
-        return typeof this._value === 'number'
-            ? this._value
-            : this._value.current;
-    }
-
-    get editableAnswer() {
-        return typeof this._value === 'number' ? undefined : this._value.answer;
-    }
-
-    get answer() {
-        return typeof this._value === 'number'
-            ? this._value
-            : this._value.answer;
-    }
-
-    public hasNoteValue(note: number) {
-        return this.notes?.has(note) ?? false;
-    }
-
-    public setNoteValue(note: number) {
-        if (this.isOriginal) {
-            return this;
-        }
-        if (this.notes?.isEmpty()) {
-            throw new Error('Internal Error: Notes are empty');
-        }
-        return new Cell(this._value, this.notes?.add(note));
-    }
-
-    public clearNoteValue(note: number) {
-        if (this.isOriginal) {
-            return this;
-        }
-        if (this.notes?.isEmpty()) {
-            throw new Error('Internal Error: Notes are empty');
-        }
-        return new Cell(this._value, this.notes?.delete(note));
-    }
-
-    public toggleNoteValue(note: number) {
-        if (this.isOriginal) {
-            return this;
-        }
-        return this.hasNoteValue(note)
-            ? this.clearNoteValue(note)
-            : this.setNoteValue(note);
-    }
-
-    public hasNotes() {
-        return !this.lackNotes();
-    }
-
-    public lackNotes() {
-        return this.notes?.isEmpty() ?? true;
-    }
-}
-
 export class Board {
     readonly cells: List<Cell>;
     static readonly MAX_ITERS = 5_000_000;
@@ -187,10 +70,10 @@ export class Board {
             List(
                 [...sudoku.puzzle].map((value, index) =>
                     value === '-'
-                        ? Cell.createEditable(
+                        ? createUserEditableCell(
                               Number.parseInt(sudoku.solution[index], 10)
                           )
-                        : Cell.createOriginal(Number.parseInt(value, 10))
+                        : createFixedCell(Number.parseInt(value, 10))
                 )
             )
         );
@@ -205,11 +88,11 @@ export class Board {
     }
 
     public reset() {
-        return new Board(this.cells.map((cell) => cell.clearCurrentValue()));
+        return new Board(this.cells.map((cell) => cell.removeValue()));
     }
 
     public setAllAnswers() {
-        return new Board(this.cells.map((cell) => cell.setToAnswer()));
+        return new Board(this.cells.map((cell) => cell.fillWithAnswer()));
     }
 
     get(accessor: IndexSet | number): Cell | undefined {
@@ -232,26 +115,26 @@ export class Board {
 
     setCurrentValue(accessor: IndexSet | number, current: number): Board {
         const cell = this.get(accessor);
-        if (cell === undefined || cell.isOriginal) {
+        if (cell === undefined || cell.isFixed) {
             return this;
         }
-        return this.set(accessor, cell.setCurrentValue(current));
+        return this.set(accessor, cell.updateValue(current));
     }
 
     clearCurrentValue(accessor: IndexSet | number): Board {
         const cell = this.get(accessor);
-        if (cell === undefined || cell.isOriginal) {
+        if (cell === undefined || cell.isFixed) {
             return this;
         }
-        return this.set(accessor, cell.clearCurrentValue());
+        return this.set(accessor, cell.removeValue());
     }
 
     toggleNoteValue(accessor: IndexSet | number, note: number): Board {
         const cell = this.get(accessor);
-        if (cell === undefined || cell.isOriginal) {
+        if (cell === undefined || cell.isFixed) {
             return this;
         }
-        return this.set(accessor, cell.toggleNoteValue(note));
+        return this.set(accessor, cell.toggleNote(note));
     }
 
     private getHintIndex() {
@@ -284,7 +167,7 @@ export class Board {
     generateHints(count: number) {
         let numHints = Math.min(
             count,
-            81 - this.cells.count((cell) => cell.isUnfilled)
+            81 - this.cells.count((cell) => cell.isBlank)
         );
         let numIters = 0;
         const hints: { value: number; hintIndex: number }[] = [];
@@ -338,7 +221,7 @@ export class Board {
                     selectedColumnIndex - (selectedColumnIndex % 3);
                 for (let colOffset = 0; colOffset < 3; colOffset++) {
                     for (let rowOffset = 0; rowOffset < 3; rowOffset++) {
-                        const indexSet = createIndexSet({
+                        const indexSet = createSudokuIndex({
                             rowIndex: gridRowIndex + rowOffset,
                             columnIndex: gridColumnIndex + colOffset,
                         });
@@ -367,7 +250,7 @@ export class Board {
     }
 
     get isSolved() {
-        return this.cells.every((cell) => cell.isSolved);
+        return this.cells.every((cell) => cell.isCompleted);
     }
 
     get grid(): List<List<Cell>> {

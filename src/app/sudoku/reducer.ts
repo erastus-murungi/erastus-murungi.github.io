@@ -154,7 +154,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             const { value } = action;
 
             const selectedCell = board.get(selectedIndexSet);
-            if (!selectedCell || selectedCell.isOriginal) {
+            if (!selectedCell || selectedCell.isFixed) {
                 return state;
             }
 
@@ -190,7 +190,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             }
 
             const selectedValue = board.get(selectedIndexSet);
-            if (!selectedValue || selectedValue.isOriginal) {
+            if (!selectedValue || selectedValue.isFixed) {
                 return state;
             }
             return {
