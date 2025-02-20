@@ -105,4 +105,64 @@ describe('createSudokuIndex', () => {
             expect(indexSet1).not.toEqual(indexSet2);
         });
     });
+
+    describe('isInSame3by3Grid', () => {
+        const cases = [
+            {
+                index1: { columnIndex: 0, rowIndex: 0 },
+                index2: { columnIndex: 1, rowIndex: 0 },
+                expected: true,
+            },
+            {
+                index1: { columnIndex: 0, rowIndex: 0 },
+                index2: { columnIndex: 0, rowIndex: 1 },
+                expected: true,
+            },
+            {
+                index1: { columnIndex: 0, rowIndex: 0 },
+                index2: { columnIndex: 1, rowIndex: 1 },
+                expected: true,
+            },
+            {
+                index1: { columnIndex: 0, rowIndex: 0 },
+                index2: { columnIndex: 2, rowIndex: 0 },
+                expected: true,
+            },
+            {
+                index1: { columnIndex: 0, rowIndex: 0 },
+                index2: { columnIndex: 0, rowIndex: 2 },
+                expected: true,
+            },
+            {
+                index1: { columnIndex: 0, rowIndex: 0 },
+                index2: { columnIndex: 2, rowIndex: 2 },
+                expected: true,
+            },
+            {
+                index1: { columnIndex: 0, rowIndex: 0 },
+                index2: { columnIndex: 3, rowIndex: 0 },
+                expected: false,
+            },
+            {
+                index1: { columnIndex: 0, rowIndex: 0 },
+                index2: { columnIndex: 0, rowIndex: 3 },
+                expected: false,
+            },
+            {
+                index1: { columnIndex: 0, rowIndex: 0 },
+                index2: { columnIndex: 3, rowIndex: 3 },
+                expected: false,
+            },
+        ];
+        // eslint-disable-next-line unicorn/no-array-for-each
+        cases.forEach(({ index1, index2, expected }) => {
+            it(`should return ${expected} for ${JSON.stringify(
+                index1
+            )} and ${JSON.stringify(index2)}`, () => {
+                const indexSet1 = createSudokuIndex(index1);
+                const indexSet2 = createSudokuIndex(index2);
+                expect(indexSet1.isInSame3by3Grid(indexSet2)).toBe(expected);
+            });
+        });
+    });
 });
