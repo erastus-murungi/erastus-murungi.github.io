@@ -1,7 +1,78 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
+import { cn } from '@/lib/utils';
 import type { SudokuCell, SudokuIndex } from './types';
+
+const CorrectBackground = css`
+    opacity: 0.8;
+    background-color: #e0f2e3;
+`;
+
+const WrongBackground = css`
+    opacity: 0.8;
+    background-color: #fb5951;
+`;
+
+const ValueValidationState = {
+    AUTOCHECK_CORRECT: 'autocheck-correct',
+    AUTOCHECK_WRONG: 'autocheck-wrong',
+    UNKNOWN: 'unknown',
+} as const;
+
+type ValueValidationState =
+    (typeof ValueValidationState)[keyof typeof ValueValidationState];
+
+function computeValueValidationState(
+    autoCheckEnabled: boolean,
+    cell: SudokuCell
+) {
+    if (!cell.isFixed && autoCheckEnabled && !cell.isBlank) {
+        return cell.isCorrectlyFilledByUser
+            ? ValueValidationState.AUTOCHECK_CORRECT
+            : ValueValidationState.AUTOCHECK_WRONG;
+    }
+
+    return ValueValidationState.UNKNOWN;
+}
+
+function getBackgroundColorStyleForValueValidationState(
+    valueValidationState: ValueValidationState
+) {
+    switch (valueValidationState) {
+        case ValueValidationState.AUTOCHECK_CORRECT: {
+            return CorrectBackground;
+        }
+        case ValueValidationState.AUTOCHECK_WRONG: {
+            return WrongBackground;
+        }
+        default: {
+            return '';
+        }
+    }
+}
+
+function getColorStyleForValueValidationState(
+    valueValidationState: ValueValidationState
+) {
+    switch (valueValidationState) {
+        case ValueValidationState.AUTOCHECK_CORRECT: {
+            return css`
+                color: 'inherit';
+            `;
+        }
+        case ValueValidationState.AUTOCHECK_WRONG: {
+            return css`
+                color: 'inherit';
+            `;
+        }
+        default: {
+            return css`
+                color: #488470;
+            `;
+        }
+    }
+}
 
 export interface SudokuSquareProps {
     selectedIndex?: SudokuIndex;
@@ -18,15 +89,9 @@ export interface SudokuSquareProps {
 
 const OuterContainer = styled.div`
     ${({
-        isSelected,
-        isShowingNotes,
         isConflictSquare,
-        isSelectedBoardIndex,
         isHint,
     }: {
-        isSelected: boolean;
-        isSelectedBoardIndex: boolean;
-        isShowingNotes: boolean;
         isConflictSquare: boolean;
         isHint: boolean;
     }) =>
@@ -86,15 +151,6 @@ const OuterContainer = styled.div`
                       cursor: 'pointer';
                       background-color: rgba(28, 28, 28, 0.5);
                   }
-                  background-color: ${isConflictSquare
-                      ? 'rgba(226, 26, 12, 0.25)'
-                      : isShowingNotes
-                        ? 'rgba(11, 53, 207, 0.25)'
-                        : isSelectedBoardIndex
-                          ? ''
-                          : isSelected
-                            ? 'rgba(28, 28, 28, 0.25)'
-                            : ''};
                   animation: ${isConflictSquare
                       ? 'bounceZoom 0.5s ease-in-out'
                       : ''};
@@ -105,15 +161,6 @@ const OuterContainer = styled.div`
                       cursor: 'pointer';
                       background-color: rgba(28, 28, 28, 0.5);
                   }
-                  background-color: ${isConflictSquare
-                      ? 'rgba(226, 26, 12, 0.25)'
-                      : isShowingNotes
-                        ? 'rgba(11, 53, 207, 0.25)'
-                        : isSelectedBoardIndex
-                          ? ''
-                          : isSelected
-                            ? 'rgba(28, 28, 28, 0.25)'
-                            : ''};
               `}
 `;
 
@@ -205,20 +252,34 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
         rowIndex: selectedRowIndex,
         boardIndex: selectedBoardIndex,
     } = selectedIndices || {};
-    const valueValidationState = cell
-        ? computeValueValidationState(autoCheckEnabled, cell)
-        : ValueValidationState.UNKWOWN;
+    const valueValidationState = computeValueValidationState(
+        autoCheckEnabled,
+        cell
+    );
+
+    const isSelectedBoardIndex = selectedBoardIndex === boardIndex;
+    const isSelected =
+        selectedColumnIndex === columnIndex || rowIndex === selectedRowIndex;
+
+    const className = cn(
+        isConflictSquare
+            ? 'bg-red-200'
+            : showNotes
+              ? 'bg-blue-500'
+              : isSelectedBoardIndex
+                ? ''
+                : isSelected
+                  ? 'bg-gray-200'
+                  : ''
+    );
 
     return (
         <OuterContainer
-            className="rainbow h-11 w-11 min-[1200px]:h-20 min-[1200px]:w-20 md:h-15 md:w-15 lg:h-16 lg:w-16"
-            isSelected={
-                selectedColumnIndex === columnIndex ||
-                rowIndex === selectedRowIndex
-            }
-            isSelectedBoardIndex={selectedBoardIndex === boardIndex}
+            className={cn(
+                'rainbow h-11 w-11 min-[1200px]:h-20 min-[1200px]:w-20 md:h-15 md:w-15 lg:h-16 lg:w-16',
+                className
+            )}
             isConflictSquare={isConflictSquare}
-            isShowingNotes={showNotes}
             isHint={isHint}
             onClick={() => {
                 setSelectedIndexSet(indexSet);
@@ -262,73 +323,3 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
 };
 
 SudokuSquare.displayName = 'SudokuSquare';
-
-const CorrectBackground = css`
-    opacity: 0.8;
-    background-color: #e0f2e3;
-`;
-
-const WrongBackground = css`
-    opacity: 0.8;
-    background-color: #fb5951;
-`;
-
-const ValueValidationState = {
-    AUTOCHECK_CORRECT: 'autocheck-correct',
-    AUTOCHECK_WRONG: 'autocheck-wrong',
-    UNKWOWN: 'unknown',
-} as const;
-
-type ValueValidationState =
-    (typeof ValueValidationState)[keyof typeof ValueValidationState];
-
-function computeValueValidationState(
-    autoCheckEnabled: boolean,
-    cell: SudokuCell
-) {
-    if (autoCheckEnabled) {
-        return cell.isCorrectlyFilledByUser
-            ? ValueValidationState.AUTOCHECK_CORRECT
-            : ValueValidationState.AUTOCHECK_WRONG;
-    }
-
-    return ValueValidationState.UNKWOWN;
-}
-
-function getBackgroundColorStyleForValueValidationState(
-    valueValidationState: ValueValidationState
-) {
-    switch (valueValidationState) {
-        case ValueValidationState.AUTOCHECK_CORRECT: {
-            return CorrectBackground;
-        }
-        case ValueValidationState.AUTOCHECK_WRONG: {
-            return WrongBackground;
-        }
-        default: {
-            return '';
-        }
-    }
-}
-
-function getColorStyleForValueValidationState(
-    valueValidationState: ValueValidationState
-) {
-    switch (valueValidationState) {
-        case ValueValidationState.AUTOCHECK_CORRECT: {
-            return css`
-                color: 'inherit';
-            `;
-        }
-        case ValueValidationState.AUTOCHECK_WRONG: {
-            return css`
-                color: 'inherit';
-            `;
-        }
-        default: {
-            return css`
-                color: #488470;
-            `;
-        }
-    }
-}
