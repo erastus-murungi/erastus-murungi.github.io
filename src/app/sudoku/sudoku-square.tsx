@@ -1,18 +1,6 @@
 import React from 'react';
-import styled from '@emotion/styled';
-import { css } from '@emotion/react';
 import { cn } from '@/lib/utils';
 import type { SudokuCell, SudokuIndex } from './types';
-
-const CorrectBackground = css`
-    opacity: 0.8;
-    background-color: #e0f2e3;
-`;
-
-const WrongBackground = css`
-    opacity: 0.8;
-    background-color: #fb5951;
-`;
 
 const ValueValidationState = {
     AUTOCHECK_CORRECT: 'autocheck-correct',
@@ -36,42 +24,21 @@ function computeValueValidationState(
     return ValueValidationState.UNKNOWN;
 }
 
-function getBackgroundColorStyleForValueValidationState(
-    valueValidationState: ValueValidationState
-) {
+function getBackgroundColorClass(valueValidationState: ValueValidationState) {
     switch (valueValidationState) {
-        case ValueValidationState.AUTOCHECK_CORRECT: {
-            return CorrectBackground;
-        }
-        case ValueValidationState.AUTOCHECK_WRONG: {
-            return WrongBackground;
-        }
-        default: {
+        case ValueValidationState.AUTOCHECK_CORRECT:
+            return 'bg-green-100 opacity-80';
+        case ValueValidationState.AUTOCHECK_WRONG:
+            return 'bg-red-100 opacity-80';
+        default:
             return '';
-        }
     }
 }
 
-function getColorStyleForValueValidationState(
-    valueValidationState: ValueValidationState
-) {
-    switch (valueValidationState) {
-        case ValueValidationState.AUTOCHECK_CORRECT: {
-            return css`
-                color: 'inherit';
-            `;
-        }
-        case ValueValidationState.AUTOCHECK_WRONG: {
-            return css`
-                color: 'inherit';
-            `;
-        }
-        default: {
-            return css`
-                color: #488470;
-            `;
-        }
-    }
+function getColorClass(valueValidationState: ValueValidationState) {
+    return valueValidationState === ValueValidationState.UNKNOWN
+        ? 'text-green-700'
+        : 'text-inherit';
 }
 
 export interface SudokuSquareProps {
@@ -87,156 +54,9 @@ export interface SudokuSquareProps {
     isWrong: boolean;
 }
 
-const OuterContainer = styled.div`
-    ${({
-        isConflictSquare,
-        isHint,
-    }: {
-        isConflictSquare: boolean;
-        isHint: boolean;
-    }) =>
-        isHint
-            ? css`
-                  @keyframes rotate {
-                      100% {
-                          transform: rotate(1turn);
-                      }
-                  }
-
-                  position: relative;
-                  z-index: 0;
-                  border-radius: 2px;
-                  overflow: hidden;
-                  display: flex;
-                  justify-content: center;
-                  align-items: center;
-
-                  &::before {
-                      content: '';
-                      position: absolute;
-                      z-index: -2;
-                      left: -50%;
-                      top: -50%;
-                      width: 200%;
-                      height: 200%;
-                      background-color: #399953;
-                      background-repeat: no-repeat;
-                      background-size:
-                          50% 50%,
-                          50% 50%;
-                      background-position:
-                          0 0,
-                          100% 0,
-                          100% 100%,
-                          0 100%;
-                      background-image: linear-gradient(#399953, #399953),
-                          linear-gradient(#fbb300, #fbb300),
-                          linear-gradient(#d53e33, #d53e33),
-                          linear-gradient(#377af5, #377af5);
-                      animation: rotate 4s linear infinite;
-                  }
-
-                  &::after {
-                      content: '';
-                      position: absolute;
-                      z-index: -1;
-                      left: 6px;
-                      top: 6px;
-                      width: calc(100% - 12px);
-                      height: calc(100% - 12px);
-                      background: white;
-                      border-radius: 2px;
-                  }
-                  &:hover {
-                      cursor: 'pointer';
-                      background-color: rgba(28, 28, 28, 0.5);
-                  }
-                  animation: ${isConflictSquare
-                      ? 'bounceZoom 0.5s ease-in-out'
-                      : ''};
-              `
-            : css`
-                  position: relative;
-                  &:hover {
-                      cursor: 'pointer';
-                      background-color: rgba(28, 28, 28, 0.5);
-                  }
-              `}
-`;
-
-const SudokuCellWrapper = styled.div<{
-    valueValidationState: ValueValidationState;
-}>`
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    box-sizing: border-box;
-    ${({ valueValidationState }) =>
-        getBackgroundColorStyleForValueValidationState(valueValidationState)};
-`;
-
-const UserEditableCell = styled.div<{
-    valueValidationState: ValueValidationState;
-}>`
-    z-index: 1;
-    ${({ valueValidationState }) =>
-        getColorStyleForValueValidationState(valueValidationState)};
-`;
-
-const FixedCell = styled.div`
-    z-index: 1;
-    color: 'inherit';
-`;
-
-const NotesGrid = styled.div`
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: grid;
-    font-size: 14px;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    color: #888;
-
-    @media (max-width: 599px) {
-        font-size: 9px;
-    }
-`;
-
-const Note = styled.div<{ isSelected: boolean }>`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    color: ${({ isSelected }) => (isSelected ? 'black' : '#488470')};
-    background-color: #488470;
-    transition: color 0.25s ease;
-
-    &:hover {
-        color: ${({ isSelected }) => (isSelected ? 'black' : 'white')};
-        animation: ${({ isSelected }) =>
-            isSelected ? 'none' : 'fadeIn 0.5s linear'};
-    }
-
-    @keyframes fadeIn {
-        0% {
-            opacity: 0;
-        }
-        100% {
-            opacity: 1;
-        }
-    }
-`;
-
 export const SudokuSquare: React.FC<SudokuSquareProps> = ({
     selectedIndex: selectedIndices,
-    index: indexSet,
+    index,
     cell,
     setSelectedIndexSet,
     showNotes,
@@ -246,7 +66,7 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
     isWrong,
     autoCheckEnabled,
 }) => {
-    const { columnIndex, rowIndex, boardIndex } = indexSet;
+    const { columnIndex, rowIndex, boardIndex } = index;
     const {
         columnIndex: selectedColumnIndex,
         rowIndex: selectedRowIndex,
@@ -270,55 +90,59 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
                 ? ''
                 : isSelected
                   ? 'bg-gray-200'
-                  : ''
+                  : '',
+        isHint ? 'animate-(--animate-hint)' : ''
     );
 
     return (
-        <OuterContainer
+        <div
             className={cn(
-                'rainbow h-11 w-11 min-[1200px]:h-20 min-[1200px]:w-20 md:h-15 md:w-15 lg:h-16 lg:w-16',
+                'rainbow relative h-11 w-11 hover:cursor-pointer hover:bg-gray-400 min-[1200px]:h-20 min-[1200px]:w-20 md:h-15 md:w-15 lg:h-16 lg:w-16',
                 className
             )}
-            isConflictSquare={isConflictSquare}
-            isHint={isHint}
             onClick={() => {
-                setSelectedIndexSet(indexSet);
+                setSelectedIndexSet(index);
             }}
         >
-            <SudokuCellWrapper valueValidationState={valueValidationState}>
+            <div
+                className={`relative box-border flex h-full w-full items-center justify-center text-4xl ${getBackgroundColorClass(valueValidationState)}`}
+            >
                 {showNotes ? (
-                    <NotesGrid>
+                    <div className="absolute top-0 left-0 grid h-full w-full grid-cols-3 grid-rows-3 text-sm text-gray-500 max-[600px]:text-[9px]">
                         {Array.from({ length: 9 }, (_x, i) => i + 1).map(
-                            (note) => {
-                                const isSelected = cell.containsNote(note);
-                                return (
-                                    <Note
-                                        className="flex items-center justify-center"
-                                        isSelected={isSelected}
-                                        key={`note_${note}`}
-                                        onClick={() => onNoteClick(note)}
-                                    >
-                                        {note}
-                                    </Note>
-                                );
-                            }
+                            (note) => (
+                                <div
+                                    className={cn(
+                                        'flex items-center justify-center bg-green-600 hover:text-white',
+                                        cell.containsNote(note)
+                                            ? 'text-black'
+                                            : 'text-green-700',
+                                        'hover:text-white',
+                                        'hover:transition-colors hover:duration-200 hover:ease-in-out'
+                                    )}
+                                    key={`note_${note}`}
+                                    onClick={() => onNoteClick(note)}
+                                >
+                                    {note}
+                                </div>
+                            )
                         )}
-                    </NotesGrid>
+                    </div>
                 ) : (
                     <>
                         {cell.isFixed ? (
-                            <FixedCell>{cell.value}</FixedCell>
+                            <div className="z-1">{cell.value}</div>
                         ) : (
-                            <UserEditableCell
-                                valueValidationState={valueValidationState}
+                            <div
+                                className={`z-1 ${getColorClass(valueValidationState)}`}
                             >
                                 {isWrong ? undefined : cell.value}
-                            </UserEditableCell>
+                            </div>
                         )}
                     </>
                 )}
-            </SudokuCellWrapper>
-        </OuterContainer>
+            </div>
+        </div>
     );
 };
 
