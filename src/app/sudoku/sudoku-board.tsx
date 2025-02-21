@@ -1,5 +1,4 @@
 import React from 'react';
-import styled from '@emotion/styled';
 import { SudokuSquare, type SudokuSquareProps } from './sudoku-square';
 import { createSudokuIndex } from './models/sudoku-index';
 import type {
@@ -8,40 +7,6 @@ import type {
     SudokuBoardRow,
     SudokuCell as Cell,
 } from './types';
-
-const StyledBoardDiv = styled.div`
-    position: relative;
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    background-color: white;
-
-    overflow: hidden;
-    color: black;
-    border-color: black;
-
-    & > div {
-        border-bottom: solid 1px #00000089;
-    }
-    & > div:nth-of-type(3n) {
-        border-bottom: 2px solid black;
-    }
-    & > div:first-of-type {
-        border-top: 2px solid black;
-    }
-`;
-
-const StyledRowDiv = styled.div`
-    & > div:nth-of-type(3n) {
-        border-right: 2px solid black;
-    }
-    & > div:first-of-type {
-        border-left: 2px solid black;
-    }
-    & > div {
-        border-right: solid 1px #00000089;
-    }
-`;
 
 type BoardProps = Prettify<
     Pick<
@@ -117,15 +82,18 @@ export const SudokuBoard: React.FC<BoardProps> = ({
         ]
     );
     return (
-        <StyledBoardDiv>
+        <div className="relative inline-flex w-full flex-col overflow-hidden border-black bg-white text-black [&_>_div]:border-b-1 [&_>_div]:border-black [&_>_div:first-of-type]:border-t-2 [&_>_div:first-of-type]:border-black [&_>_div:nth-of-type(3n)]:border-b-2 [&_>_div:nth-of-type(3n)]:border-black">
             {board.grid.map((rowValues: SudokuBoardRow, rowIndex: number) => {
                 return (
-                    <StyledRowDiv className="inline-flex" key={rowIndex}>
+                    <div
+                        className="inline-flex [&_>_div]:border-r-1 [&_>_div]:border-black [&_>_div:first-of-type]:border-l-2 [&_>_div:first-of-type]:border-black [&_>_div:nth-of-type(3n)]:border-r-2 [&_>_div:nth-of-type(3n)]:border-black"
+                        key={rowIndex}
+                    >
                         {rowValues.map(buildRow(rowIndex))}
-                    </StyledRowDiv>
+                    </div>
                 );
             })}
-        </StyledBoardDiv>
+        </div>
     );
 };
 

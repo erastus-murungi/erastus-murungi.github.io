@@ -23,27 +23,17 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import styled from '@emotion/styled';
 import { NewGameButton } from '../new-game-button';
 import type { ButtonAction, ButtonInputValue } from '../types';
-
-const StyledButtonBar = styled.div`
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(3, 1fr);
-    @media (max-width: 1120px) {
-        display: flex;
-        flex-direction: row;
-        gap: 5px;
-    }
-`;
 
 const NumberPad: React.FC<{
     onClick: (value: ButtonInputValue) => void;
 }> = ({ onClick }) => {
     return (
         <div>
-            <StyledButtonBar>
+            <div
+                className={`grid grid-cols-3 gap-4 max-[1120px]:flex max-[1120px]:flex-row max-[1120px]:gap-1`}
+            >
                 {[...Array.from({ length: 9 }).keys()].map((value) => (
                     <Button
                         key={`numberpad-key-${value + 1}`}
@@ -54,7 +44,7 @@ const NumberPad: React.FC<{
                         {value + 1}
                     </Button>
                 ))}
-            </StyledButtonBar>
+            </div>
             <NewGameButton onClick={onClick} />
         </div>
     );

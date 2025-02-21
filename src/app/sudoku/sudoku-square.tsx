@@ -26,12 +26,15 @@ function computeValueValidationState(
 
 function getBackgroundColorClass(valueValidationState: ValueValidationState) {
     switch (valueValidationState) {
-        case ValueValidationState.AUTOCHECK_CORRECT:
+        case ValueValidationState.AUTOCHECK_CORRECT: {
             return 'bg-green-100 opacity-80';
-        case ValueValidationState.AUTOCHECK_WRONG:
+        }
+        case ValueValidationState.AUTOCHECK_WRONG: {
             return 'bg-red-100 opacity-80';
-        default:
+        }
+        default: {
             return '';
+        }
     }
 }
 
@@ -103,6 +106,9 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
             onClick={() => {
                 setSelectedIndexSet(index);
             }}
+            tabIndex={-1}
+            onKeyDown={() => setSelectedIndexSet(index)}
+            role="gridcell"
         >
             <div
                 className={`relative box-border flex h-full w-full items-center justify-center text-4xl ${getBackgroundColorClass(valueValidationState)}`}
@@ -122,6 +128,9 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
                                     )}
                                     key={`note_${note}`}
                                     onClick={() => onNoteClick(note)}
+                                    onKeyDown={() => onNoteClick(note)}
+                                    role="gridcell"
+                                    tabIndex={-1}
                                 >
                                     {note}
                                 </div>
