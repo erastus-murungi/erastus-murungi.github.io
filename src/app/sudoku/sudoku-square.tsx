@@ -20,7 +20,6 @@ function computeValueValidationState(
             ? ValueValidationState.AUTOCHECK_CORRECT
             : ValueValidationState.AUTOCHECK_WRONG;
     }
-
     return ValueValidationState.UNKNOWN;
 }
 
@@ -45,25 +44,25 @@ function getColorClass(valueValidationState: ValueValidationState) {
 }
 
 export interface SudokuSquareProps {
-    selectedIndex?: SudokuIndex;
     index: SudokuIndex;
     cell: SudokuCell;
-    setSelectedIndexSet: (indexSet: SudokuIndex) => void;
-    onNoteClick: (note: number) => void;
     showNotes: boolean;
     isConflictSquare: boolean;
     isHint: boolean;
-    autoCheckEnabled: boolean;
     isWrong: boolean;
+    selectedIndex: SudokuIndex | undefined;
+    setSelectedIndex(index: SudokuIndex): void;
+    autoCheckEnabled: boolean;
+    onNoteSelected(note: number): void;
 }
 
 export const SudokuSquare: React.FC<SudokuSquareProps> = ({
-    selectedIndex: selectedIndices,
+    selectedIndex,
     index,
     cell,
-    setSelectedIndexSet,
+    setSelectedIndex,
     showNotes,
-    onNoteClick,
+    onNoteSelected,
     isConflictSquare,
     isHint,
     isWrong,
@@ -74,7 +73,7 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
         columnIndex: selectedColumnIndex,
         rowIndex: selectedRowIndex,
         boardIndex: selectedBoardIndex,
-    } = selectedIndices || {};
+    } = selectedIndex || {};
     const valueValidationState = computeValueValidationState(
         autoCheckEnabled,
         cell
@@ -94,8 +93,10 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
                 : isSelected
                   ? 'bg-gray-200'
                   : '',
-        isHint ? 'animate-(--animate-hint)' : ''
+        isHint && 'animate-(--animate-hint)'
     );
+
+    const handleClick = () => setSelectedIndex(index);
 
     return (
         <div
@@ -103,11 +104,9 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
                 'rainbow relative h-11 w-11 hover:cursor-pointer hover:bg-gray-400 min-[1200px]:h-20 min-[1200px]:w-20 md:h-15 md:w-15 lg:h-16 lg:w-16',
                 className
             )}
-            onClick={() => {
-                setSelectedIndexSet(index);
-            }}
+            onClick={handleClick}
             tabIndex={-1}
-            onKeyDown={() => setSelectedIndexSet(index)}
+            onKeyDown={handleClick}
             role="gridcell"
         >
             <div
@@ -115,7 +114,7 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
             >
                 {showNotes ? (
                     <div className="absolute top-0 left-0 grid h-full w-full grid-cols-3 grid-rows-3 text-sm text-gray-500 max-[600px]:text-[9px]">
-                        {Array.from({ length: 9 }, (_x, i) => i + 1).map(
+                        {Array.from({ length: 9 }, (_, i) => i + 1).map(
                             (note) => (
                                 <div
                                     className={cn(
@@ -123,12 +122,11 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
                                         cell.containsNote(note)
                                             ? 'text-black'
                                             : 'text-green-700',
-                                        'hover:text-white',
-                                        'hover:transition-colors hover:duration-200 hover:ease-in-out'
+                                        'hover:text-white hover:transition-colors hover:duration-200 hover:ease-in-out'
                                     )}
                                     key={`note_${note}`}
-                                    onClick={() => onNoteClick(note)}
-                                    onKeyDown={() => onNoteClick(note)}
+                                    onClick={() => onNoteSelected(note)}
+                                    onKeyDown={() => onNoteSelected(note)}
                                     role="gridcell"
                                     tabIndex={-1}
                                 >

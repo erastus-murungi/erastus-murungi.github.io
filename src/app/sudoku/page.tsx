@@ -9,7 +9,7 @@ export default function Home() {
     return (
         <TooltipProvider>
             <>
-                <Sudoku onComplete={() => {}} hide={false} />
+                <Sudoku />
                 <Toaster position="top-center" />
             </>
         </TooltipProvider>

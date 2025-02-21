@@ -84,7 +84,7 @@ type Action =
       }
     | {
           type: 'SET_INDICES';
-          selectedIndexSet: SudokuIndex;
+          selectedIndex: SudokuIndex;
       }
     | {
           type: 'CALCULATE_SCORE';
@@ -136,29 +136,29 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
 
     switch (action.type) {
         case 'SET_NOTE': {
-            const { selectedIndex: selectedIndexSet, notesEnabled: notesOn } =
+            const { selectedIndex: selectedIndex, notesEnabled: notesOn } =
                 state;
 
             if (!notesOn) {
                 throw new Error('Notes are not enabled');
             }
-            if (selectedIndexSet === undefined) {
+            if (selectedIndex === undefined) {
                 return state;
             }
             const { note } = action;
             return {
                 ...state,
-                board: state.board.toggleCellNote(selectedIndexSet, note),
+                board: state.board.toggleCellNote(selectedIndex, note),
             };
         }
         case 'SET_VALUE': {
-            const { selectedIndex: selectedIndexSet, board } = state;
-            if (selectedIndexSet === undefined) {
+            const { selectedIndex: selectedIndex, board } = state;
+            if (selectedIndex === undefined) {
                 return state;
             }
             const { value } = action;
 
-            const selectedCell = board.getCellAt(selectedIndexSet);
+            const selectedCell = board.getCellAt(selectedIndex);
             if (!selectedCell || selectedCell.isFixed) {
                 return state;
             }
@@ -168,11 +168,11 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                     ...state,
                     conflictingIndices: Set(),
                     hintIndex: undefined,
-                    board: board.removeCellValue(selectedIndexSet),
+                    board: board.removeCellValue(selectedIndex),
                 };
             }
             const { conflictingIndices, updatedBoard } =
-                state.board.checkForConflictsAndSet(selectedIndexSet, value);
+                state.board.checkForConflictsAndSet(selectedIndex, value);
 
             return {
                 ...state,
@@ -189,12 +189,12 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             };
         }
         case 'DELETE_VALUE': {
-            const { board, selectedIndex: selectedIndexSet } = state;
-            if (selectedIndexSet === undefined) {
+            const { board, selectedIndex: selectedIndex } = state;
+            if (selectedIndex === undefined) {
                 return state;
             }
 
-            const selectedValue = board.getCellAt(selectedIndexSet);
+            const selectedValue = board.getCellAt(selectedIndex);
             if (!selectedValue || selectedValue.isFixed) {
                 return state;
             }
@@ -202,7 +202,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 ...state,
                 conflictingIndices: Set(),
                 hintIndex: undefined,
-                board: board.removeCellValue(selectedIndexSet),
+                board: board.removeCellValue(selectedIndex),
             };
         }
         case 'TO_STATE': {
@@ -255,11 +255,11 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             };
         }
         case 'SET_INDICES': {
-            const { selectedIndexSet } = action;
+            const { selectedIndex } = action;
             return {
                 ...state,
                 hintIndex: undefined,
-                selectedIndex: selectedIndexSet,
+                selectedIndex: selectedIndex,
             };
         }
         case 'HINT': {

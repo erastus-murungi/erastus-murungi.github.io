@@ -17,11 +17,6 @@ import { createHistory } from './models/sudoku-history';
 
 const SCORE_REFRESH_INTERVAL_MS = 10_000;
 
-export interface SudokuProps {
-    onComplete: () => void;
-    hide: boolean;
-}
-
 const ALLOWED_KEYS = [
     '1',
     '2',
@@ -41,7 +36,7 @@ const ALLOWED_KEYS = [
 
 type HandledKeyPress = (typeof ALLOWED_KEYS)[number];
 
-export const Sudoku: React.FC<SudokuProps> = () => {
+export const Sudoku: React.FC = () => {
     const refs = React.useRef<RefState>({
         history: createHistory(),
         elapsedSeconds: 0,
@@ -64,41 +59,41 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                         break;
                     }
                     case 'ArrowUp': {
-                        const selectedIndexSet = state.selectedIndex?.up;
-                        if (selectedIndexSet) {
+                        const selectedIndex = state.selectedIndex?.up;
+                        if (selectedIndex) {
                             dispatch({
                                 type: 'SET_INDICES',
-                                selectedIndexSet,
+                                selectedIndex,
                             });
                         }
                         break;
                     }
                     case 'ArrowDown': {
-                        const selectedIndexSet = state.selectedIndex?.down;
-                        if (selectedIndexSet) {
+                        const selectedIndex = state.selectedIndex?.down;
+                        if (selectedIndex) {
                             dispatch({
                                 type: 'SET_INDICES',
-                                selectedIndexSet,
+                                selectedIndex,
                             });
                         }
                         break;
                     }
                     case 'ArrowLeft': {
-                        const selectedIndexSet = state.selectedIndex?.left;
-                        if (selectedIndexSet) {
+                        const selectedIndex = state.selectedIndex?.left;
+                        if (selectedIndex) {
                             dispatch({
                                 type: 'SET_INDICES',
-                                selectedIndexSet,
+                                selectedIndex,
                             });
                         }
                         break;
                     }
                     case 'ArrowRight': {
-                        const selectedIndexSet = state.selectedIndex?.right;
-                        if (selectedIndexSet) {
+                        const selectedIndex = state.selectedIndex?.right;
+                        if (selectedIndex) {
                             dispatch({
                                 type: 'SET_INDICES',
-                                selectedIndexSet,
+                                selectedIndex,
                             });
                         }
                         break;
@@ -294,13 +289,13 @@ export const Sudoku: React.FC<SudokuProps> = () => {
                                         }
                                         board={state.board}
                                         selectedIndex={state.selectedIndex}
-                                        setSelectedIndexSet={(indexSet) =>
+                                        setSelectedIndex={(index) =>
                                             dispatch({
                                                 type: 'SET_INDICES',
-                                                selectedIndexSet: indexSet,
+                                                selectedIndex: index,
                                             })
                                         }
-                                        onNoteClick={(note) =>
+                                        onNoteSelected={(note) =>
                                             dispatch({
                                                 type: 'SET_NOTE',
                                                 note,
