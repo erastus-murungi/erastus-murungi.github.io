@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { SudokuStats } from './sudoku-stats';
 import { Label } from '@/components/ui/label';
 import { SudokuGamePausedOverlay, SudokuOverlay } from './sudoku-overlay';
-import { RefState, type ButtonInputValue } from './types';
+import { SudokuRefs, type ButtonInputValue } from './types';
 import { createHistory } from './models/sudoku-history';
 
 const SCORE_REFRESH_INTERVAL_MS = 10_000;
@@ -37,7 +37,7 @@ const ALLOWED_KEYS = [
 type HandledKeyPress = (typeof ALLOWED_KEYS)[number];
 
 export const Sudoku: React.FC = () => {
-    const refs = React.useRef<RefState>({
+    const refs = React.useRef<SudokuRefs>({
         history: createHistory(),
         elapsedSeconds: 0,
         intervalRef: undefined,
@@ -245,6 +245,8 @@ export const Sudoku: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [state.isSudokuSolved]);
 
+    // bg-[url(../../public/cool-background.svg)]
+
     return (
         <div>
             <Header titleHeading="SUDOKU" />
@@ -264,7 +266,11 @@ export const Sudoku: React.FC = () => {
                                         }
                                     />
                                 )}
-                                <SudokuStats {...state} />
+                                <SudokuStats
+                                    moveCount={state.moveCount}
+                                    mistakeCount={state.mistakeCount}
+                                    playerScore={state.playerScore}
+                                />
                                 <div className="relative flex">
                                     {state.stopwatchCommand === 'pause' &&
                                         !state.isSudokuSolved && (

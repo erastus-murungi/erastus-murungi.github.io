@@ -32,6 +32,9 @@ export interface HistoryState {
  * Manages the history of states in a Sudoku game.
  */
 export class SudokuHistory implements Iterable<HistoryState> {
+    /**
+     * The states in the history.
+     */
     private states: List<HistoryState> = List();
     private currentIndex = -1;
 

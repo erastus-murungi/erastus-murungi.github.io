@@ -21,7 +21,11 @@ export const SudokuOverlay: React.FC<SudokuOverlayProps> = ({
                 🐣 🐣 🐣 Congratulations bebi, you solved the puzzle! <br />
                 🐣 🐣 🐣
             </span>
-            <SudokuStats {...state} />
+            <SudokuStats
+                playerScore={state.playerScore}
+                mistakeCount={state.mistakeCount}
+                moveCount={state.moveCount}
+            />
             <div className="space-between flex w-full flex-row items-center justify-center space-y-4">
                 <NewGameButton
                     className="w-40"

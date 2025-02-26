@@ -77,7 +77,7 @@ export const SudokuBoard: React.FC<SudokuBoardProps> = ({
         ]
     );
     return (
-        <div className="relative inline-flex w-full flex-col overflow-hidden border-black bg-white text-black [&_>_div]:border-b-1 [&_>_div]:border-black [&_>_div:first-of-type]:border-t-2 [&_>_div:first-of-type]:border-black [&_>_div:nth-of-type(3n)]:border-b-2 [&_>_div:nth-of-type(3n)]:border-black">
+        <div className="relative inline-flex w-full flex-col overflow-hidden border-black text-black [&_>_div]:border-b-1 [&_>_div]:border-black [&_>_div:first-of-type]:border-t-2 [&_>_div:first-of-type]:border-black [&_>_div:nth-of-type(3n)]:border-b-2 [&_>_div:nth-of-type(3n)]:border-black">
             {board.grid.map((rowValues: SudokuBoardRow, rowIndex: number) => {
                 return (
                     <div

@@ -2,8 +2,8 @@ import {
     Satisfy,
     Indie_Flower,
     Reenie_Beanie,
-    Open_Sans,
     Space_Mono,
+    Space_Grotesk,
 } from 'next/font/google';
 
 const satisfy = Satisfy({
@@ -26,7 +26,7 @@ const reenie_beanie = Reenie_Beanie({
     subsets: ['latin'],
 });
 
-const primaryFont = Open_Sans({
+const primaryFont = Space_Grotesk({
     weight: '400',
     subsets: ['latin'],
 });

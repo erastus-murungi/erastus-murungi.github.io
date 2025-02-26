@@ -2,9 +2,9 @@ import type { Difficulty, ReducerState } from './types';
 
 export const HINT_COUNT: Record<Difficulty, number> = {
     easy: 0,
-    medium: 1,
-    hard: 2,
-    expert: 3,
+    medium: 2,
+    hard: 4,
+    expert: 6,
 };
 
 const MUTLIPLIERS = {

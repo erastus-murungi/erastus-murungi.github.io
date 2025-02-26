@@ -7,7 +7,7 @@ import type {
     ReducerState,
     StopwatchCommand,
     Difficulty,
-    RefState,
+    SudokuRefs,
     HistoryState,
     SudokuCell,
     SudokuIndex,
@@ -102,7 +102,7 @@ type Action =
 
 export function updateRefs(
     action: Action,
-    refState: React.RefObject<RefState>,
+    refState: React.RefObject<SudokuRefs>,
     state: ReducerState
 ): void {
     switch (action.type) {
@@ -235,8 +235,8 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         }
         case 'CALCULATE_SCORE': {
             const { totalSeconds } = action;
-            const score = calculateScore(state, totalSeconds);
-            return { ...state, playerScore: score };
+            const playerScore = calculateScore(state, totalSeconds);
+            return { ...state, playerScore };
         }
         case 'INIT_SODUKU': {
             const { options } = action;

@@ -83,26 +83,22 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
     const isSelected =
         selectedColumnIndex === columnIndex || rowIndex === selectedRowIndex;
 
-    const className = cn(
-        isConflictSquare
-            ? 'bg-red-200'
-            : showNotes
-              ? 'bg-blue-500'
-              : isSelectedBoardIndex
-                ? ''
-                : isSelected
-                  ? 'bg-gray-200'
-                  : '',
-        isHint && 'animate-(--animate-hint)'
-    );
-
     const handleClick = () => setSelectedIndex(index);
 
     return (
         <div
             className={cn(
                 'rainbow relative h-11 w-11 hover:cursor-pointer hover:bg-gray-400 min-[1200px]:h-20 min-[1200px]:w-20 md:h-15 md:w-15 lg:h-16 lg:w-16',
-                className
+                isConflictSquare
+                    ? 'bg-red-200'
+                    : showNotes
+                      ? 'bg-blue-500'
+                      : isSelectedBoardIndex
+                        ? ''
+                        : isSelected
+                          ? 'bg-gray-200'
+                          : 'bg-transparent',
+                isHint && 'animate-(--animate-hint)'
             )}
             onClick={handleClick}
             tabIndex={-1}

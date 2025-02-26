@@ -56,8 +56,24 @@ export interface ReducerState extends HistoryState {
     gameDifficulty: Difficulty;
 }
 
-export interface RefState {
+/**
+ * Represents the `ref`s used in the Sudoku game. The UI doesn't change
+ * based on these refs, but they are used to store state that is not
+ * directly related to the UI.
+ */
+export interface SudokuRefs {
+    /**
+     * The number of seconds that have elapsed since the game started.
+     */
     elapsedSeconds: number;
+
+    /**
+     * The history of moves made in the Sudoku game.
+     */
     history: SudokuHistory;
+
+    /**
+     * A reference to the interval timer used for tracking elapsed time.
+     */
     intervalRef: Maybe<NodeJS.Timeout>;
 }
