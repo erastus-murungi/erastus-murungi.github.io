@@ -6,7 +6,7 @@ const Header: React.FC<{ titleHeading?: string }> = ({ titleHeading }) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
-        <header className="bg-white p-4 shadow-sm">
+        <header className="bg-white p-4 shadow-md">
             <nav
                 className="mx-auto flex max-w-7xl items-center justify-between p-2 lg:px-8"
                 aria-label="Global"

@@ -1,4 +1,4 @@
-import { List, Set } from 'immutable';
+import { List, Set as ImmutableSet } from 'immutable';
 import { toast } from 'sonner';
 
 import { calculateScore, HINT_COUNT } from './utils';
@@ -30,7 +30,27 @@ const getHintMessage = () => {
     return HINT_MESSAGES[randomIndex];
 };
 
-type Action =
+const handleSelectedCell = (
+    state: ReducerState,
+    callback: (callbackArgs: {
+        selectedIndex: SudokuIndex;
+        selectedCell: SudokuCell;
+        board: Board;
+        state: ReducerState;
+    }) => ReducerState
+) => {
+    const { selectedIndex, board } = state;
+    if (selectedIndex === undefined) {
+        return state;
+    }
+    const selectedCell = board.getCellAt(selectedIndex);
+    if (!selectedCell || selectedCell.isFixed) {
+        return state;
+    }
+    return callback({ selectedIndex, selectedCell, board, state });
+};
+
+type BoardRelatedAction =
     | {
           type: 'SUBMIT';
       }
@@ -57,8 +77,8 @@ type Action =
           difficulty: Difficulty;
       }
     | {
-          type: 'SET_WATCH_ACTION';
-          stopWatchAction: StopwatchCommand;
+          type: 'SET_WATCH_COMMAND';
+          stopwatchCommand: StopwatchCommand;
       }
     | {
           type: 'TOGGLE_NOTES';
@@ -66,24 +86,12 @@ type Action =
     | {
           type: 'INIT_SODUKU';
           options:
-              | {
-                    difficulty: Difficulty;
-                    cells: undefined;
-                    board: undefined;
-                }
-              | {
-                    cells: List<SudokuCell>;
-                    difficulty: undefined;
-                    board: undefined;
-                }
-              | {
-                    board: Board;
-                    difficulty: undefined;
-                    cells: undefined;
-                };
+              | { using: 'difficulty'; difficulty: Difficulty }
+              | { using: 'cells'; cells: List<SudokuCell> }
+              | { using: 'board'; board: Board };
       }
     | {
-          type: 'SET_INDICES';
+          type: 'SET_INDEX';
           selectedIndex: SudokuIndex;
       }
     | {
@@ -101,7 +109,7 @@ type Action =
       };
 
 export function updateRefs(
-    action: Action,
+    action: Pick<BoardRelatedAction, 'type'>,
     refState: React.RefObject<SudokuRefs>,
     state: ReducerState
 ): void {
@@ -130,16 +138,18 @@ export function updateRefs(
     }
 }
 
-export function reducer(state: ReducerState, action: Action): ReducerState {
+export function reducer(
+    state: ReducerState,
+    action: BoardRelatedAction
+): ReducerState {
     // eslint-disable-next-line no-console
     console.log('Action', action);
 
     switch (action.type) {
         case 'SET_NOTE': {
-            const { selectedIndex: selectedIndex, notesEnabled: notesOn } =
-                state;
+            const { selectedIndex, notesEnabled } = state;
 
-            if (!notesOn) {
+            if (!notesEnabled) {
                 throw new Error('Notes are not enabled');
             }
             if (selectedIndex === undefined) {
@@ -152,58 +162,51 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
             };
         }
         case 'SET_VALUE': {
-            const { selectedIndex: selectedIndex, board } = state;
-            if (selectedIndex === undefined) {
-                return state;
-            }
-            const { value } = action;
+            return handleSelectedCell(
+                state,
+                ({ selectedCell, board, state, selectedIndex }) => {
+                    const { value } = action;
 
-            const selectedCell = board.getCellAt(selectedIndex);
-            if (!selectedCell || selectedCell.isFixed) {
-                return state;
-            }
+                    if (selectedCell.value === value) {
+                        return {
+                            ...state,
+                            conflictingIndices: ImmutableSet(),
+                            hintIndex: undefined,
+                            board: board.removeCellValue(selectedIndex),
+                        };
+                    }
+                    const { conflictingIndices, updatedBoard } =
+                        state.board.checkForConflictsAndSet(
+                            selectedIndex,
+                            value
+                        );
 
-            if (selectedCell.value === value) {
-                return {
-                    ...state,
-                    conflictingIndices: Set(),
-                    hintIndex: undefined,
-                    board: board.removeCellValue(selectedIndex),
-                };
-            }
-            const { conflictingIndices, updatedBoard } =
-                state.board.checkForConflictsAndSet(selectedIndex, value);
-
-            return {
-                ...state,
-                hintIndex: undefined,
-                moveCount: state.moveCount + 1,
-                isSudokuSolved: updatedBoard.isCompleted,
-                board: updatedBoard,
-                ...(conflictingIndices && conflictingIndices.size > 0
-                    ? {
-                          conflictingIndices,
-                          mistakeCount: state.mistakeCount + 1,
-                      }
-                    : {}),
-            };
+                    return {
+                        ...state,
+                        hintIndex: undefined,
+                        moveCount: state.moveCount + 1,
+                        isSudokuSolved: updatedBoard.isCompleted,
+                        board: updatedBoard,
+                        ...(conflictingIndices && conflictingIndices.size > 0
+                            ? {
+                                  conflictingIndices,
+                                  mistakeCount: state.mistakeCount + 1,
+                              }
+                            : {}),
+                    };
+                }
+            );
         }
         case 'DELETE_VALUE': {
-            const { board, selectedIndex: selectedIndex } = state;
-            if (selectedIndex === undefined) {
-                return state;
-            }
-
-            const selectedValue = board.getCellAt(selectedIndex);
-            if (!selectedValue || selectedValue.isFixed) {
-                return state;
-            }
-            return {
-                ...state,
-                conflictingIndices: Set(),
-                hintIndex: undefined,
-                board: board.removeCellValue(selectedIndex),
-            };
+            return handleSelectedCell(
+                state,
+                ({ board, state, selectedIndex }) => ({
+                    ...state,
+                    hintIndex: undefined,
+                    conflictingIndices: ImmutableSet(),
+                    board: board.removeCellValue(selectedIndex),
+                })
+            );
         }
         case 'TO_STATE': {
             const { historyState } = action;
@@ -212,18 +215,18 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 ...historyState,
             };
         }
-        case 'SET_WATCH_ACTION': {
-            const { stopWatchAction } = action;
-            return { ...state, stopwatchCommand: stopWatchAction };
+        case 'SET_WATCH_COMMAND': {
+            const { stopwatchCommand } = action;
+            return { ...state, stopwatchCommand };
         }
         case 'SUBMIT': {
             return {
                 ...state,
                 board: state.board.revealAllAnswers(),
                 isSudokuSolved: true,
-                hintIndex: undefined,
                 stopwatchCommand: 'pause',
-                conflictingIndices: Set(),
+                hintIndex: undefined,
+                conflictingIndices: ImmutableSet(),
             };
         }
         case 'TOGGLE_NOTES': {
@@ -231,6 +234,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 ...state,
                 notesEnabled: !state.notesEnabled,
                 hintIndex: undefined,
+                conflictingIndices: ImmutableSet(),
             };
         }
         case 'CALCULATE_SCORE': {
@@ -240,11 +244,12 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         }
         case 'INIT_SODUKU': {
             const { options } = action;
-            const board = options.difficulty
-                ? createBoardFromDifficulty(options.difficulty)
-                : options.cells
-                  ? createBoardFromCells(options.cells)
-                  : options.board;
+            const board =
+                options.using === 'difficulty'
+                    ? createBoardFromDifficulty(options.difficulty)
+                    : options.using === 'cells'
+                      ? createBoardFromCells(options.cells)
+                      : options.board;
             return {
                 ...state,
                 overlayVisible: false,
@@ -254,12 +259,13 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                 mistakeCount: 0,
             };
         }
-        case 'SET_INDICES': {
+        case 'SET_INDEX': {
             const { selectedIndex } = action;
             return {
                 ...state,
+                selectedIndex,
                 hintIndex: undefined,
-                selectedIndex: selectedIndex,
+                conflictingIndices: ImmutableSet(),
             };
         }
         case 'HINT': {
@@ -289,6 +295,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
                     ...state,
                     board: updatedBoard,
                     hintIndex,
+                    conflictingIndices: ImmutableSet(),
                     hintUsageCount: state.hintUsageCount - 1,
                 };
             }
@@ -296,7 +303,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         case 'RESET': {
             const { difficulty } = action;
             return {
-                ...INITIAL_STATE,
+                ...INITIAL_BOARD_STATE,
                 board: createBoardFromDifficulty(difficulty),
                 gameDifficulty: difficulty,
                 hintUsageCount: HINT_COUNT[difficulty],
@@ -306,7 +313,7 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
         case 'RESET_CURRENT_BOARD': {
             const { gameDifficulty, board } = state;
             return {
-                ...INITIAL_STATE,
+                ...INITIAL_BOARD_STATE,
                 board: board.reset(),
                 hintUsageCount: HINT_COUNT[gameDifficulty],
                 stopwatchCommand: 'reset',
@@ -324,11 +331,11 @@ export function reducer(state: ReducerState, action: Action): ReducerState {
     }
 }
 
-export const INITIAL_STATE: ReducerState = {
+export const INITIAL_BOARD_STATE: ReducerState = {
     board: createEmptyBoard(),
     selectedIndex: undefined,
     gameDifficulty: 'easy',
-    conflictingIndices: Set(),
+    conflictingIndices: ImmutableSet(),
     hintIndex: undefined,
     notesEnabled: false,
     hintUsageCount: HINT_COUNT['easy'],

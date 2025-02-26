@@ -75,7 +75,7 @@ export default function Home() {
     return (
         <div>
             <Header titleHeading="" />
-            <div className="flex h-screen flex-col items-center justify-center bg-slate-50">
+            <div className="flex h-screen flex-col items-center justify-center">
                 <WelcomeTitle />
                 <WelcomeMessage />
                 <WelcomeImage />

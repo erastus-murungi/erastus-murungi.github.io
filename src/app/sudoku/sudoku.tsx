@@ -7,7 +7,7 @@ import { ButtonBar } from './button-bar';
 import { useReward } from 'react-rewards';
 import { SudokuBoard } from './sudoku-board';
 import { StopWatch } from './stopwatch';
-import { reducer, INITIAL_STATE, updateRefs } from './reducer';
+import { reducer, INITIAL_BOARD_STATE, updateRefs } from './reducer';
 import { Switch } from '@/components/ui/switch';
 import { SudokuStats } from './sudoku-stats';
 import { Label } from '@/components/ui/label';
@@ -35,6 +35,10 @@ const ALLOWED_KEYS = [
 ] as const;
 
 type HandledKeyPress = (typeof ALLOWED_KEYS)[number];
+const asAllowedKeyPress = (key: string) =>
+    ALLOWED_KEYS.includes(key as HandledKeyPress)
+        ? (key as HandledKeyPress)
+        : undefined;
 
 export const Sudoku: React.FC = () => {
     const refs = React.useRef<SudokuRefs>({
@@ -42,57 +46,58 @@ export const Sudoku: React.FC = () => {
         elapsedSeconds: 0,
         intervalRef: undefined,
     });
-    const [state, dispatch] = React.useReducer(reducer, INITIAL_STATE);
+    const [boardState, boardDispatch] = React.useReducer(
+        reducer,
+        INITIAL_BOARD_STATE
+    );
 
     const onKeyDown = React.useCallback(
         (event: globalThis.KeyboardEvent) => {
-            const wasAnyKeyPressed = ALLOWED_KEYS.includes(
-                event.key as HandledKeyPress
-            );
-            if (wasAnyKeyPressed) {
+            const allowedKey = asAllowedKeyPress(event.key);
+            if (allowedKey) {
                 event.preventDefault();
 
-                switch (event.key as HandledKeyPress) {
+                switch (allowedKey) {
                     case 'Backspace': {
-                        dispatch({ type: 'DELETE_VALUE' });
-                        updateRefs({ type: 'DELETE_VALUE' }, refs, state);
+                        boardDispatch({ type: 'DELETE_VALUE' });
+                        updateRefs({ type: 'DELETE_VALUE' }, refs, boardState);
                         break;
                     }
                     case 'ArrowUp': {
-                        const selectedIndex = state.selectedIndex?.up;
+                        const selectedIndex = boardState.selectedIndex?.up;
                         if (selectedIndex) {
-                            dispatch({
-                                type: 'SET_INDICES',
+                            boardDispatch({
+                                type: 'SET_INDEX',
                                 selectedIndex,
                             });
                         }
                         break;
                     }
                     case 'ArrowDown': {
-                        const selectedIndex = state.selectedIndex?.down;
+                        const selectedIndex = boardState.selectedIndex?.down;
                         if (selectedIndex) {
-                            dispatch({
-                                type: 'SET_INDICES',
+                            boardDispatch({
+                                type: 'SET_INDEX',
                                 selectedIndex,
                             });
                         }
                         break;
                     }
                     case 'ArrowLeft': {
-                        const selectedIndex = state.selectedIndex?.left;
+                        const selectedIndex = boardState.selectedIndex?.left;
                         if (selectedIndex) {
-                            dispatch({
-                                type: 'SET_INDICES',
+                            boardDispatch({
+                                type: 'SET_INDEX',
                                 selectedIndex,
                             });
                         }
                         break;
                     }
                     case 'ArrowRight': {
-                        const selectedIndex = state.selectedIndex?.right;
+                        const selectedIndex = boardState.selectedIndex?.right;
                         if (selectedIndex) {
-                            dispatch({
-                                type: 'SET_INDICES',
+                            boardDispatch({
+                                type: 'SET_INDEX',
                                 selectedIndex,
                             });
                         }
@@ -101,17 +106,17 @@ export const Sudoku: React.FC = () => {
                     default: {
                         const value = Number.parseInt(event.key, 10);
                         if (value <= 9 && value >= 1) {
-                            if (state.notesEnabled) {
-                                dispatch({
+                            if (boardState.notesEnabled) {
+                                boardDispatch({
                                     type: 'SET_NOTE',
                                     note: value,
                                 });
                             } else {
-                                dispatch({ type: 'SET_VALUE', value });
+                                boardDispatch({ type: 'SET_VALUE', value });
                                 updateRefs(
-                                    { type: 'SET_VALUE', value },
+                                    { type: 'SET_VALUE' },
                                     refs,
-                                    state
+                                    boardState
                                 );
                             }
                         }
@@ -120,32 +125,26 @@ export const Sudoku: React.FC = () => {
                 }
             }
         },
-        [state]
+        [boardState]
     );
 
     React.useEffect(() => {
-        dispatch({
+        boardDispatch({
             type: 'INIT_SODUKU',
             options: {
-                board: undefined,
-                cells: undefined,
-                difficulty: state.gameDifficulty,
+                using: 'difficulty',
+                difficulty: boardState.gameDifficulty,
             },
         });
         updateRefs(
             {
                 type: 'INIT_SODUKU',
-                options: {
-                    board: undefined,
-                    cells: undefined,
-                    difficulty: state.gameDifficulty,
-                },
             },
             refs,
-            state
+            boardState
         );
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [state.gameDifficulty]);
+    }, [boardState.gameDifficulty]);
 
     React.useEffect(() => {
         document.addEventListener('keydown', onKeyDown);
@@ -155,53 +154,54 @@ export const Sudoku: React.FC = () => {
     }, [onKeyDown]);
 
     React.useEffect(() => {
-        if (refs.current.intervalRef) {
-            clearInterval(refs.current.intervalRef);
-        }
-        if (state.stopwatchCommand === 'start' && !state.overlayVisible) {
+        clearInterval(refs.current.intervalRef);
+        if (
+            boardState.stopwatchCommand === 'start' &&
+            !boardState.overlayVisible
+        ) {
             refs.current.intervalRef = setInterval(() => {
-                dispatch({
+                boardDispatch({
                     type: 'CALCULATE_SCORE',
                     totalSeconds: refs.current.elapsedSeconds,
                 });
             }, SCORE_REFRESH_INTERVAL_MS);
         }
-    }, [state.stopwatchCommand, state.overlayVisible]);
+    }, [boardState.stopwatchCommand, boardState.overlayVisible]);
 
     const handleButtonPress = React.useCallback(
         (value: ButtonInputValue) => {
             if (typeof value === 'string') {
                 switch (value) {
                     case 'submit': {
-                        dispatch({ type: 'SUBMIT' });
+                        boardDispatch({ type: 'SUBMIT' });
                         break;
                     }
                     case 'reset': {
-                        dispatch({ type: 'RESET_CURRENT_BOARD' });
+                        boardDispatch({ type: 'RESET_CURRENT_BOARD' });
                         updateRefs(
                             { type: 'RESET_CURRENT_BOARD' },
                             refs,
-                            state
+                            boardState
                         );
                         break;
                     }
                     case 'undo': {
                         const historyState = refs.current.history.undo();
                         if (historyState) {
-                            dispatch({ type: 'TO_STATE', historyState });
+                            boardDispatch({ type: 'TO_STATE', historyState });
                         }
                         break;
                     }
                     case 'hint': {
-                        dispatch({ type: 'HINT' });
+                        boardDispatch({ type: 'HINT' });
                         break;
                     }
                     case 'toggle-notes': {
-                        dispatch({ type: 'TOGGLE_NOTES' });
+                        boardDispatch({ type: 'TOGGLE_NOTES' });
                         break;
                     }
                     case 'togge-auto-check': {
-                        dispatch({ type: 'TOGGLE_AUTO_CHECK' });
+                        boardDispatch({ type: 'TOGGLE_AUTO_CHECK' });
                         break;
                     }
                     default: {
@@ -209,23 +209,19 @@ export const Sudoku: React.FC = () => {
                     }
                 }
             } else if (typeof value === 'number') {
-                if (state.notesEnabled) {
-                    dispatch({ type: 'SET_NOTE', note: value });
-                    updateRefs({ type: 'SET_NOTE', note: value }, refs, state);
+                if (boardState.notesEnabled) {
+                    boardDispatch({ type: 'SET_NOTE', note: value });
+                    updateRefs({ type: 'SET_NOTE' }, refs, boardState);
                 } else {
-                    dispatch({ type: 'SET_VALUE', value });
-                    updateRefs({ type: 'SET_VALUE', value }, refs, state);
+                    boardDispatch({ type: 'SET_VALUE', value });
+                    updateRefs({ type: 'SET_VALUE' }, refs, boardState);
                 }
             } else if (value.type === 'change-difficulty') {
-                updateRefs(
-                    { type: 'RESET', difficulty: value.to },
-                    refs,
-                    state
-                );
-                dispatch({ type: 'RESET', difficulty: value.to });
+                updateRefs({ type: 'RESET' }, refs, boardState);
+                boardDispatch({ type: 'RESET', difficulty: value.to });
             }
         },
-        [state]
+        [boardState]
     );
 
     const { reward: confettiReward } = useReward('confettiReward', 'confetti', {
@@ -236,16 +232,14 @@ export const Sudoku: React.FC = () => {
     });
 
     React.useEffect(() => {
-        if (state.isSudokuSolved === true) {
+        if (boardState.isSudokuSolved === true) {
             confettiReward();
             setTimeout(() => {
-                dispatch({ type: 'TOGGLE_SHOW_OVERLAY' });
+                boardDispatch({ type: 'TOGGLE_SHOW_OVERLAY' });
             }, 5000);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [state.isSudokuSolved]);
-
-    // bg-[url(../../public/cool-background.svg)]
+    }, [boardState.isSudokuSolved]);
 
     return (
         <div>
@@ -255,11 +249,11 @@ export const Sudoku: React.FC = () => {
                     <div className="inline-flex flex-col items-center justify-center min-[1120px]:flex-row">
                         <div className="flex flex-col items-center justify-center">
                             <div className="inline-flex flex-col items-stretch justify-stretch">
-                                {state.overlayVisible && (
+                                {boardState.overlayVisible && (
                                     <SudokuOverlay
-                                        state={state}
+                                        state={boardState}
                                         onClick={(difficulty) =>
-                                            dispatch({
+                                            boardDispatch({
                                                 type: 'RESET',
                                                 difficulty,
                                             })
@@ -267,42 +261,42 @@ export const Sudoku: React.FC = () => {
                                     />
                                 )}
                                 <SudokuStats
-                                    moveCount={state.moveCount}
-                                    mistakeCount={state.mistakeCount}
-                                    playerScore={state.playerScore}
+                                    moveCount={boardState.moveCount}
+                                    mistakeCount={boardState.mistakeCount}
+                                    playerScore={boardState.playerScore}
                                 />
                                 <div className="relative flex">
-                                    {state.stopwatchCommand === 'pause' &&
-                                        !state.isSudokuSolved && (
+                                    {boardState.stopwatchCommand === 'pause' &&
+                                        !boardState.isSudokuSolved && (
                                             <SudokuGamePausedOverlay
                                                 onClick={() =>
-                                                    dispatch({
-                                                        type: 'SET_WATCH_ACTION',
-                                                        stopWatchAction:
+                                                    boardDispatch({
+                                                        type: 'SET_WATCH_COMMAND',
+                                                        stopwatchCommand:
                                                             'start',
                                                     })
                                                 }
                                             />
                                         )}
                                     <SudokuBoard
-                                        notesEnabled={state.notesEnabled}
+                                        notesEnabled={boardState.notesEnabled}
                                         autoCheckEnabled={
-                                            state.autoCheckEnabled
+                                            boardState.autoCheckEnabled
                                         }
-                                        hintIndex={state.hintIndex}
+                                        hintIndex={boardState.hintIndex}
                                         conflictingIndices={
-                                            state.conflictingIndices
+                                            boardState.conflictingIndices
                                         }
-                                        board={state.board}
-                                        selectedIndex={state.selectedIndex}
-                                        setSelectedIndex={(index) =>
-                                            dispatch({
-                                                type: 'SET_INDICES',
-                                                selectedIndex: index,
+                                        board={boardState.board}
+                                        selectedIndex={boardState.selectedIndex}
+                                        setSelectedIndex={(selectedIndex) =>
+                                            boardDispatch({
+                                                type: 'SET_INDEX',
+                                                selectedIndex,
                                             })
                                         }
                                         onNoteSelected={(note) =>
-                                            dispatch({
+                                            boardDispatch({
                                                 type: 'SET_NOTE',
                                                 note,
                                             })
@@ -323,7 +317,7 @@ export const Sudoku: React.FC = () => {
                                 <div className="flex items-center space-x-2">
                                     <Switch
                                         id="switch-toggle-auto-check"
-                                        checked={state.autoCheckEnabled}
+                                        checked={boardState.autoCheckEnabled}
                                         onCheckedChange={() =>
                                             handleButtonPress(
                                                 'togge-auto-check'
@@ -335,11 +329,13 @@ export const Sudoku: React.FC = () => {
                                     </Label>
                                 </div>
                                 <StopWatch
-                                    stopwatchCommand={state.stopwatchCommand}
-                                    setStopwatchCommand={(stopWatchAction) =>
-                                        dispatch({
-                                            type: 'SET_WATCH_ACTION',
-                                            stopWatchAction,
+                                    stopwatchCommand={
+                                        boardState.stopwatchCommand
+                                    }
+                                    setStopwatchCommand={(stopwatchCommand) =>
+                                        boardDispatch({
+                                            type: 'SET_WATCH_COMMAND',
+                                            stopwatchCommand,
                                         })
                                     }
                                     setElapsedSeconds={(seconds) => {
@@ -350,8 +346,8 @@ export const Sudoku: React.FC = () => {
 
                             <ButtonBar
                                 onClick={handleButtonPress}
-                                notesOn={state.notesEnabled}
-                                hintsRemaining={state.hintUsageCount}
+                                notesOn={boardState.notesEnabled}
+                                hintsRemaining={boardState.hintUsageCount}
                             />
                         </div>
                     </div>
