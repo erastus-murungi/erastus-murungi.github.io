@@ -1,6 +1,12 @@
 import { List, Set as ImmutableSet } from 'immutable';
 import { toast } from 'sonner';
 
+import {
+    createBoardFromCells,
+    createBoardFromDifficulty,
+    createEmptyBoard,
+} from './models/sudoku-board';
+import { createHistory } from './models/sudoku-history';
 import { calculateScore, HINT_COUNT } from './utils';
 
 import type {
@@ -13,12 +19,6 @@ import type {
     SudokuIndex,
     Board,
 } from './types';
-import {
-    createBoardFromCells,
-    createBoardFromDifficulty,
-    createEmptyBoard,
-} from './models/sudoku-board';
-import { createHistory } from './models/sudoku-history';
 
 const HINT_MESSAGES = [
     'No more hints available for Bebi Bebi 🐧. Nisuke nikuongezee 😉',
@@ -50,66 +50,72 @@ const handleSelectedCell = (
     return callback({ selectedIndex, selectedCell, board, state });
 };
 
-type BoardRelatedAction =
-    | {
-          type: 'SUBMIT';
-      }
-    | {
-          type: 'SET_VALUE';
-          value: number;
-      }
-    | {
-          type: 'SET_NOTE';
-          note: number;
-      }
-    | {
-          type: 'DELETE_VALUE';
-      }
-    | {
-          type: 'TO_STATE';
-          historyState: HistoryState;
-      }
-    | {
-          type: 'RESET_CURRENT_BOARD';
-      }
-    | {
-          type: 'RESET';
-          difficulty: Difficulty;
-      }
-    | {
-          type: 'SET_WATCH_COMMAND';
-          stopwatchCommand: StopwatchCommand;
-      }
-    | {
-          type: 'TOGGLE_NOTES';
-      }
-    | {
-          type: 'INIT_SODUKU';
-          options:
-              | { using: 'difficulty'; difficulty: Difficulty }
-              | { using: 'cells'; cells: List<SudokuCell> }
-              | { using: 'board'; board: Board };
-      }
-    | {
-          type: 'SET_INDEX';
-          selectedIndex: SudokuIndex;
-      }
-    | {
-          type: 'CALCULATE_SCORE';
-          totalSeconds: number;
-      }
-    | {
-          type: 'HINT';
-      }
-    | {
-          type: 'TOGGLE_AUTO_CHECK';
-      }
-    | {
-          type: 'TOGGLE_SHOW_OVERLAY';
-      };
+type InitSudokuOptions =
+    | { using: 'difficulty'; difficulty: Difficulty }
+    | { using: 'cells'; cells: List<SudokuCell> }
+    | { using: 'board'; board: Board };
+
+/**
+ * SudokuBoardAction - Represents the various actions that can be performed on the Sudoku board.
+ *
+ * Actions:
+ * - 'SUBMIT': Submits the current board, revealing all answers and marking the puzzle as solved.
+ *
+ * - 'SET_VALUE': Sets a specific value in the selected cell.
+ *   - value: The number to be set in the selected cell.
+ *
+ * - 'SET_NOTE': Adds a note to the selected cell.
+ *   - note: The note number to be added to the selected cell.
+ *
+ * - 'DELETE_VALUE': Deletes the value from the selected cell.
+ *
+ * - 'TO_STATE': Transitions the board to a specific historical state.
+ *   - historyState: The state to transition to, as recorded in the history.
+ *
+ * - 'RESET_CURRENT_BOARD': Resets the current board to its initial state, clearing all user inputs.
+ *
+ * - 'RESET': Resets the board based on a specified difficulty level.
+ *   - difficulty: The difficulty level to reset the board to (e.g., easy, medium, hard).
+ *
+ * - 'SET_STOPWATCH_COMMAND': Sets a command for the stopwatch (e.g., start, pause, reset).
+ *   - stopwatchCommand: The command to be executed by the stopwatch.
+ *
+ * - 'TOGGLE_NOTES': Toggles the notes feature, allowing users to add or remove notes in cells.
+ *
+ * - 'INIT_SODUKU': Initializes the Sudoku board with specific options.
+ *   - options: The initialization options, which can be based on difficulty, cells, or a predefined board.
+ *
+ * - 'SET_SELECTED_INDEX': Sets the currently selected cell index.
+ *   - selectedIndex: The index of the cell to be selected.
+ *
+ * - 'CALCULATE_SCORE': Calculates the player's score based on the time taken to solve the puzzle.
+ *   - totalSeconds: The total time in seconds taken to solve the puzzle.
+ *
+ * - 'REQUEST_HINT': Provides a hint for the current board, if available.
+ *
+ * - 'TOGGLE_AUTO_CHECK': Toggles the auto-check feature, which automatically checks for conflicts.
+ *
+ * - 'TOGGLE_OVERLAY_VISIBILITY': Toggles the visibility of the overlay, which may display additional information or options.
+ */
+type SudokuBoardAction =
+    | { type: 'SUBMIT' }
+    | { type: 'SET_VALUE'; value: number }
+    | { type: 'SET_NOTE'; note: number }
+    | { type: 'DELETE_VALUE' }
+    | { type: 'TO_STATE'; historyState: HistoryState }
+    | { type: 'RESET_CURRENT_BOARD' }
+    | { type: 'RESET'; difficulty: Difficulty }
+    | { type: 'SET_STOPWATCH_COMMAND'; stopwatchCommand: StopwatchCommand }
+    | { type: 'TOGGLE_NOTES' }
+    | { type: 'INIT_SODUKU'; options: InitSudokuOptions }
+    | { type: 'SET_SELECTED_INDEX'; selectedIndex: SudokuIndex }
+    | { type: 'CALCULATE_SCORE'; totalSeconds: number }
+    | { type: 'REQUEST_HINT' }
+    | { type: 'TOGGLE_AUTO_CHECK' }
+    | { type: 'TOGGLE_OVERLAY_VISIBILITY' };
 
 export function updateRefs(
-    action: Pick<BoardRelatedAction, 'type'>,
+    action: Pick<SudokuBoardAction, 'type'>,
     refState: React.RefObject<SudokuRefs>,
     state: ReducerState
 ): void {
@@ -140,7 +146,7 @@ export function updateRefs(
 
 export function reducer(
     state: ReducerState,
-    action: BoardRelatedAction
+    action: SudokuBoardAction
 ): ReducerState {
     // eslint-disable-next-line no-console
     console.log('Action', action);
@@ -215,7 +221,7 @@ export function reducer(
                 ...historyState,
             };
         }
-        case 'SET_WATCH_COMMAND': {
+        case 'SET_STOPWATCH_COMMAND': {
             const { stopwatchCommand } = action;
             return { ...state, stopwatchCommand };
         }
@@ -259,7 +265,7 @@ export function reducer(
                 mistakeCount: 0,
             };
         }
-        case 'SET_INDEX': {
+        case 'SET_SELECTED_INDEX': {
             const { selectedIndex } = action;
             return {
                 ...state,
@@ -268,7 +274,7 @@ export function reducer(
                 conflictingIndices: ImmutableSet(),
             };
         }
-        case 'HINT': {
+        case 'REQUEST_HINT': {
             const { board, hintUsageCount: hintCount } = state;
             const description = getHintMessage();
 
@@ -303,7 +309,7 @@ export function reducer(
         case 'RESET': {
             const { difficulty } = action;
             return {
-                ...INITIAL_BOARD_STATE,
+                ...INITIAL_SUDOKU_STATE,
                 board: createBoardFromDifficulty(difficulty),
                 gameDifficulty: difficulty,
                 hintUsageCount: HINT_COUNT[difficulty],
@@ -313,7 +319,7 @@ export function reducer(
         case 'RESET_CURRENT_BOARD': {
             const { gameDifficulty, board } = state;
             return {
-                ...INITIAL_BOARD_STATE,
+                ...INITIAL_SUDOKU_STATE,
                 board: board.reset(),
                 hintUsageCount: HINT_COUNT[gameDifficulty],
                 stopwatchCommand: 'reset',
@@ -322,7 +328,7 @@ export function reducer(
         case 'TOGGLE_AUTO_CHECK': {
             return { ...state, autoCheckEnabled: !state.autoCheckEnabled };
         }
-        case 'TOGGLE_SHOW_OVERLAY': {
+        case 'TOGGLE_OVERLAY_VISIBILITY': {
             return { ...state, overlayVisible: !state.overlayVisible };
         }
         default: {
@@ -331,7 +337,7 @@ export function reducer(
     }
 }
 
-export const INITIAL_BOARD_STATE: ReducerState = {
+export const INITIAL_SUDOKU_STATE: ReducerState = {
     board: createEmptyBoard(),
     selectedIndex: undefined,
     gameDifficulty: 'easy',

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Set as ImmutableSet } from 'immutable';
-import { SudokuSquare } from './sudoku-square';
+import { SudokuCell } from './sudoku-cell';
 import { createSudokuIndex } from './models/sudoku-index';
 import type {
     SudokuBoardRow,
@@ -50,7 +50,7 @@ export const SudokuBoard: React.FC<SudokuBoardProps> = ({
                     selectedIndex === index && !conflictingIndices.isEmpty();
 
                 return (
-                    <SudokuSquare
+                    <SudokuCell
                         key={`$square-${rowIndex}-${columnIndex}`}
                         cell={cell}
                         index={index}

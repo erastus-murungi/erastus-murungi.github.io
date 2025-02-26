@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import type { SudokuCell, SudokuIndex } from './types';
+import type { SudokuCell as Cell, SudokuIndex } from './types';
 
 const ValueValidationState = {
     AUTOCHECK_CORRECT: 'autocheck-correct',
@@ -11,10 +11,7 @@ const ValueValidationState = {
 type ValueValidationState =
     (typeof ValueValidationState)[keyof typeof ValueValidationState];
 
-function computeValueValidationState(
-    autoCheckEnabled: boolean,
-    cell: SudokuCell
-) {
+function computeValueValidationState(autoCheckEnabled: boolean, cell: Cell) {
     if (!cell.isFixed && autoCheckEnabled && !cell.isBlank) {
         return cell.isCorrectlyFilledByUser
             ? ValueValidationState.AUTOCHECK_CORRECT
@@ -43,9 +40,9 @@ function getColorClass(valueValidationState: ValueValidationState) {
         : 'text-inherit';
 }
 
-export interface SudokuSquareProps {
+export interface SudokuCellProps {
     index: SudokuIndex;
-    cell: SudokuCell;
+    cell: Cell;
     showNotes: boolean;
     isConflictSquare: boolean;
     isHint: boolean;
@@ -56,7 +53,7 @@ export interface SudokuSquareProps {
     onNoteSelected(note: number): void;
 }
 
-export const SudokuSquare: React.FC<SudokuSquareProps> = ({
+export const SudokuCell: React.FC<SudokuCellProps> = ({
     selectedIndex,
     index,
     cell,
@@ -149,4 +146,4 @@ export const SudokuSquare: React.FC<SudokuSquareProps> = ({
     );
 };
 
-SudokuSquare.displayName = 'SudokuSquare';
+SudokuCell.displayName = 'SudokuSquare';
