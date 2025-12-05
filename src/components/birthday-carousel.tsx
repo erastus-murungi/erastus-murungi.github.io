@@ -68,7 +68,7 @@ export function BirthdayCarousel() {
                 <h3
                     className={`photo-gallery-heading text-4xl font-bold sm:text-5xl ${pacifico.className}`}
                 >
-                    Our Beautiful Moments
+                    Your Beautiful Moments
                 </h3>
                 <p className="mt-2 text-lg text-blue-600">
                     {currentIndex + 1} of {photos.length}

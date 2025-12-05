@@ -23,6 +23,7 @@ interface Balloon {
 export function BirthdayPopup() {
     const [open, setOpen] = React.useState(false);
     const [balloons, setBalloons] = React.useState<Balloon[]>([]);
+    const hasOpenedRef = React.useRef(false);
     const router = useRouter();
     const { reward: confettiReward } = useReward('confettiReward', 'confetti', {
         lifetime: 5000,
@@ -48,6 +49,13 @@ export function BirthdayPopup() {
     });
 
     React.useEffect(() => {
+        // Only open popup once on initial mount
+        if (hasOpenedRef.current) {
+            return;
+        }
+
+        hasOpenedRef.current = true;
+
         // Open popup after 500ms delay
         const timer = setTimeout(() => {
             setOpen(true);
@@ -140,7 +148,7 @@ export function BirthdayPopup() {
             />
 
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="max-w-md overflow-hidden border-4 border-blue-400 bg-gradient-to-br from-sky-100 via-blue-100 to-cyan-50 p-0 shadow-2xl sm:max-w-lg">
+                <DialogContent className="max-w-md overflow-hidden border-4 border-blue-400 bg-gradient-to-br from-sky-100 via-blue-100 to-cyan-50 p-0 shadow-2xl sm:max-w-lg [&>button]:z-[60] [&>button]:border-2 [&>button]:border-blue-400 [&>button]:bg-white [&>button]:text-blue-600 [&>button]:opacity-100 [&>button]:shadow-md [&>button]:hover:bg-blue-50 [&>button]:hover:text-blue-700">
                     {/* Floating balloons */}
                     <div className="pointer-events-none absolute inset-0 overflow-hidden">
                         {balloons.map((balloon) => (

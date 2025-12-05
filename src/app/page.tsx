@@ -6,12 +6,15 @@ import { getImageUrl } from '@/lib/image-utils';
 import { BiMath } from 'react-icons/bi';
 import { GiPenguin } from 'react-icons/gi';
 import Link from 'next/link';
-import { buttonVariants } from '@/components/ui/button';
 import Header from './header';
 import { BirthdayPopup } from '@/components/birthday-popup';
 
 function WelcomeTitle() {
-    return <div className="mb-4 text-4xl">Pepi Pepi 💕</div>;
+    return (
+        <div className="mb-4 text-4xl font-bold text-blue-700">
+            Pepi Pepi 💕
+        </div>
+    );
 }
 
 function WelcomeImage() {
@@ -21,7 +24,7 @@ function WelcomeImage() {
             alt="Pingu Pingu"
             width={300}
             height={300}
-            className="mx-4 mb-8 border-4 border-t-gray-50 shadow-lg"
+            className="mx-4 mb-8 border-4 border-blue-400 shadow-lg shadow-blue-200"
         />
     );
 }
@@ -40,7 +43,7 @@ function WelcomeAudio() {
 
 function WelcomeMessage() {
     return (
-        <p className="mb-8">
+        <p className="mb-8 text-blue-600">
             Welcome to your playground! 🎉
             <br />I hope you enjoy your stay! 🏡
         </p>
@@ -52,21 +55,15 @@ function Navigation() {
         <div className="flex flex-row space-x-4">
             <Link
                 href="/memories"
-                className={`h-12 w-32 rounded-3xl text-4xl ${buttonVariants({
-                    variant: 'outline',
-                })}`}
+                className="inline-flex h-12 w-32 items-center justify-center rounded-3xl border-2 border-blue-400 bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
             >
-                <GiPenguin />
-                Memories
+                <GiPenguin className="text-4xl" />
             </Link>
             <Link
                 href="/sudoku"
-                className={`h-12 w-32 rounded-3xl ${buttonVariants({
-                    variant: 'outline',
-                })}`}
+                className="inline-flex h-12 w-32 items-center justify-center rounded-3xl border-2 border-blue-400 bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
             >
-                <BiMath />
-                Sudoku
+                <BiMath className="text-4xl" />
             </Link>
         </div>
     );
@@ -74,7 +71,7 @@ function Navigation() {
 
 export default function Home() {
     return (
-        <div>
+        <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-100 to-cyan-100">
             <BirthdayPopup />
             <Header titleHeading="" />
             <div className="flex h-screen flex-col items-center justify-center">
