@@ -1,66 +1,77 @@
-import react from 'eslint-plugin-react';
-import reactHooks from 'eslint-plugin-react-hooks';
-import jsxA11y from 'eslint-plugin-jsx-a11y';
 import globals from 'globals';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import js from '@eslint/js';
-import { FlatCompat } from '@eslint/eslintrc';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all,
-});
+import tseslint from 'typescript-eslint';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
+import unicornPlugin from 'eslint-plugin-unicorn';
+import nextPlugin from '@next/eslint-plugin-next';
 
 export default [
-    ...compat.extends(
-        'eslint:recommended',
-        'plugin:react/recommended',
-        'next/core-web-vitals',
-        'plugin:@typescript-eslint/strict',
-        'plugin:unicorn/recommended',
-        'plugin:jsx-a11y/recommended'
-    ),
+    js.configs.recommended,
+    ...tseslint.configs.strict,
     {
+        files: ['**/*.{js,mjs,cjs,jsx,ts,tsx}'],
         plugins: {
-            react,
-            reactHooks,
-            jsxA11y,
+            react: reactPlugin,
+            'react-hooks': reactHooksPlugin,
+            'jsx-a11y': jsxA11yPlugin,
+            unicorn: unicornPlugin,
+            '@next/next': nextPlugin,
         },
-
         languageOptions: {
             globals: {
                 ...globals.browser,
                 ...globals.node,
                 ...globals.vitest,
             },
+            parserOptions: {
+                ecmaFeatures: {
+                    jsx: true,
+                },
+            },
         },
-
         settings: {
             react: {
                 version: 'detect',
             },
         },
-
         rules: {
+            // React rules
+            ...reactPlugin.configs.recommended.rules,
+            'react/react-in-jsx-scope': 'off', // Not needed in Next.js
+            'react/no-direct-mutation-state': 'error',
+
+            // React Hooks rules
+            ...reactHooksPlugin.configs.recommended.rules,
+            'react-hooks/exhaustive-deps': 'warn',
+
+            // JSX A11y rules
+            ...jsxA11yPlugin.configs.recommended.rules,
+
+            // Unicorn rules
+            ...unicornPlugin.configs.recommended.rules,
+            'unicorn/prevent-abbreviations': 'off',
+            'unicorn/no-nested-ternary': 'off',
+
+            // Next.js rules
+            ...nextPlugin.configs.recommended.rules,
+            ...nextPlugin.configs['core-web-vitals'].rules,
+            '@next/next/no-img-element': 'off',
+
+            // General rules
             'no-duplicate-imports': 'error',
             'no-await-in-loop': 'error',
             'no-console': 'error',
-            'react/no-direct-mutation-state': 'error',
-            'react-hooks/exhaustive-deps': 'warn',
-            '@next/next/no-img-element': 'off',
-            'unicorn/prevent-abbreviations': 'off',
-            'unicorn/no-nested-ternary': 'off',
             eqeqeq: 'error',
             curly: ['error', 'all'],
+
+            // Disable prop-types for TypeScript files
+            'react/prop-types': 'off',
         },
     },
     {
         files: ['**/*.config.js', '**/*.config.ts', '**/*.config.mjs'],
-
         rules: {
             'import/no-anonymous-default-export': 'off',
         },

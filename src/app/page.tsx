@@ -8,6 +8,7 @@ import { GiPenguin } from 'react-icons/gi';
 import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import Header from './header';
+import { BirthdayPopup } from '@/components/birthday-popup';
 
 function WelcomeTitle() {
     return <div className="mb-4 text-4xl">Pepi Pepi 💕</div>;
@@ -74,6 +75,7 @@ function Navigation() {
 export default function Home() {
     return (
         <div>
+            <BirthdayPopup />
             <Header titleHeading="" />
             <div className="flex h-screen flex-col items-center justify-center">
                 <WelcomeTitle />

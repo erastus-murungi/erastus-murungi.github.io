@@ -327,8 +327,8 @@ export const Sudoku: React.FC = () => {
                                     />
                                 </div>
                             </div>
-                            <span id="confettiReward" z-index={100} />
-                            <span id="balloonsReward" z-index={101} />
+                            <span id="confettiReward" style={{ zIndex: 100 }} />
+                            <span id="balloonsReward" style={{ zIndex: 101 }} />
                             <span
                                 className={`${reenie_beanie.className} mt-4 w-full justify-start text-xl italic`}
                             >

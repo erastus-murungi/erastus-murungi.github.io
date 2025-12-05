@@ -1,5 +1,3 @@
-'use client';
-
 import * as React from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Sudoku } from './sudoku';
